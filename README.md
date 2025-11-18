@@ -1,4 +1,3 @@
-
 # 🏥 Tugas Rekayasa Interaksi — Aplikasi Puskesmas
 
 Project ini merupakan tugas mata kuliah **Rekayasa Interaksi** dengan tema **Aplikasi Puskesmas**.  
@@ -36,7 +35,7 @@ Project ini berfokus pada penerapan antarmuka yang intuitif, kemudahan interaksi
 
 ---
 
-## ⚙ Tech Stack
+## ⚙️ Tech Stack
 
 - **Flutter** 3.7.0 - UI Framework
 - **GetX** 4.7.2 - State Management & Routing
@@ -51,7 +50,7 @@ Project ini berfokus pada penerapan antarmuka yang intuitif, kemudahan interaksi
 
 ## 📁 Struktur Project
 
-
+```
 lib/
 ├── app/
 │   ├── data/           # Models, services, repositories
@@ -67,7 +66,7 @@ assets/
 ├── fonts/              # Custom fonts
 ├── icons/              # SVG icons
 └── images/             # Image assets
-
+```
 
 ---
 
@@ -82,15 +81,15 @@ assets/
 ### Installation
 
 1. Clone repository
-	bash
+	```bash
 	git clone https://github.com/FaizalTrianto03/App-Puskesmas-Tugas-RI.git
 	cd App-Puskesmas-Tugas-RI
-	
+	```
 
 2. Install dependencies
-	bash
+	```bash
 	flutter pub get
-	
+	```
 
 3. Setup Firebase
 	- Copy `.env.example` ke `.env`
@@ -98,9 +97,9 @@ assets/
 	- Konfigurasi `firebase_options.dart`
 
 4. Run app
-	bash
+	```bash
 	flutter run
-	
+	```
 
 ---
 
