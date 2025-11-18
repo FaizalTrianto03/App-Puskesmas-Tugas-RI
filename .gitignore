@@ -1,8 +1,11 @@
-# Miscellaneous
+# ───────────────────────────────
+# General / Miscellaneous
+# ───────────────────────────────
 *.class
 *.log
 *.pyc
 *.swp
+*.tmp
 .DS_Store
 .atom/
 .build/
@@ -12,34 +15,93 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# ───────────────────────────────
+# IDE / Editor
+# ───────────────────────────────
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
+.vscode/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ───────────────────────────────
+# Flutter / Dart / Pub
+# ───────────────────────────────
 .dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-/build/
+build/
+flutter_*.png
+.flutter-plugins
+.flutter-plugins-dependencies
+generated_plugin_registrant.dart
+**/doc/api/
 
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
+# ───────────────────────────────
+# Android
+# ───────────────────────────────
+android/.gradle/
+android/app/build/
+android/local.properties
+android/key.properties
+android/.idea/
+android/*.iml
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ───────────────────────────────
+# iOS
+# ───────────────────────────────
+ios/Flutter/.last_build_id
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/ServiceDefinitions.json
+ios/Runner.xcworkspace/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/Runner.xcodeproj/xcuserdata/
+
+# ───────────────────────────────
+# macOS
+# ───────────────────────────────
+macos/Flutter/ephemeral/
+macos/Pods/
+macos/.symlinks/
+macos/Runner.xcworkspace/
+macos/Runner.xcodeproj/xcuserdata/
+
+# ───────────────────────────────
+# Windows
+# ───────────────────────────────
+windows/flutter/ephemeral/
+windows/build/
+
+# ───────────────────────────────
+# Web
+# ───────────────────────────────
+web/.dart_tool/
+web/.flutter-plugins
+web/.flutter-plugins-dependencies
+
+# ───────────────────────────────
+# Firebase / Secrets
+# ───────────────────────────────
+.env
+firebase.json
+firebase-debug.log
+.firebase/
+**/firebase.json
+**/firebase-debug.log
+**/.firebase/
+**/GoogleService-Info.plist
+**/google-services.json
+**/firebase_app_id_file.json
+
+# ───────────────────────────────
+# Build Symbols / Obfuscation
+# ───────────────────────────────
+app.*.symbols
+app.*.map.json
