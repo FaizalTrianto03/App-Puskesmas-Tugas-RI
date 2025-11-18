@@ -14,8 +14,9 @@ Aplikasi Puskesmas ini dirancang untuk mempermudah akses layanan kesehatan bagi 
 ### Fitur Utama:
 - **Multi-role System** - 5 role berbeda (Pasien, Dokter, Perawat, Apoteker, Admin)
 - **Pendaftaran Online** - Pasien dapat mendaftar secara daring
-- **Jadwal Dokter** - Informasi jadwal praktek dokter
-- **Riwayat Kunjungan** - Tracking riwayat medis pasien
+- **Monitoring Pasien** - Daftar pasien yang mengantri ke dokter
+- **Rekam Medis Terintegrasi** - Akses riwayat rekam medis pasien
+- **Riwayat Kunjungan** - Tracking riwayat kunjungan pasien ke puskesmas
 - **Manajemen Antrian** - Sistem antrian digital
 - **Manajemen Obat** - Pengelolaan resep dan stok obat
 - **Firebase Integration** - Real-time database dan authentication
