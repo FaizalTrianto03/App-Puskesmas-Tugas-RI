@@ -1,12 +1,56 @@
 part of 'app_pages.dart';
-// DO NOT EDIT. This is code generated via package:get_cli/get_cli.dart
 
+// NOTE: Semua route menggunakan lowerCamelCase sesuai Dart convention
 abstract class Routes {
   Routes._();
-  static const HOME = _Paths.HOME;
+
+  // Splash
+  static const splash = _Paths.splash;
+
+  // Admin
+  static const adminLogin = _Paths.adminLogin;
+  static const adminDashboard = _Paths.adminDashboard;
+
+  // Dokter
+  static const dokterLogin = _Paths.dokterLogin;
+  static const dokterDashboard = _Paths.dokterDashboard;
+
+  // Perawat
+  static const perawatLogin = _Paths.perawatLogin;
+  static const perawatDashboard = _Paths.perawatDashboard;
+
+  // Apoteker
+  static const apotekerLogin = _Paths.apotekerLogin;
+  static const apotekerDashboard = _Paths.apotekerDashboard;
+
+  // Pasien
+  static const pasienLogin = _Paths.pasienLogin;
+  static const pasienDashboard = _Paths.pasienDashboard;
 }
 
 abstract class _Paths {
   _Paths._();
-  static const HOME = '/home';
+
+  // Splash
+  static const splash = '/splash';
+
+  // Admin
+  static const adminLogin = '/admin/login';
+  static const adminDashboard = '/admin/dashboard';
+
+  // Dokter
+  static const dokterLogin = '/dokter/login';
+  static const dokterDashboard = '/dokter/dashboard';
+
+  // Perawat
+  static const perawatLogin = '/perawat/login';
+  static const perawatDashboard = '/perawat/dashboard';
+
+  // Apoteker
+  static const apotekerLogin = '/apoteker/login';
+  static const apotekerDashboard = '/apoteker/dashboard';
+
+  // Pasien
+  static const pasienLogin = '/pasien/login';
+  static const pasienDashboard = '/pasien/dashboard';
 }
