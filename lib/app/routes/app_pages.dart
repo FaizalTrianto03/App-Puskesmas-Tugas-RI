@@ -1,9 +1,5 @@
 import 'package:get/get.dart';
 
-// Splash
-import '../modules/splash/bindings/splash_binding.dart';
-import '../modules/splash/views/splash_view.dart';
-
 // Admin
 import '../modules/admin/login/bindings/admin_login_binding.dart';
 import '../modules/admin/login/views/admin_login_view.dart';
@@ -39,16 +35,9 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const initial = Routes.splash;
+  static const initial = Routes.adminLogin;
 
   static final routes = [
-    // Splash Route
-    GetPage(
-      name: _Paths.splash,
-      page: () => const SplashView(),
-      binding: SplashBinding(),
-    ),
-
     // Admin Routes
     GetPage(
       name: _Paths.adminLogin,

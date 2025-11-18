@@ -4,8 +4,9 @@ part of 'app_pages.dart';
 abstract class Routes {
   Routes._();
 
-  // Splash
+  // Splash & Onboarding
   static const splash = _Paths.splash;
+  static const onboarding = _Paths.onboarding;
 
   // Admin
   static const adminLogin = _Paths.adminLogin;
@@ -31,8 +32,9 @@ abstract class Routes {
 abstract class _Paths {
   _Paths._();
 
-  // Splash
+  // Splash & Onboarding
   static const splash = '/splash';
+  static const onboarding = '/onboarding';
 
   // Admin
   static const adminLogin = '/admin/login';
