@@ -14,10 +14,10 @@ Aplikasi Puskesmas ini dirancang untuk mempermudah akses layanan kesehatan bagi 
 ### Fitur Utama:
 - **Multi-role System** - 5 role berbeda (Pasien, Dokter, Perawat, Apoteker, Admin)
 - **Pendaftaran Online** - Pasien dapat mendaftar secara daring
-- **Monitoring Pasien** - Daftar pasien yang mengantri ke dokter
+- **Monitoring Pasien** - Menampilkan daftar pasien yang mengantri ke dokter
 - **Rekam Medis Terintegrasi** - Akses riwayat rekam medis pasien
-- **Riwayat Kunjungan** - Tracking riwayat kunjungan pasien ke puskesmas
-- **Manajemen Antrian** - Sistem antrian digital
+- **Riwayat Kunjungan** - Informasi riwayat kunjungan pasien ke puskesmas
+- **Manajemen Antrian** - Sistem antrian digital pasien
 - **Manajemen Obat** - Pengelolaan resep dan stok obat
 - **Firebase Integration** - Real-time database dan authentication
 
@@ -130,7 +130,7 @@ assets/
 
 ---
 
-📌 *Project ini dikembangkan untuk memenuhi tugas mata kuliah Rekayasa Interaksi dan sebagai studi penerapan teknologi Flutter dalam pengembangan aplikasi layanan kesehatan.*
+📌 *Project ini dikembangkan untuk memenuhi tugas mata kuliah Rekayasa Interaksi dan sebagai studi penerapan Flutter dalam digitalisasi layanan puskesmas melalui aplikasi mobile.*
 
 **Last Updated:** November 19, 2025  
 **Status:** Week 1 - Setup Project Complete ✅
