@@ -1,0 +1,2 @@
+D:/Tugas RI/App-Puskesmas-Tugas-RI/android/app/.cxx/Debug/3e2t606i/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/Tugas RI/App-Puskesmas-Tugas-RI/android/app/.cxx/Debug/3e2t606i/armeabi-v7a/CMakeFiles/rebuild_cache.dir
