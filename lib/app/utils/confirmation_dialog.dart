@@ -79,6 +79,7 @@ class ConfirmationDialog {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
+          backgroundColor: Colors.white,
           child: Container(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(
@@ -110,7 +111,7 @@ class ConfirmationDialog {
                         title,
                         style: const TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
                           color: Color(0xFF1E293B),
                         ),
                         textAlign: TextAlign.center,
@@ -122,7 +123,8 @@ class ConfirmationDialog {
                         message,
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF475569),
                           height: 1.5,
                         ),
                         textAlign: TextAlign.center,
@@ -241,18 +243,20 @@ class ConfirmationDialog {
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 side: const BorderSide(
-                                  color: Color(0xFFE2E8F0),
+                                  color: Color(0xFF64748B),
+                                  width: 1.5,
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
+                                backgroundColor: Colors.transparent,
                                 disabledForegroundColor: const Color(0xFF94A3B8),
                               ),
                               child: Text(
                                 cancelText ?? 'Batal',
                                 style: const TextStyle(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                   color: Color(0xFF64748B),
                                 ),
                               ),
@@ -306,7 +310,7 @@ class ConfirmationDialog {
                                       confirmText ?? 'Confirm',
                                       style: const TextStyle(
                                         fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                             ),
