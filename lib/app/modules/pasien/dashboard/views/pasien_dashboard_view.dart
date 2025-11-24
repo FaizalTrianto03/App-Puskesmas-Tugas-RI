@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
+import '../../layanan_lainnya/views/layanan_lainnya_view.dart';
 import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
+import '../../profile/views/pasien_profile_view.dart';
 import '../../riwayat/views/riwayat_kunjungan_view.dart';
-import '../../settings/views/pasien_settings_view.dart';
 import '../../status_antrean/views/status_antrean_view.dart';
 
 class PasienDashboardView extends StatefulWidget {
-  const PasienDashboardView({super.key});
+  final bool initialHasActiveQueue;
+  const PasienDashboardView({super.key, this.initialHasActiveQueue = false});
 
   @override
   State<PasienDashboardView> createState() => _PasienDashboardViewState();
 }
 
 class _PasienDashboardViewState extends State<PasienDashboardView> {
-  bool hasActiveQueue = false;
+  late bool hasActiveQueue;
+  
+  @override
+  void initState() {
+    super.initState();
+    hasActiveQueue = widget.initialHasActiveQueue;
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -110,6 +118,20 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
                           );
                         },
                       ),
+                      const SizedBox(height: 12),
+                      _buildMenuButton(
+                        context,
+                        icon: Icons.apps,
+                        title: 'Layanan Lainnya',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LayananLainnyaView(hasActiveQueue: hasActiveQueue),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -126,7 +148,7 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const PasienSettingsView()),
+          MaterialPageRoute(builder: (context) => const PasienProfileView()),
         );
       },
       child: Container(
@@ -389,3 +411,4 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
     );
   }
 }
+
