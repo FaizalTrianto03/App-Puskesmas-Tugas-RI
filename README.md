@@ -1,4 +1,4 @@
-# 🏥 Tugas Rekayasa Interaksi — Aplikasi Puskesmas
+# 🏥 Tugas Rekayasa Interaksi — Aplikasi Puskesmas Dau
 
 Project ini merupakan tugas mata kuliah **Rekayasa Interaksi** dengan tema **Aplikasi Puskesmas**.  
 Aplikasi dikembangkan menggunakan **Flutter** dan **Firebase** dengan sistem multi-role authentication untuk berbagai pengguna (Pasien, Dokter, Perawat, Apoteker, Admin).
@@ -13,6 +13,7 @@ Aplikasi Puskesmas ini dirancang untuk mempermudah akses layanan kesehatan bagi 
 
 ### Fitur Utama:
 - **Multi-role System** - 5 role berbeda (Pasien, Dokter, Perawat, Apoteker, Admin)
+- **Kartu Kesehatan Digital** - Kartu identitas kesehatan pasien Puskesmas Dau yang dapat diakses kapan saja dengan informasi lengkap (NIK, No. Rekam Medis, masa berlaku)
 - **Pendaftaran Online Pasien** - Form pendaftaran dengan pilihan Poli dan Keluhan, detail pendaftaran dinamis
 - **Sistem Antrian Digital** - Real-time status antrean dengan informasi lengkap
 - **Riwayat Kunjungan Pasien** - History pemeriksaan lengkap dengan diagnosis, tindakan, dan resep obat
@@ -157,11 +158,16 @@ assets/
 - ✅ Pasien Module:
   - ✅ Login & Register page dengan validasi form
   - ✅ Dashboard dengan quick access menu dan informasi akun
+  - ✅ Profile page dengan Kartu Kesehatan Digital Puskesmas
   - ✅ Pendaftaran Online dengan form Poli dan Keluhan
   - ✅ Detail Pendaftaran dinamis berdasarkan Poli yang dipilih
   - ✅ Status Antrean dengan informasi lengkap pasien
-  - ✅ Riwayat Kunjungan dengan list dan detail pemeriksaan
-  - ✅ Detail Riwayat lengkap (Keluhan, Hasil Pemeriksaan, Diagnosis, Tindakan, Resep, Anjuran, Jadwal Kontrol)
+  - ✅ Riwayat Kunjungan dengan filter (Bulan & Poli) dan list pemeriksaan
+  - ✅ Detail Riwayat Kunjungan lengkap (Keluhan, Hasil Pemeriksaan, Diagnosis, Tindakan, Resep Obat, Anjuran & Saran, Jadwal Kontrol)
+  - ✅ Layanan Lainnya (Notifikasi & Pengingat, Lokasi Puskesmas, Info BPJS)
+  - ✅ Notifikasi & Pengingat dengan list dan detail notifikasi
+  - ✅ Lokasi Puskesmas Dau dengan informasi kontak lengkap
+  - ✅ Info BPJS & Cara Klaim BPJS
   - ✅ Settings page (Kelola Data Diri, Kelola Kata Sandi)
 - ✅ Admin Module:
   - ✅ Login page dengan Staff Selector
