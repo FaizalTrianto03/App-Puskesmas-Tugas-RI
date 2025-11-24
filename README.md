@@ -27,12 +27,39 @@ Project ini berfokus pada penerapan antarmuka yang intuitif, kemudahan interaksi
 
 ## 👥 Anggota Kelompok
 
-| Nama Lengkap | NIM |
-|---------------|--------------------|
-| Anisa Ayu Nabila Nur Rahmah | 202210370311009 |
-| Faizal Qadri Trianto | 202210370311015 |
-| Dias Aditama | 202210370311021 |
-| Mukarram Luthfi Al Manfaluti | 202210370311023 |
+| Kelas | NIM | Nama Lengkap |
+|-------|-----|--------------|
+| RI-A | 202210370311009 | Anisa Ayu Nabila Nur Rahmah |
+| RI-A | 202210370311015 | Faizal Qadri Trianto |
+| RI-B | 202210370311021 | Dias Aditama |
+| RI-B | 202210370311023 | Mukarram Luthfi Al Manfaluti |
+
+---
+
+## 🔗 Link Penting
+
+- **Figma Design:** [Kelompok RI 2025](https://www.figma.com/design/kdsNWqjifLP8TWPkgRJcAG/Kelompok-RI-2025---2022-009--A---2022-015--A---2022-021--B---2022-023--B---?node-id=562-1822&t=JO9fICjs9lTce2wK-1)
+- **Worksheet:** [Google Drive Folder](https://drive.google.com/drive/folders/1Z_XG9UP2wFcq8U_k3mGo55867qreMKKZ?usp=sharing)
+- **Low Fidelity Prototype:** [Figma Prototype](https://www.figma.com/proto/kdsNWqjifLP8TWPkgRJcAG/Kelompok-RI-2025---2022-009--A---2022-015--A---2022-021--B---2022-023--B---?page-id=0%3A1&node-id=33-324&p=f&viewport=1820%2C-3421%2C0.33&t=8RFkhUgKoDaFjabJ-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=33%3A366&show-proto-sidebar=1)
+
+---
+
+## 📋 Tabel Pembagian Tugas (Backlog)
+
+### Aplikasi Puskesmas
+
+| Agile Organization | Admin | Dokter | Perawat | Apoteker | Pasien |
+|--------------------|-------|--------|---------|----------|--------|
+| **Product Owner** | Faizal | Faizal | Luthfi | Dias | Anisa |
+| **Scrum Master** | Anisa | Anisa | Faizal | Luthfi | Dias |
+| **Tim Pengembangan** | Dias<br>Luthfi | Dias<br>Luthfi | Anisa<br>Dias | Anisa<br>Faizal | Faizal<br>Luthfi |
+
+### Pembagian Role Development
+- **Admin:** Faizal Qadri Trianto
+- **Dokter:** Faizal Qadri Trianto
+- **Perawat:** Mukarram Luthfi Al Manfaluti
+- **Apoteker:** Dias Aditama
+- **Pasien:** Anisa Ayu Nabila Nur Rahmah
 
 ---
 
@@ -121,16 +148,46 @@ assets/
 - ✅ Android build configuration (minSdk 23, Kotlin 2.1.0, NDK 27.0.12077973)
 - ✅ Documentation
 
+### 🔄 Week 2 - Implementasi Layout UI (24-30 Nov 2025) - In Progress
+
+**Completed:**
+- ✅ Base layout dengan QuarterCircleBackground widget
+- ✅ Admin Module:
+  - ✅ Login page dengan Staff Selector
+  - ✅ Dashboard dengan statistik dan quick access menu
+  - ✅ Settings page (Kelola Data Diri, Kelola Kata Sandi)
+  - ✅ Kelola Pengguna (List, Add, Edit user)
+  - ✅ Laporan (Kunjungan Pasien, Stok Obat, Keuangan)
+  - ✅ Laporan Statistik dengan chart
+- ✅ Dokter Module:
+  - ✅ Login page
+  - ✅ Dashboard dengan rekam medis hari ini
+  - ✅ Settings page (Kelola Data Diri, Kelola Kata Sandi)
+  - ✅ Form Pemeriksaan Pasien (Tanda Vital, Diagnosa, Resep Obat)
+  - ✅ Rekam Medis Detail dengan riwayat pemeriksaan
+  - ✅ Detail Pemeriksaan lengkap (Tanda Vital, Hasil Lab, Resep)
+- ✅ Global UI improvements:
+  - ✅ ScrolledUnderElevation di semua AppBar
+  - ✅ Consistent color scheme (#02B1BA primary, #FF4242 accent)
+  - ✅ Responsive forms dengan validasi
+  - ✅ Dynamic button berdasarkan status pasien
+
+**In Progress:**
+- 🔄 Pasien Module (UI only)
+- 🔄 Perawat Module (UI only)
+- 🔄 Apoteker Module (UI only)
+
 ---
 
 ## 📱 Development Branch
 
 - `main` - Production ready code
-- `Minggu-1-SetupProject` - Week 1 setup ✅ (current)
+- `Minggu-1-SetupProject` - Week 1 setup ✅
+- `Minggu-2-ImplementasiLayoutUI` - Week 2 UI implementation 🔄 (current)
 
 ---
 
 📌 *Project ini dikembangkan untuk memenuhi tugas mata kuliah Rekayasa Interaksi dan sebagai studi penerapan Flutter dalam digitalisasi layanan puskesmas melalui aplikasi mobile.*
 
-**Last Updated:** November 19, 2025  
-**Status:** Week 1 - Setup Project Complete ✅
+**Last Updated:** November 24, 2025  
+**Status:** Week 2 - Layout UI Implementation In Progress 🔄
