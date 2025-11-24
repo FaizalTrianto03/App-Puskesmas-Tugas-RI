@@ -54,7 +54,6 @@ class PasienSettingsView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Profile Card
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -94,7 +93,7 @@ class PasienSettingsView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Menu Section
+
                     const Text(
                       'Pengaturan',
                       style: TextStyle(

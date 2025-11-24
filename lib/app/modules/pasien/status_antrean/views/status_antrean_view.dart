@@ -82,7 +82,6 @@ class StatusAntreanView extends StatelessWidget {
                       context,
                       MaterialPageRoute(builder: (context) => PasienPendaftaranView(hasActiveQueue: hasActiveQueue)),
                     );
-                    // Jika berhasil daftar, kembali ke dashboard dengan result true
                     if (result == true && context.mounted) {
                       Navigator.of(context).pop(true);
                     }
@@ -118,7 +117,6 @@ class StatusAntreanView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-              // Antrean Aktif Card
               ClipRRect(
                 borderRadius: BorderRadius.circular(24),
                 child: Container(
@@ -137,7 +135,6 @@ class StatusAntreanView extends StatelessWidget {
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      // Decorative circles
                       Positioned(
                         top: -40,
                         right: -35,
@@ -174,7 +171,7 @@ class StatusAntreanView extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // Content - Center aligned
+
                       Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,

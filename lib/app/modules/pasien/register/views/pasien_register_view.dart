@@ -68,7 +68,7 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
       setState(() {
         _tanggalLahirController.text =
             '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
-        tanggalLahirError = null; // Clear error saat tanggal dipilih
+        tanggalLahirError = null;
       });
     }
   }
@@ -321,7 +321,6 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                       return;
                     }
                     
-                    // Jika valid, tampilkan notifikasi sukses
                     SnackbarHelper.showSuccess('Pendaftaran berhasil! Selamat datang.');
                     
                     Navigator.of(context).pushNamedAndRemoveUntil('/pasien/dashboard', (route) => false);
@@ -467,7 +466,7 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
       onTap: () {
         setState(() {
           _jenisKelamin = gender;
-          jenisKelaminError = null; // Clear error saat dipilih
+          jenisKelaminError = null;
         });
       },
       child: Container(
