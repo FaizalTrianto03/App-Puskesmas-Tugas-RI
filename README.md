@@ -13,11 +13,13 @@ Aplikasi Puskesmas ini dirancang untuk mempermudah akses layanan kesehatan bagi 
 
 ### Fitur Utama:
 - **Multi-role System** - 5 role berbeda (Pasien, Dokter, Perawat, Apoteker, Admin)
-- **Pendaftaran Online** - Pasien dapat mendaftar secara daring
-- **Monitoring Pasien** - Menampilkan daftar pasien yang mengantri ke dokter
-- **Rekam Medis Terintegrasi** - Akses riwayat rekam medis pasien
-- **Riwayat Kunjungan** - Informasi riwayat kunjungan pasien ke puskesmas
-- **Manajemen Antrian** - Sistem antrian digital pasien
+- **Pendaftaran Online Pasien** - Form pendaftaran dengan pilihan Poli dan Keluhan, detail pendaftaran dinamis
+- **Sistem Antrian Digital** - Real-time status antrean dengan informasi lengkap
+- **Riwayat Kunjungan Pasien** - History pemeriksaan lengkap dengan diagnosis, tindakan, dan resep obat
+- **Monitoring Pasien** - Daftar pasien dalam antrian untuk staff medis
+- **Rekam Medis Terintegrasi** - Akses dan kelola riwayat rekam medis pasien
+- **Manajemen Pengguna** - CRUD user untuk berbagai role
+- **Laporan & Statistik** - Laporan kunjungan, stok obat, dan keuangan dengan visualisasi chart
 - **Manajemen Obat** - Pengelolaan resep dan stok obat
 - **Firebase Integration** - Real-time database dan authentication
 
@@ -152,6 +154,15 @@ assets/
 
 **Completed:**
 - ✅ Base layout dengan QuarterCircleBackground widget
+- ✅ Pasien Module:
+  - ✅ Login & Register page dengan validasi form
+  - ✅ Dashboard dengan quick access menu dan informasi akun
+  - ✅ Pendaftaran Online dengan form Poli dan Keluhan
+  - ✅ Detail Pendaftaran dinamis berdasarkan Poli yang dipilih
+  - ✅ Status Antrean dengan informasi lengkap pasien
+  - ✅ Riwayat Kunjungan dengan list dan detail pemeriksaan
+  - ✅ Detail Riwayat lengkap (Keluhan, Hasil Pemeriksaan, Diagnosis, Tindakan, Resep, Anjuran, Jadwal Kontrol)
+  - ✅ Settings page (Kelola Data Diri, Kelola Kata Sandi)
 - ✅ Admin Module:
   - ✅ Login page dengan Staff Selector
   - ✅ Dashboard dengan statistik dan quick access menu
@@ -173,7 +184,6 @@ assets/
   - ✅ Dynamic button berdasarkan status pasien
 
 **In Progress:**
-- 🔄 Pasien Module (UI only)
 - 🔄 Perawat Module (UI only)
 - 🔄 Apoteker Module (UI only)
 

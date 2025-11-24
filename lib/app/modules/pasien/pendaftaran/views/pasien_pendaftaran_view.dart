@@ -74,7 +74,6 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Stats Cards
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                 decoration: BoxDecoration(
@@ -187,7 +186,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                 onTap: () {
                   setState(() {
                     showPoliOptions = !showPoliOptions;
-                    poliError = null; // Clear error saat membuka dropdown
+                    poliError = null;
                   });
                 },
                 child: Container(
@@ -247,7 +246,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                     setState(() {
                       selectedPoli = 'Poli Umum';
                       showPoliOptions = false;
-                      poliError = null; // Clear error saat dipilih
+                      poliError = null;
                     });
                   },
                   child: Container(
@@ -274,7 +273,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                     setState(() {
                       selectedPoli = 'Poli Gigi';
                       showPoliOptions = false;
-                      poliError = null; // Clear error saat dipilih
+                      poliError = null;
                     });
                   },
                   child: Container(
@@ -298,7 +297,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
               ],
               const SizedBox(height: 16),
               
-              // Keluhan - multiline text field
+              // Keluhan
               _buildLabel('Keluhan'),
               const SizedBox(height: 8),
               Container(
@@ -365,7 +364,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
               ],
               const SizedBox(height: 16),
               
-              // Payment Type
+              // Pembayaran
               _buildLabel('Jenis Pembayaran'),
               const SizedBox(height: 8),
               Row(
@@ -532,7 +531,6 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Validasi form
                     bool isValid = true;
                     
                     // Validasi Poli Tujuan
@@ -551,15 +549,12 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       isValid = false;
                     }
                     
-                    // Jika tidak valid, return tanpa melanjutkan
                     if (!isValid) {
                       return;
                     }
                     
-                    // Jika valid, tampilkan notifikasi sukses
                     SnackbarHelper.showSuccess('Pendaftaran berhasil! Nomor antrean Anda telah dibuat.');
                     
-                    // Pop dan kirim result true ke halaman sebelumnya (dashboard atau status antrean)
                     Navigator.of(context).pop(true);
                   },
                   style: ElevatedButton.styleFrom(
@@ -653,7 +648,6 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                 ),
                 const SizedBox(height: 28),
                 
-                // Warning Icon
                 Container(
                   width: 100,
                   height: 100,
@@ -669,7 +663,6 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                 ),
                 const SizedBox(height: 24),
                 
-                // Warning Text
                 const Text(
                   'Maaf, Anda tidak dapat menambahkan\nantrean baru karena masih memiliki\nantrean yang aktif.',
                   textAlign: TextAlign.center,
@@ -681,7 +674,6 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                 ),
                 const SizedBox(height: 24),
                 
-                // Button "Lihat Detail"
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -790,7 +782,6 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
   }
 }
 
-// Custom Painter untuk border putus-putus
 class DashedBorderPainter extends CustomPainter {
   final Color color;
   final double strokeWidth;

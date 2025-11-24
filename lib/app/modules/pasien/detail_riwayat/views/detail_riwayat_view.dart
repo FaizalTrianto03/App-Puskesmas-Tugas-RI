@@ -34,7 +34,6 @@ class DetailRiwayatView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Status Badge
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -393,7 +392,6 @@ class DetailRiwayatView extends StatelessWidget {
     required String title,
     required String subtitle,
   }) {
-    // Check if subtitle contains doctor name (has 'dr.' or 'drg.')
     final bool hasDoctor = subtitle.contains('dr.') || subtitle.contains('drg.');
     
     return Container(
