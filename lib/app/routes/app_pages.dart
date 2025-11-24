@@ -31,8 +31,16 @@ import '../modules/apoteker/dashboard/views/apoteker_dashboard_view.dart';
 // Pasien
 import '../modules/pasien/login/bindings/pasien_login_binding.dart';
 import '../modules/pasien/login/views/pasien_login_view.dart';
+import '../modules/pasien/register/bindings/pasien_register_binding.dart';
+import '../modules/pasien/register/views/pasien_register_view.dart';
 import '../modules/pasien/dashboard/bindings/pasien_dashboard_binding.dart';
 import '../modules/pasien/dashboard/views/pasien_dashboard_view.dart';
+import '../modules/pasien/pendaftaran/bindings/pasien_pendaftaran_binding.dart';
+import '../modules/pasien/pendaftaran/views/pasien_pendaftaran_view.dart';
+import '../modules/pasien/settings/bindings/pasien_settings_binding.dart';
+import '../modules/pasien/settings/views/pasien_settings_view.dart';
+import '../modules/pasien/riwayat/bindings/riwayat_kunjungan_binding.dart';
+import '../modules/pasien/riwayat/views/riwayat_kunjungan_view.dart';
 
 part 'app_routes.dart';
 
@@ -104,9 +112,29 @@ class AppPages {
       binding: PasienLoginBinding(),
     ),
     GetPage(
+      name: _Paths.pasienRegister,
+      page: () => const PasienRegisterView(),
+      binding: PasienRegisterBinding(),
+    ),
+    GetPage(
       name: _Paths.pasienDashboard,
       page: () => const PasienDashboardView(),
       binding: PasienDashboardBinding(),
+    ),
+    GetPage(
+      name: _Paths.pasienPendaftaran,
+      page: () => const PasienPendaftaranView(),
+      binding: PasienPendaftaranBinding(),
+    ),
+    GetPage(
+      name: _Paths.pasienSettings,
+      page: () => const PasienSettingsView(),
+      binding: PasienSettingsBinding(),
+    ),
+    GetPage(
+      name: _Paths.pasienRiwayat,
+      page: () => const RiwayatKunjunganView(),
+      binding: RiwayatKunjunganBinding(),
     ),
   ];
 }

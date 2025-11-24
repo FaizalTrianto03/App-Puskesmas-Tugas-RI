@@ -26,7 +26,11 @@ abstract class Routes {
 
   // Pasien
   static const pasienLogin = _Paths.pasienLogin;
+  static const pasienRegister = _Paths.pasienRegister;
   static const pasienDashboard = _Paths.pasienDashboard;
+  static const pasienPendaftaran = _Paths.pasienPendaftaran;
+  static const pasienSettings = _Paths.pasienSettings;
+  static const pasienRiwayat = _Paths.pasienRiwayat;
 }
 
 abstract class _Paths {
@@ -54,5 +58,9 @@ abstract class _Paths {
 
   // Pasien
   static const pasienLogin = '/pasien/login';
+  static const pasienRegister = '/pasien/register';
   static const pasienDashboard = '/pasien/dashboard';
+  static const pasienPendaftaran = '/pasien/pendaftaran';
+  static const pasienSettings = '/pasien/settings';
+  static const pasienRiwayat = '/pasien/riwayat';
 }
