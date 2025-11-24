@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import '../../../../routes/app_pages.dart';
 import '../../../../widgets/quarter_circle_background.dart';
-import '../controllers/pasien_dashboard_controller.dart';
+import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
+import '../../riwayat/views/riwayat_kunjungan_view.dart';
+import '../../settings/views/pasien_settings_view.dart';
+import '../../status_antrean/views/status_antrean_view.dart';
 
-class PasienDashboardView extends GetView<PasienDashboardController> {
+class PasienDashboardView extends StatefulWidget {
   const PasienDashboardView({super.key});
+
+  @override
+  State<PasienDashboardView> createState() => _PasienDashboardViewState();
+}
+
+class _PasienDashboardViewState extends State<PasienDashboardView> {
+  bool hasActiveQueue = false;
   
   @override
   Widget build(BuildContext context) {
@@ -53,14 +61,24 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                     children: [
                       _buildProfileCard(context),
                       const SizedBox(height: 16),
-                      _buildNoActiveQueueCard(context),
+                      hasActiveQueue 
+                        ? _buildActiveQueueCard(context)
+                        : _buildNoActiveQueueCard(context),
                       const SizedBox(height: 16),
                       _buildMenuButton(
                         context,
                         icon: Icons.add_circle_outline,
                         title: 'Daftar Baru',
-                        onTap: () {
-                          Get.toNamed(Routes.pasienPendaftaran);
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => PasienPendaftaranView(hasActiveQueue: hasActiveQueue)),
+                          );
+                          if (result == true) {
+                            setState(() {
+                              hasActiveQueue = true;
+                            });
+                          }
                         },
                       ),
                       const SizedBox(height: 12),
@@ -68,8 +86,16 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                         context,
                         icon: Icons.receipt_long,
                         title: 'Status Antrean',
-                        onTap: () {
-                          // Navigate to status antrean (belum dibuat)
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => StatusAntreanView(hasActiveQueue: hasActiveQueue)),
+                          );
+                          if (result == true) {
+                            setState(() {
+                              hasActiveQueue = true;
+                            });
+                          }
                         },
                       ),
                       const SizedBox(height: 12),
@@ -78,7 +104,10 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                         icon: Icons.history,
                         title: 'Riwayat Kunjungan',
                         onTap: () {
-                          Get.toNamed(Routes.pasienRiwayat);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const RiwayatKunjunganView()),
+                          );
                         },
                       ),
                     ],
@@ -95,7 +124,10 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
   Widget _buildProfileCard(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Get.toNamed(Routes.pasienSettings);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const PasienSettingsView()),
+        );
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -163,6 +195,93 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
     );
   }
 
+  Widget _buildActiveQueueCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF7DE8E3),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Antrean Aktif',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Expanded(
+                  child: Text(
+                    'G - 009',
+                    style: TextStyle(
+                      fontSize: 44,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFFF4242),
+                      letterSpacing: 4,
+                      height: 1,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => StatusAntreanView(hasActiveQueue: hasActiveQueue)),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFB547),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'DETAIL',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 1,
+              color: Colors.white.withOpacity(0.5),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Poli Gigi - Estimasi: 15 menit',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildNoActiveQueueCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -172,7 +291,6 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
         border: Border.all(
           color: const Color(0xFF02B1BA),
           width: 2,
-          style: BorderStyle.solid,
         ),
       ),
       child: Column(
@@ -190,8 +308,16 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                Get.toNamed(Routes.pasienPendaftaran);
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PasienPendaftaranView(hasActiveQueue: hasActiveQueue)),
+                );
+                if (result == true) {
+                  setState(() {
+                    hasActiveQueue = true;
+                  });
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFB547),

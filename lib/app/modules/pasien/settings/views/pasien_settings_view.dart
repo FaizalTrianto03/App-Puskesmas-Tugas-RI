@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../controllers/pasien_settings_controller.dart';
-import '../../../../widgets/quarter_circle_background.dart';
+
 import '../../../../utils/confirmation_dialog.dart';
 import '../../../../utils/snackbar_helper.dart';
+import '../../../../widgets/quarter_circle_background.dart';
+import '../../../pasien/login/views/pasien_login_view.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
-import '../../login/views/pasien_login_view.dart';
 
-class PasienSettingsView extends GetView<PasienSettingsController> {
+class PasienSettingsView extends StatelessWidget {
   const PasienSettingsView({Key? key}) : super(key: key);
 
   @override
@@ -155,11 +154,8 @@ class PasienSettingsView extends GetView<PasienSettingsController> {
       cancelText: 'Batal',
       onConfirm: () {
         SnackbarHelper.showSuccess('Berhasil keluar dari akun');
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PasienLoginView(),
-          ),
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const PasienLoginView()),
           (route) => false,
         );
       },

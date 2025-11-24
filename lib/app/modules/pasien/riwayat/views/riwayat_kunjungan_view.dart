@@ -1,13 +1,81 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../controllers/riwayat_kunjungan_controller.dart';
-import '../../../../widgets/quarter_circle_background.dart';
 
-class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
+import '../../../../widgets/quarter_circle_background.dart';
+import '../../detail_riwayat/views/detail_riwayat_view.dart';
+
+class RiwayatKunjunganView extends StatelessWidget {
   const RiwayatKunjunganView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> riwayatList = [
+      {
+        'poli': 'Poli Gigi',
+        'tanggal': '20 November 2025, 13:45 WIB',
+        'noAntrean': 'G-008',
+        'dokter': 'drg. Nisa Ayu',
+        'diagnosis': 'Pulpitis (Peradangan Pulpa Gigi)',
+        'keluhan': 'Nyeri hebat pada gigi geraham kiri bawah, terutama saat makan dan di malam hari. Keluhan dirasakan sejak 4 hari yang lalu.',
+        'tindakan': 'Perawatan saluran akar (root canal treatment), pemberian obat pereda nyeri dan antibiotik. Penambalan sementara.',
+        'resep': '3 item',
+        'status': 'Selesai',
+        'statusColor': const Color(0xFF4CAF50),
+        'kontrolDate': '27 November 2025',
+      },
+      {
+        'poli': 'Poli Umum',
+        'tanggal': '5 Oktober 2025, 10:30 WIB',
+        'noAntrean': 'A-005',
+        'dokter': 'dr. Faizal Qadri',
+        'diagnosis': 'Febris (Demam) akibat infeksi virus',
+        'keluhan': 'Pasien mengeluhkan demam, sakit kepala, dan badan terasa lemas sejak dua hari lalu terakhir.',
+        'tindakan': 'Pemberian obat antipiretik, vitamin. Istirahat cukup dan konsumsi cairan yang banyak.',
+        'resep': '2 item',
+        'status': 'Selesai',
+        'statusColor': const Color(0xFF4CAF50),
+        'kontrolDate': null,
+      },
+      {
+        'poli': 'Poli Gigi',
+        'tanggal': '29 September 2025, 09:30 WIB',
+        'noAntrean': 'G-003',
+        'dokter': 'drg. Nisa Ayu',
+        'diagnosis': 'Karies Dentis (Gigi Berlubang)',
+        'keluhan': 'Nyeri pada gigi geraham kanan atas, terutama saat makan dan minum dingin.',
+        'tindakan': 'Penambalan gigi geraham kanan atas. Pembersihan karang gigi. Edukasi cara menyikat gigi yang benar.',
+        'resep': '',
+        'status': 'Selesai',
+        'statusColor': const Color(0xFF4CAF50),
+        'kontrolDate': '06 Oktober 2025',
+      },
+      {
+        'poli': 'Poli Gigi',
+        'tanggal': '15 September 2025, 14:00 WIB',
+        'noAntrean': 'G-012',
+        'dokter': 'drg. Nisa Ayu',
+        'diagnosis': 'Gingivitis (Radang Gusi)',
+        'keluhan': 'Gusi bengkak, berdarah saat menyikat gigi, dan terasa nyeri sejak 3 hari yang lalu.',
+        'tindakan': 'Pembersihan karang gigi (scaling), pemberian obat kumur antiseptik, dan vitamin. Edukasi cara menyikat gigi yang benar.',
+        'resep': '2 item',
+        'status': 'Selesai',
+        'statusColor': const Color(0xFF4CAF50),
+        'kontrolDate': '22 September 2025',
+      },
+      {
+        'poli': 'Poli Umum',
+        'tanggal': '2 September 2025, 08:15 WIB',
+        'noAntrean': 'A-002',
+        'dokter': 'dr. Faizal Qadri',
+        'diagnosis': 'Gastritis (Maag Akut)',
+        'keluhan': 'Nyeri ulu hati, mual, dan kembung setelah makan. Keluhan dirasakan sejak kemarin malam.',
+        'tindakan': 'Pemberian obat antasida dan PPI (Proton Pump Inhibitor). Anjuran diet teratur dan hindari makanan pedas.',
+        'resep': '2 item',
+        'status': 'Selesai',
+        'statusColor': const Color(0xFF4CAF50),
+        'kontrolDate': '9 September 2025',
+      },
+    ];
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -36,32 +104,45 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF84F3EE).withOpacity(0.3),
+                  color: const Color(0xFF02B1BA),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF02B1BA), width: 2),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF02B1BA).withOpacity(0.2),
+                        color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.info_outline,
-                        color: Color(0xFF02B1BA),
+                        color: Colors.white,
                         size: 24,
                       ),
                     ),
                     const SizedBox(width: 12),
                     const Expanded(
-                      child: Text(
-                        'Berikut adalah daftar riwayat kunjungan dan ringkasan pemeriksaan Anda di Puskesmas.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF1E293B),
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Informasi',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Berikut adalah daftar riwayat kunjungan dan ringkasan pemeriksaan Anda di Puskesmas.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -79,29 +160,11 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
               ),
               const SizedBox(height: 12),
               
-              _buildRiwayatCard(
-                poli: 'Poli Umum',
-                tanggal: '5 Oktober 2025, 10:30 WIB',
-                noAntrean: 'A-005',
-                dokter: 'dr. Faizal Qadri',
-                diagnosis: 'Pemeriksaan kesehatan umum. Tekanan darah normal. Diberikan resep obat vitamin dan paracetamol. Rujuk ke laboratorium jika diperlukan pemeriksaan lanjutan.',
-                resep: '2 item',
-                status: 'Selesai',
-                statusColor: const Color(0xFF4CAF50),
-              ),
-              const SizedBox(height: 12),
-              
-              _buildRiwayatCard(
-                poli: 'Poli Gigi',
-                tanggal: '29 September 2025, 09:30 WIB',
-                noAntrean: 'G-003',
-                dokter: 'drg. Andi Wijaya',
-                diagnosis: 'Penambalan gigi geraham kanan atas. Pembersihan karang gigi. Edukasi cara menyikat gigi yang benar. Kontrol 2 minggu lagi.',
-                resep: '',
-                status: 'Selesai',
-                statusColor: const Color(0xFF4CAF50),
-                kontrolDate: '06 Okt 2024',
-              ),
+              // List of riwayat
+              ...riwayatList.map((data) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildRiwayatCard(context, data),
+              )),
             ],
           ),
         ),
@@ -109,17 +172,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
     );
   }
 
-  Widget _buildRiwayatCard({
-    required String poli,
-    required String tanggal,
-    required String noAntrean,
-    required String dokter,
-    required String diagnosis,
-    required String resep,
-    required String status,
-    required Color statusColor,
-    String? kontrolDate,
-  }) {
+  Widget _buildRiwayatCard(BuildContext context, Map<String, dynamic> data) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -150,7 +203,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      poli,
+                      data['poli'],
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -159,7 +212,15 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      tanggal,
+                      data['tanggal'],
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'No: ${data['noAntrean']}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF64748B),
@@ -171,15 +232,15 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: (data['statusColor'] as Color).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  status,
+                  data['status'],
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: statusColor,
+                    color: data['statusColor'] as Color,
                   ),
                 ),
               ),
@@ -191,10 +252,10 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
           
           Row(
             children: [
-              const Icon(Icons.person, size: 16, color: Color(0xFF64748B)),
+              const Icon(Icons.person, size: 18, color: Color(0xFF02B1BA)),
               const SizedBox(width: 8),
               Text(
-                dokter,
+                data['dokter'],
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -215,7 +276,9 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
           ),
           const SizedBox(height: 8),
           Text(
-            diagnosis,
+            data['keluhan'],
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 13,
               color: Color(0xFF64748B),
@@ -223,7 +286,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
             ),
           ),
           
-          if (resep.isNotEmpty) ...[
+          if (data['resep'].isNotEmpty) ...[
             const SizedBox(height: 12),
             Row(
               children: [
@@ -236,7 +299,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                   ),
                 ),
                 Text(
-                  resep,
+                  data['resep'],
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF64748B),
@@ -246,7 +309,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
             ),
           ],
           
-          if (kontrolDate != null) ...[
+          if (data['kontrolDate'] != null) ...[
             const SizedBox(height: 12),
             Row(
               children: [
@@ -259,7 +322,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                   ),
                 ),
                 Text(
-                  kontrolDate,
+                  data['kontrolDate'],
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF64748B),
@@ -275,7 +338,12 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
             children: [
               TextButton.icon(
                 onPressed: () {
-                  // Show detail
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetailRiwayatView(data: data),
+                    ),
+                  );
                 },
                 icon: const Icon(
                   Icons.arrow_forward,
