@@ -221,7 +221,6 @@ class StatusAntreanView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Progress Antrean Container
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(

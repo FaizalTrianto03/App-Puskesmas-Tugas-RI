@@ -88,7 +88,6 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 24),
                       
-                      // Nama Lengkap
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
@@ -124,7 +123,6 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 16),
                       
-                      // NIK
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
@@ -161,7 +159,6 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Alamat
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
@@ -198,7 +195,6 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Nomor HP
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
@@ -235,7 +231,6 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Email
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
@@ -272,7 +267,6 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Jenis Kelamin & Tanggal Lahir
                       Row(
                         children: [
                           Expanded(
@@ -464,7 +458,6 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       
                       const SizedBox(height: 32),
                       
-                      // Button Simpan
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(

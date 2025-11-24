@@ -65,7 +65,7 @@ class _PasienLoginViewState extends State<PasienLoginView> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Masuk untuk akses layanan Puskesmas',
+                  'Masuk untuk akses layanan Puskesmas Dau',
                   style: AppTextStyles.h3.copyWith(
                     color: AppColors.white,
                     fontWeight: FontWeight.bold,

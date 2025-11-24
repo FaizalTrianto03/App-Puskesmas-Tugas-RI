@@ -265,7 +265,6 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Validasi semua field
                     bool isValid = true;
                     
                     if (_namaLengkapController.text.trim().isEmpty) {

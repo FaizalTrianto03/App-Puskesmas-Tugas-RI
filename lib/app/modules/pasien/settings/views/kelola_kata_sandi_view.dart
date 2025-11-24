@@ -117,7 +117,6 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                       ),
                       const SizedBox(height: 24),
                       
-                      // Kata Sandi Lama
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
@@ -165,7 +164,6 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Kata Sandi Baru
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
@@ -216,7 +214,6 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Konfirmasi Kata Sandi
                       RichText(
                         text: const TextSpan(
                           style: TextStyle(
@@ -268,7 +265,6 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                       
                       const SizedBox(height: 32),
                       
-                      // Button Simpan
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(

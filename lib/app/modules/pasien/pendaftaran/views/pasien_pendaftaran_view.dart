@@ -25,6 +25,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
   final List<String> poliList = [
     'Poli Umum',
     'Poli Gigi',
+    'Poli KIA',
   ];
 
   // Mapping dokter berdasarkan poli
@@ -33,6 +34,8 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
       return 'dr. Faizal Qadri';
     } else if (selectedPoli == 'Poli Gigi') {
       return 'drg. Nisa Ayu';
+    } else if (selectedPoli == 'Poli KIA') {
+      return 'dr. Siti Nurhaliza';
     }
     return '-';
   }
@@ -285,6 +288,33 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                     child: const Center(
                       child: Text(
                         'Poli Gigi',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedPoli = 'Poli KIA';
+                      showPoliOptions = false;
+                      poliError = null;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E0E0),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Poli KIA',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -611,7 +641,6 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Badge "ANTREAN AKTIF"
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                   decoration: BoxDecoration(
