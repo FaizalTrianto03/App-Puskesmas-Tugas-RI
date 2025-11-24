@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../dokter/login/views/dokter_login_view.dart';
+
 import '../../../admin/login/views/admin_login_view.dart';
+import '../../../dokter/login/views/dokter_login_view.dart';
+import 'pasien_login_view.dart';
 
 class StaffSelectorView extends StatelessWidget {
   const StaffSelectorView({Key? key}) : super(key: key);
@@ -135,7 +137,9 @@ class StaffSelectorView extends StatelessWidget {
                       WidgetSpan(
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.of(context).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const PasienLoginView()),
+                            );
                           },
                           child: const Text(
                             'Klik di sini',

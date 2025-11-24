@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../../widgets/quarter_circle_background.dart';
-import '../../../../utils/snackbar_helper.dart';
+
 import '../../../../utils/confirmation_dialog.dart';
+import '../../../../utils/snackbar_helper.dart';
+import '../../../../widgets/quarter_circle_background.dart';
+import '../../../pasien/login/views/staff_selector_view.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
-import '../../../pasien/login/views/staff_selector_view.dart';
 
 class AdminSettingsView extends StatelessWidget {
   const AdminSettingsView({Key? key}) : super(key: key);
@@ -79,7 +80,7 @@ class AdminSettingsView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'apt. Aditama, S. Farm',
+                                  'dr. Trianto',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -88,7 +89,7 @@ class AdminSettingsView extends StatelessWidget {
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'Apoteker',
+                                  'Administrator',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.white,

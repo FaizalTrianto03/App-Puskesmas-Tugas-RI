@@ -37,6 +37,10 @@ flutter_*.png
 .flutter-plugins-dependencies
 generated_plugin_registrant.dart
 **/doc/api/
+pubspec.lock
+.metadata
+.fvm/
+.flutter-devtools/
 
 # ───────────────────────────────
 # Android
@@ -93,17 +97,36 @@ web/.flutter-plugins-dependencies
 firebase.json
 firebase-debug.log
 .firebase/
-.firebase/
 **/firebase.json
 **/firebase-debug.log
 **/.firebase/
 **/GoogleService-Info.plist
 **/google-services.json
 **/firebase_app_id_file.json
-**/firebase_options.dart
 
 # ───────────────────────────────
 # Build Symbols / Obfuscation
 # ───────────────────────────────
 app.*.symbols
 app.*.map.json
+
+# ───────────────────────────────
+# Platform Folders (Non-Android)
+# Focus on Android development only
+# ───────────────────────────────
+ios/
+linux/
+macos/
+web/
+windows/
+
+# ───────────────────────────────
+# Local Configuration Files
+# These differ per developer machine
+# ───────────────────────────────
+.flutter-sdk/
+.flutter_settings
+*.g.dart
+*.freezed.dart
+*.config.dart
+*.mocks.dart

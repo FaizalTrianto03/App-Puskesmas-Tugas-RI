@@ -1,46 +1,38 @@
 import 'package:get/get.dart';
 
-// Splash
-import '../modules/splash/bindings/splash_binding.dart';
-import '../modules/splash/views/splash_view.dart';
-
+import '../modules/admin/dashboard/bindings/admin_dashboard_binding.dart';
+import '../modules/admin/dashboard/views/admin_dashboard_view.dart';
 // Admin
 import '../modules/admin/login/bindings/admin_login_binding.dart';
 import '../modules/admin/login/views/admin_login_view.dart';
-import '../modules/admin/dashboard/bindings/admin_dashboard_binding.dart';
-import '../modules/admin/dashboard/views/admin_dashboard_view.dart';
-
-// Dokter
-import '../modules/dokter/login/bindings/dokter_login_binding.dart';
-import '../modules/dokter/login/views/dokter_login_view.dart';
-import '../modules/dokter/dashboard/bindings/dokter_dashboard_binding.dart';
-import '../modules/dokter/dashboard/views/dokter_dashboard_view.dart';
-
-// Perawat
-import '../modules/perawat/login/bindings/perawat_login_binding.dart';
-import '../modules/perawat/login/views/perawat_login_view.dart';
-import '../modules/perawat/dashboard/bindings/perawat_dashboard_binding.dart';
-import '../modules/perawat/dashboard/views/perawat_dashboard_view.dart';
-
+import '../modules/apoteker/dashboard/bindings/apoteker_dashboard_binding.dart';
+import '../modules/apoteker/dashboard/views/apoteker_dashboard_view.dart';
 // Apoteker
 import '../modules/apoteker/login/bindings/apoteker_login_binding.dart';
 import '../modules/apoteker/login/views/apoteker_login_view.dart';
-import '../modules/apoteker/dashboard/bindings/apoteker_dashboard_binding.dart';
-import '../modules/apoteker/dashboard/views/apoteker_dashboard_view.dart';
-
+import '../modules/dokter/dashboard/bindings/dokter_dashboard_binding.dart';
+import '../modules/dokter/dashboard/views/dokter_dashboard_view.dart';
+// Dokter
+import '../modules/dokter/login/bindings/dokter_login_binding.dart';
+import '../modules/dokter/login/views/dokter_login_view.dart';
+import '../modules/pasien/dashboard/bindings/pasien_dashboard_binding.dart';
+import '../modules/pasien/dashboard/views/pasien_dashboard_view.dart';
 // Pasien
 import '../modules/pasien/login/bindings/pasien_login_binding.dart';
 import '../modules/pasien/login/views/pasien_login_view.dart';
+import '../modules/pasien/pendaftaran/views/pasien_pendaftaran_view.dart';
 import '../modules/pasien/register/bindings/pasien_register_binding.dart';
 import '../modules/pasien/register/views/pasien_register_view.dart';
-import '../modules/pasien/dashboard/bindings/pasien_dashboard_binding.dart';
-import '../modules/pasien/dashboard/views/pasien_dashboard_view.dart';
-import '../modules/pasien/pendaftaran/bindings/pasien_pendaftaran_binding.dart';
-import '../modules/pasien/pendaftaran/views/pasien_pendaftaran_view.dart';
-import '../modules/pasien/settings/bindings/pasien_settings_binding.dart';
-import '../modules/pasien/settings/views/pasien_settings_view.dart';
-import '../modules/pasien/riwayat/bindings/riwayat_kunjungan_binding.dart';
 import '../modules/pasien/riwayat/views/riwayat_kunjungan_view.dart';
+import '../modules/pasien/settings/views/pasien_settings_view.dart';
+import '../modules/perawat/dashboard/bindings/perawat_dashboard_binding.dart';
+import '../modules/perawat/dashboard/views/perawat_dashboard_view.dart';
+// Perawat
+import '../modules/perawat/login/bindings/perawat_login_binding.dart';
+import '../modules/perawat/login/views/perawat_login_view.dart';
+// Splash
+import '../modules/splash/bindings/splash_binding.dart';
+import '../modules/splash/views/splash_view.dart';
 
 part 'app_routes.dart';
 
@@ -124,17 +116,14 @@ class AppPages {
     GetPage(
       name: _Paths.pasienPendaftaran,
       page: () => const PasienPendaftaranView(),
-      binding: PasienPendaftaranBinding(),
     ),
     GetPage(
       name: _Paths.pasienSettings,
       page: () => const PasienSettingsView(),
-      binding: PasienSettingsBinding(),
     ),
     GetPage(
       name: _Paths.pasienRiwayat,
       page: () => const RiwayatKunjunganView(),
-      binding: RiwayatKunjunganBinding(),
     ),
   ];
 }
