@@ -145,31 +145,61 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
         centerTitle: true,
-        title: Column(
-          children: [
-            const Text(
-              'Notifikasi',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (unreadCount > 0)
-              Text(
-                '$unreadCount belum dibaca',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                ),
-              ),
-          ],
+        title: const Text(
+          'Notifikasi',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        actions: [
+          if (unreadCount > 0)
+            Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  onPressed: () {},
+                ),
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF4242),
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: Center(
+                      child: Text(
+                        unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: QuarterCircleBackground(
         child: Column(

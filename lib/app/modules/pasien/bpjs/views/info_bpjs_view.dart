@@ -14,6 +14,8 @@ class InfoBpjsView extends StatelessWidget {
         backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),

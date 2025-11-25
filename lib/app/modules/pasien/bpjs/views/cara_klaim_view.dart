@@ -13,6 +13,8 @@ class CaraKlaimView extends StatelessWidget {
         backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
@@ -133,6 +135,16 @@ class CaraKlaimView extends StatelessWidget {
                 const Color(0xFF02B1BA),
               ),
               const SizedBox(height: 24),
+
+              const Text(
+                'Hal yang Perlu Diperhatikan',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
 
               Container(
                 width: double.infinity,

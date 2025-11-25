@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../widgets/quarter_circle_background.dart';
 import '../../bpjs/views/info_bpjs_view.dart';
 import '../../lokasi/views/lokasi_puskesmas_view.dart';
 
@@ -16,6 +17,7 @@ class LayananLainnyaView extends StatelessWidget {
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.08),
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
           onPressed: () => Navigator.pop(context),
@@ -30,58 +32,42 @@ class LayananLainnyaView extends StatelessWidget {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Container(
-            height: 4,
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildMenuButton(
+      body: QuarterCircleBackground(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildMenuButton(
+                context,
+                icon: Icons.location_on,
+                title: 'Lokasi Puskesmas',
+                onTap: () {
+                  Navigator.push(
                     context,
-                    icon: Icons.location_on,
-                    title: 'Lokasi Puskesmas',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LokasiPuskesmasView(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildMenuButton(
-                    context,
-                    icon: Icons.shield,
-                    title: 'Info BPJS',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const InfoBpjsView(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                    MaterialPageRoute(
+                      builder: (context) => const LokasiPuskesmasView(),
+                    ),
+                  );
+                },
               ),
-            ),
+              const SizedBox(height: 12),
+              _buildMenuButton(
+                context,
+                icon: Icons.shield,
+                title: 'Info BPJS',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const InfoBpjsView(),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

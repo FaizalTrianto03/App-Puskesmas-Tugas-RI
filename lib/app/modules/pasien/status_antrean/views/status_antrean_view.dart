@@ -15,6 +15,7 @@ class StatusAntreanView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
