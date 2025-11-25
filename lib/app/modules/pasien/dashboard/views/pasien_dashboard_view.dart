@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../layanan_lainnya/views/layanan_lainnya_view.dart';
+import '../../notifikasi/views/notifikasi_list_view.dart';
 import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
 import '../../profile/views/pasien_profile_view.dart';
 import '../../riwayat/views/riwayat_kunjungan_view.dart';
@@ -45,6 +46,53 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
               fontWeight: FontWeight.bold,
             ),
           ),
+          actions: [
+            Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: Color(0xFF02B1BA),
+                    size: 28,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotifikasiListView(),
+                      ),
+                    );
+                  },
+                ),
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF4242),
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '2',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 8),
+          ],
         ),
         body: Column(
           children: [

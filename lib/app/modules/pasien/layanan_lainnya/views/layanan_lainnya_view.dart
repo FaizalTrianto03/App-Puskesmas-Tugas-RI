@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../bpjs/views/info_bpjs_view.dart';
 import '../../lokasi/views/lokasi_puskesmas_view.dart';
-import '../../notifikasi/views/notifikasi_list_view.dart';
 
 class LayananLainnyaView extends StatelessWidget {
   final bool hasActiveQueue;
@@ -51,20 +50,6 @@ class LayananLainnyaView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildMenuButton(
-                    context,
-                    icon: Icons.notifications,
-                    title: 'Notifikasi & Pengingat',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NotifikasiListView(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
                   _buildMenuButton(
                     context,
                     icon: Icons.location_on,
