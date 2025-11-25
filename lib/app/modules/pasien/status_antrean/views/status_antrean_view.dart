@@ -278,7 +278,6 @@ class StatusAntreanView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               
-              // Detail Pendaftaran
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
