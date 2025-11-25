@@ -36,6 +36,7 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
           elevation: 2,
           shadowColor: Colors.black.withOpacity(0.08),
           scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
           automaticallyImplyLeading: false,
           centerTitle: true,
           title: const Text(

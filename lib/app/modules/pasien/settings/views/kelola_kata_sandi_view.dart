@@ -34,18 +34,19 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
       resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Kelola Kata Sandi',
           style: TextStyle(
-            color: Color(0xFF02B1BA),
+            color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),

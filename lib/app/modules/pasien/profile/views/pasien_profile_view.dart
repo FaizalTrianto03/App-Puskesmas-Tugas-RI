@@ -15,6 +15,7 @@ class PasienProfileView extends StatelessWidget {
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.08),
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
@@ -281,44 +282,28 @@ class PasienProfileView extends StatelessWidget {
                         );
                       },
                       child: Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: const Color(0xFF02B1BA),
-                            width: 2,
-                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
                         ),
                         child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF02B1BA).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.settings,
-                                color: Color(0xFF02B1BA),
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            const Expanded(
+                          children: const [
+                            Icon(Icons.settings, color: Colors.black87),
+                            SizedBox(width: 12),
+                            Expanded(
                               child: Text(
                                 'Pengaturan',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF02B1BA),
+                                  fontSize: 14,
+                                  color: Colors.black87,
                                 ),
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               Icons.chevron_right,
-                              color: Color(0xFF02B1BA),
-                              size: 28,
+                              color: Colors.black87,
                             ),
                           ],
                         ),
