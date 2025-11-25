@@ -42,8 +42,8 @@ Project ini berfokus pada penerapan antarmuka yang intuitif, kemudahan interaksi
 ## 🔗 Link Penting
 
 - **Figma Design:** [Kelompok RI 2025](https://www.figma.com/design/kdsNWqjifLP8TWPkgRJcAG/Kelompok-RI-2025---2022-009--A---2022-015--A---2022-021--B---2022-023--B---?node-id=562-1822&t=JO9fICjs9lTce2wK-1)
-- **Worksheet:** [Google Drive Folder](https://drive.google.com/drive/folders/1Z_XG9UP2wFcq8U_k3mGo55867qreMKKZ?usp=sharing)
-- **Low Fidelity Prototype:** [Figma Prototype](https://www.figma.com/proto/kdsNWqjifLP8TWPkgRJcAG/Kelompok-RI-2025---2022-009--A---2022-015--A---2022-021--B---2022-023--B---?page-id=0%3A1&node-id=33-324&p=f&viewport=1820%2C-3421%2C0.33&t=8RFkhUgKoDaFjabJ-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=33%3A366&show-proto-sidebar=1)
+- **Worksheet:** [Google Drive Folder](https://drive.google.com/drive/folders/1PZvS_4ZE1ak_icvMJBJx_kjj01GUnqye?usp=sharing)
+- **Low Fidelity Prototype:** [Low Fidelity](https://drive.google.com/file/d/1O8NTeDy47PVV7leIOyzP6TmgozzTHsXq/view?usp=drive_link)
 
 ---
 
