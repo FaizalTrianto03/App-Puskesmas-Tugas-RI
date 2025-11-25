@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../admin/login/views/admin_login_view.dart';
 import '../../../dokter/login/views/dokter_login_view.dart';
+import '../../../perawat/login/views/perawat_login_view.dart';
 import 'pasien_login_view.dart';
 
 class StaffSelectorView extends StatelessWidget {
@@ -96,7 +97,9 @@ class StaffSelectorView extends StatelessWidget {
                   title: 'Perawat',
                   description: 'Rekam Medis Digital',
                   onTap: () {
-                    // Tanpa navigasi - bukan jobdesk
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const PerawatLoginView()),
+                    );
                   },
                 ),
                 const SizedBox(height: 16),
