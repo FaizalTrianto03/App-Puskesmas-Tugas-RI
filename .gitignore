@@ -1,3 +1,4 @@
+
 # ───────────────────────────────
 # General / Miscellaneous
 # ───────────────────────────────
@@ -37,10 +38,6 @@ flutter_*.png
 .flutter-plugins-dependencies
 generated_plugin_registrant.dart
 **/doc/api/
-pubspec.lock
-.metadata
-.fvm/
-.flutter-devtools/
 
 # ───────────────────────────────
 # Android
@@ -109,24 +106,3 @@ firebase-debug.log
 # ───────────────────────────────
 app.*.symbols
 app.*.map.json
-
-# ───────────────────────────────
-# Platform Folders (Non-Android)
-# Focus on Android development only
-# ───────────────────────────────
-ios/
-linux/
-macos/
-web/
-windows/
-
-# ───────────────────────────────
-# Local Configuration Files
-# These differ per developer machine
-# ───────────────────────────────
-.flutter-sdk/
-.flutter_settings
-*.g.dart
-*.freezed.dart
-*.config.dart
-*.mocks.dart
