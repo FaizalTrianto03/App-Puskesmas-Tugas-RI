@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "756983224410",
+    "project_id": "app-puskesmas-tugas-ri",
+    "storage_bucket": "app-puskesmas-tugas-ri.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:756983224410:android:0a95deada67de533746063",
+        "android_client_info": {
+          "package_name": "com.example.app_puskesmas_tugas_ri"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCigHDy_YQlQO5ut2BCirv6W6NC8PVAFMk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
