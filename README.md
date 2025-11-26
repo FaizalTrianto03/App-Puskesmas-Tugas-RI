@@ -151,7 +151,7 @@ assets/
 - ✅ Android build configuration (minSdk 23, Kotlin 2.1.0, NDK 27.0.12077973)
 - ✅ Documentation
 
-### 🔄 Week 2 - Implementasi Layout UI (24-30 Nov 2025) - In Progress
+### ✅ Week 2 - Implementasi Layout UI (24-30 Nov 2025) - Completed
 
 **Completed:**
 - ✅ Base layout dengan QuarterCircleBackground widget
@@ -183,6 +183,15 @@ assets/
   - ✅ Form Pemeriksaan Pasien (Tanda Vital, Diagnosa, Resep Obat)
   - ✅ Rekam Medis Detail dengan riwayat pemeriksaan
   - ✅ Detail Pemeriksaan lengkap (Tanda Vital, Hasil Lab, Resep)
+- ✅ Perawat Module:
+  - ✅ Login page dengan StatefulWidget implementation
+  - ✅ Dashboard dengan patient list dan statistik (Total, Sisa, Selesai)
+  - ✅ Settings page (Kelola Data Diri, Kelola Kata Sandi)
+  - ✅ Kelola Data Diri dengan form lengkap (Nama, NIK, Alamat, No HP, Email, Jenis Kelamin, Tanggal Lahir)
+  - ✅ Kelola Kata Sandi dengan validasi dan visibility toggle
+  - ✅ Form Rekam Medis dengan section (Identitas Pasien, Tanda Vital, Antropometri, Keluhan & Anamnesis)
+  - ✅ Auto-calculate IMT di Antropometri section
+  - ✅ Form validation dengan warning alert
 - ✅ Apoteker Module:
   - ✅ Login page dengan validasi NIK dan kata sandi
   - ✅ Dashboard dengan monitoring stok obat real-time
@@ -202,20 +211,17 @@ assets/
   - ✅ Responsive forms dengan validasi
   - ✅ Dynamic button berdasarkan status pasien
 
-**In Progress:**
-- 🔄 Perawat Module (UI only)
-
 ---
 
 ## 📱 Development Branch
 
 - `main` - Production ready code
 - `Minggu-1-SetupProject` - Week 1 setup ✅
-- `Minggu-2-ImplementasiLayoutUI` - Week 2 UI implementation 🔄 (current)
+- `Minggu-2-ImplementasiLayoutUI` - Week 2 UI implementation ✅ (current)
 
 ---
 
 📌 *Project ini dikembangkan untuk memenuhi tugas mata kuliah Rekayasa Interaksi dan sebagai studi penerapan Flutter dalam digitalisasi layanan puskesmas melalui aplikasi mobile.*
 
 **Last Updated:** November 26, 2025  
-**Status:** Week 2 - Layout UI Implementation In Progress 🔄
+**Status:** Week 2 - Layout UI Implementation Completed ✅
