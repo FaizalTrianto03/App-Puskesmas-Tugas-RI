@@ -30,12 +30,12 @@ Project ini berfokus pada penerapan antarmuka yang intuitif, kemudahan interaksi
 
 ## 👥 Anggota Kelompok
 
-| Kelas | NIM | Nama Lengkap |
-|-------|-----|--------------|
-| RI-A | 202210370311009 | Anisa Ayu Nabila Nur Rahmah |
-| RI-A | 202210370311015 | Faizal Qadri Trianto |
-| RI-B | 202210370311021 | Dias Aditama |
-| RI-B | 202210370311023 | Mukarram Luthfi Al Manfaluti |
+| Kelas | NIM | Nama Lengkap | Username GitHub |
+|-------|-----|--------------|-----------------|
+| RI-A | 202210370311009 | Anisa Ayu Nabila Nur Rahmah | anisaayu05 |
+| RI-A | 202210370311015 | Faizal Qadri Trianto | FaizalTrianto03 |
+| RI-B | 202210370311021 | Dias Aditama | DiasAditama |
+| RI-B | 202210370311023 | Mukarram Luthfi Al Manfaluti | MukarramLuthfiAlManfaluti |
 
 ---
 
