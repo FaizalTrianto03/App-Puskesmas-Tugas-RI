@@ -7,8 +7,20 @@ import '../../../pasien/login/views/pasien_login_view.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
 
-class PasienSettingsView extends StatelessWidget {
+class PasienSettingsView extends StatefulWidget {
   const PasienSettingsView({Key? key}) : super(key: key);
+
+  @override
+  State<PasienSettingsView> createState() => _PasienSettingsViewState();
+}
+
+class _PasienSettingsViewState extends State<PasienSettingsView> {
+  bool _isHoverDataDiri = false;
+  bool _isHoverKataSandi = false;
+  bool _isHoverKeluar = false;
+  bool _isPressedDataDiri = false;
+  bool _isPressedKataSandi = false;
+  bool _isPressedKeluar = false;
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +119,18 @@ class PasienSettingsView extends StatelessWidget {
                     _buildMenuItem(
                       icon: Icons.person_outline,
                       title: 'Kelola Data Diri',
+                      isHover: _isHoverDataDiri,
+                      isPressed: _isPressedDataDiri,
+                      onHoverChange: (hover) {
+                        setState(() {
+                          _isHoverDataDiri = hover;
+                        });
+                      },
+                      onPressedChange: (pressed) {
+                        setState(() {
+                          _isPressedDataDiri = pressed;
+                        });
+                      },
                       onTap: () {
                         Navigator.push(
                           context,
@@ -119,6 +143,18 @@ class PasienSettingsView extends StatelessWidget {
                     _buildMenuItem(
                       icon: Icons.vpn_key_outlined,
                       title: 'Kelola Kata Sandi',
+                      isHover: _isHoverKataSandi,
+                      isPressed: _isPressedKataSandi,
+                      onHoverChange: (hover) {
+                        setState(() {
+                          _isHoverKataSandi = hover;
+                        });
+                      },
+                      onPressedChange: (pressed) {
+                        setState(() {
+                          _isPressedKataSandi = pressed;
+                        });
+                      },
                       onTap: () {
                         Navigator.push(
                           context,
@@ -133,6 +169,18 @@ class PasienSettingsView extends StatelessWidget {
                       icon: Icons.logout,
                       title: 'Keluar',
                       textColor: Colors.red,
+                      isHover: _isHoverKeluar,
+                      isPressed: _isPressedKeluar,
+                      onHoverChange: (hover) {
+                        setState(() {
+                          _isHoverKeluar = hover;
+                        });
+                      },
+                      onPressedChange: (pressed) {
+                        setState(() {
+                          _isPressedKeluar = pressed;
+                        });
+                      },
                       onTap: () => _showLogoutDialog(context),
                     ),
                   ],
@@ -166,36 +214,50 @@ class PasienSettingsView extends StatelessWidget {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    Color textColor = Colors.black87,
+    required bool isHover,
+    required bool isPressed,
+    required Function(bool) onHoverChange,
+    required Function(bool) onPressedChange,
+    Color? textColor,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: (textColor ?? const Color(0xFF02B1BA)).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: textColor ?? const Color(0xFF02B1BA),
+            size: 24,
+          ),
         ),
-        margin: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          children: [
-            Icon(icon, color: textColor),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: textColor,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: textColor,
-            ),
-          ],
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: textColor ?? Colors.black87,
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: textColor ?? const Color(0xFF02B1BA),
         ),
       ),
     );

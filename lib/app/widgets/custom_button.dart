@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../utils/colors.dart';
 import '../utils/text_styles.dart';
 
-class CustomButton extends StatelessWidget {
+class CustomButton extends StatefulWidget {
   final String text;
   final VoidCallback? onPressed;
   final Color? backgroundColor;
@@ -33,58 +34,101 @@ class CustomButton extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final bgColor = isOutlined 
-        ? Colors.transparent 
-        : (backgroundColor ?? AppColors.buttonPrimary);
-    
-    final txtColor = textColor ?? 
-        (isOutlined ? AppColors.white : AppColors.primary);
-    
-    final brdColor = borderColor ?? 
-        (isOutlined ? AppColors.white : AppColors.primary);
+  State<CustomButton> createState() => _CustomButtonState();
+}
 
-    return SizedBox(
-      width: width ?? double.infinity,
-      height: height,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: bgColor,
-          foregroundColor: txtColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
-            side: BorderSide(
-              color: brdColor,
-              width: borderWidth,
+class _CustomButtonState extends State<CustomButton> {
+  bool _isHover = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bgColor = widget.isOutlined 
+        ? Colors.transparent 
+        : (widget.backgroundColor ?? AppColors.buttonPrimary);
+    
+    final txtColor = widget.textColor ?? 
+        (widget.isOutlined ? AppColors.white : AppColors.primary);
+    
+    final brdColor = widget.borderColor ?? 
+        (widget.isOutlined ? AppColors.white : AppColors.primary);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) {
+        setState(() {
+          _isHover = true;
+        });
+      },
+      onExit: (_) {
+        setState(() {
+          _isHover = false;
+        });
+      },
+      child: GestureDetector(
+        onTapDown: (_) {
+          setState(() {
+            _isPressed = true;
+          });
+        },
+        onTapUp: (_) {
+          setState(() {
+            _isPressed = false;
+          });
+        },
+        onTapCancel: () {
+          setState(() {
+            _isPressed = false;
+          });
+        },
+        child: Transform.scale(
+          scale: _isPressed ? 0.95 : (_isHover ? 1.02 : 1.0),
+          child: SizedBox(
+            width: widget.width ?? double.infinity,
+            height: widget.height,
+            child: ElevatedButton(
+              onPressed: widget.isLoading ? null : widget.onPressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: bgColor,
+                foregroundColor: txtColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  side: widget.isLoading 
+                      ? BorderSide.none 
+                      : BorderSide(
+                          color: brdColor,
+                          width: widget.borderWidth,
+                        ),
+                ),
+                elevation: widget.isOutlined ? 0 : 2,
+              ),
+              child: widget.isLoading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (widget.icon != null) ...[
+                          widget.icon!,
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          widget.text,
+                          style: AppTextStyles.button.copyWith(
+                            color: txtColor,
+                          ),
+                        ),
+                      ],
+                    ),
             ),
           ),
-          elevation: isOutlined ? 0 : 2,
         ),
-        child: isLoading
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(txtColor),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    icon!,
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    text,
-                    style: AppTextStyles.button.copyWith(
-                      color: txtColor,
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }

@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../../../admin/login/views/admin_login_view.dart';
+import '../../../apoteker/login/views/apoteker_login_view.dart';
 import '../../../dokter/login/views/dokter_login_view.dart';
 import '../../../perawat/login/views/perawat_login_view.dart';
-import '../../../apoteker/login/views/apoteker_login_view.dart';
 import 'pasien_login_view.dart';
 
-class StaffSelectorView extends StatelessWidget {
+class StaffSelectorView extends StatefulWidget {
   const StaffSelectorView({Key? key}) : super(key: key);
+
+  @override
+  State<StaffSelectorView> createState() => _StaffSelectorViewState();
+}
+
+class _StaffSelectorViewState extends State<StaffSelectorView> {
+  int? _hoveredIndex;
+  int? _pressedIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +90,7 @@ class StaffSelectorView extends StatelessWidget {
                 // Staff Cards
                 _buildStaffCard(
                   context: context,
+                  index: 0,
                   icon: Icons.medical_services,
                   title: 'Dokter',
                   description: 'Riwayat Pasien Terintegrasi',
@@ -94,6 +103,7 @@ class StaffSelectorView extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildStaffCard(
                   context: context,
+                  index: 1,
                   icon: Icons.healing,
                   title: 'Perawat',
                   description: 'Rekam Medis Digital',
@@ -106,6 +116,7 @@ class StaffSelectorView extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildStaffCard(
                   context: context,
+                  index: 2,
                   icon: Icons.medication,
                   title: 'Apoteker',
                   description: 'Manajemen Stok Obat',
@@ -118,6 +129,7 @@ class StaffSelectorView extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildStaffCard(
                   context: context,
+                  index: 3,
                   icon: Icons.admin_panel_settings,
                   title: 'Admin',
                   description: 'Kelola Sistem Puskesmas',
@@ -173,69 +185,112 @@ class StaffSelectorView extends StatelessWidget {
 
   Widget _buildStaffCard({
     required BuildContext context,
+    required int index,
     required IconData icon,
     required String title,
     required String description,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.75),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Colors.white,
-            width: 2,
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
+    final isHovered = _hoveredIndex == index;
+    final isPressed = _pressedIndex == index;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) {
+        setState(() {
+          _hoveredIndex = index;
+        });
+      },
+      onExit: (_) {
+        setState(() {
+          _hoveredIndex = null;
+        });
+      },
+      child: GestureDetector(
+        onTapDown: (_) {
+          setState(() {
+            _pressedIndex = index;
+          });
+        },
+        onTapUp: (_) {
+          setState(() {
+            _pressedIndex = null;
+          });
+          onTap();
+        },
+        onTapCancel: () {
+          setState(() {
+            _pressedIndex = null;
+          });
+        },
+        child: Transform.scale(
+          scale: isPressed ? 0.95 : (isHovered ? 1.02 : 1.0),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.75),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
                 color: Colors.white,
-                shape: BoxShape.circle,
+                width: 2,
               ),
-              child: Icon(
-                icon,
-                size: 32,
-                color: const Color(0xFF02B1BA),
-              ),
+              boxShadow: isHovered
+                  ? [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.5),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ]
+                  : [],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF02B1BA),
-                    ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF02B1BA),
-                    ),
+                  child: Icon(
+                    icon,
+                    size: 32,
+                    color: const Color(0xFF02B1BA),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF02B1BA),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        description,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF02B1BA),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right,
+                  color: Color(0xFF02B1BA),
+                  size: 24,
+                ),
+              ],
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: Color(0xFF02B1BA),
-              size: 24,
-            ),
-          ],
+          ),
         ),
       ),
     );

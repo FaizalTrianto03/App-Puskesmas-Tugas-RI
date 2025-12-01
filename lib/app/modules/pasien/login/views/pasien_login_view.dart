@@ -15,14 +15,43 @@ class PasienLoginView extends StatefulWidget {
   State<PasienLoginView> createState() => _PasienLoginViewState();
 }
 
-class _PasienLoginViewState extends State<PasienLoginView> {
+class _PasienLoginViewState extends State<PasienLoginView> with SingleTickerProviderStateMixin {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _rememberMe = false;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  String? _usernameError;
+  String? _passwordError;
+  bool _isHoverDaftar = false;
+  bool _isPressedDaftar = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Clear fields saat halaman dibuka
+    _usernameController.clear();
+    _passwordController.clear();
+    _usernameError = null;
+    _passwordError = null;
+    _rememberMe = false;
+    _isPasswordVisible = false;
+    
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+    _animationController.forward();
+  }
 
   @override
   void dispose() {
+    _animationController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -43,11 +72,13 @@ class _PasienLoginViewState extends State<PasienLoginView> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                 const SizedBox(height: 20),
                 Center(
                   child: Container(
@@ -100,9 +131,27 @@ class _PasienLoginViewState extends State<PasienLoginView> {
                   backgroundColor: AppColors.white,
                   textColor: Colors.black87,
                   hintColor: Colors.grey,
-                  borderColor: AppColors.white,
-                  borderWidth: 0,
+                  borderColor: _usernameError != null ? Colors.red : AppColors.white,
+                  borderWidth: _usernameError != null ? 2 : 0,
+                  onChanged: (value) {
+                    if (_usernameError != null && value.trim().isNotEmpty) {
+                      setState(() {
+                        _usernameError = null;
+                      });
+                    }
+                  },
                 ),
+                if (_usernameError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12, top: 4),
+                    child: Text(
+                      _usernameError!,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 16),
                 RichText(
                   text: TextSpan(
@@ -144,9 +193,27 @@ class _PasienLoginViewState extends State<PasienLoginView> {
                   backgroundColor: AppColors.white,
                   textColor: Colors.black87,
                   hintColor: Colors.grey,
-                  borderColor: AppColors.white,
-                  borderWidth: 0,
+                  borderColor: _passwordError != null ? Colors.red : AppColors.white,
+                  borderWidth: _passwordError != null ? 2 : 0,
+                  onChanged: (value) {
+                    if (_passwordError != null && value.trim().isNotEmpty) {
+                      setState(() {
+                        _passwordError = null;
+                      });
+                    }
+                  },
                 ),
+                if (_passwordError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 12, top: 4),
+                    child: Text(
+                      _passwordError!,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -173,7 +240,7 @@ class _PasienLoginViewState extends State<PasienLoginView> {
                     const Spacer(),
                     TextButton(
                       onPressed: () {
-                        // Tanpa navigasi - hanya UI
+                        Get.toNamed(Routes.lupaKataSandi);
                       },
                       child: Text(
                         'Lupa Kata Sandi?',
@@ -186,15 +253,47 @@ class _PasienLoginViewState extends State<PasienLoginView> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                CustomButton(
-                  text: 'Masuk ke Dashboard',
-                  onPressed: () {
-                    Get.offAllNamed(Routes.pasienDashboard);
-                  },
-                  backgroundColor: AppColors.white,
-                  textColor: AppColors.primary,
-                  borderColor: AppColors.primary,
-                  borderWidth: 2,
+                Semantics(
+                  button: true,
+                  label: 'Tombol masuk',
+                  enabled: !_isLoading,
+                  child: CustomButton(
+                    text: 'MASUK',
+                    isLoading: _isLoading,
+                    backgroundColor: AppColors.white,
+                    textColor: AppColors.primary,
+                    borderColor: AppColors.primary,
+                    borderWidth: 2,
+                    onPressed: _isLoading ? null : () async {
+                      // Validasi field harus diisi
+                      bool isValid = true;
+                      
+                      if (_usernameController.text.trim().isEmpty) {
+                        setState(() {
+                          _usernameError = 'Username atau NIK wajib diisi';
+                        });
+                        isValid = false;
+                      }
+                      
+                      if (_passwordController.text.trim().isEmpty) {
+                        setState(() {
+                          _passwordError = 'Kata sandi wajib diisi';
+                        });
+                        isValid = false;
+                      }
+                      
+                      if (!isValid) {
+                        return;
+                      }
+                      
+                      setState(() => _isLoading = true);
+                      
+                      await Future.delayed(const Duration(seconds: 2));
+                      
+                      setState(() => _isLoading = false);
+                      Get.offAllNamed(Routes.pasienDashboard);
+                    },
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -214,16 +313,60 @@ class _PasienLoginViewState extends State<PasienLoginView> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                CustomButton(
-                  text: 'Daftar sebagai Pasien Baru',
-                  onPressed: () {
-                    Get.toNamed(Routes.pasienRegister);
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  onEnter: (_) {
+                    setState(() => _isHoverDaftar = true);
                   },
-                  isOutlined: true,
-                  backgroundColor: Colors.transparent,
-                  textColor: AppColors.white,
-                  borderColor: AppColors.white,
-                  borderWidth: 2,
+                  onExit: (_) {
+                    setState(() => _isHoverDaftar = false);
+                  },
+                  child: GestureDetector(
+                    onTapDown: (_) => setState(() => _isPressedDaftar = true),
+                    onTapUp: (_) {
+                      setState(() => _isPressedDaftar = false);
+                      Get.toNamed(Routes.pasienRegister);
+                    },
+                    onTapCancel: () => setState(() => _isPressedDaftar = false),
+                    child: AnimatedScale(
+                      scale: _isPressedDaftar ? 0.95 : (_isHoverDaftar ? 1.02 : 1.0),
+                      duration: const Duration(milliseconds: 150),
+                      curve: Curves.easeInOut,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        curve: Curves.easeInOut,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: _isHoverDaftar 
+                              ? AppColors.white.withOpacity(0.9)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.white,
+                            width: 2,
+                          ),
+                          boxShadow: _isHoverDaftar
+                              ? [
+                                  BoxShadow(
+                                    color: AppColors.white.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Daftar sebagai Pasien Baru',
+                            style: AppTextStyles.button.copyWith(
+                              color: _isHoverDaftar ? AppColors.primary : AppColors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 32),
                 Container(
@@ -285,7 +428,8 @@ class _PasienLoginViewState extends State<PasienLoginView> {
                     ),
                   ),
                 ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

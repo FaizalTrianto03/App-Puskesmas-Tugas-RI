@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../../../routes/app_pages.dart';
 import '../../../../utils/colors.dart';
 import '../../../../utils/text_styles.dart';
-import '../../../../widgets/custom_text_field.dart';
 import '../../../../widgets/custom_button.dart';
+import '../../../../widgets/custom_text_field.dart';
 import '../../dashboard/views/admin_dashboard_view.dart';
 
 class AdminLoginView extends StatefulWidget {
@@ -172,7 +175,7 @@ class _AdminLoginViewState extends State<AdminLoginView> {
                     const Spacer(),
                     TextButton(
                       onPressed: () {
-                        // Tanpa navigasi - hanya UI
+                        Get.toNamed(Routes.lupaKataSandi);
                       },
                       child: Text(
                         'Lupa Kata Sandi?',

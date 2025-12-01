@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../widgets/quarter_circle_background.dart';
-import '../../../../widgets/custom_text_field.dart';
+
 import '../../../../utils/colors.dart';
-import '../../../../utils/text_styles.dart';
 import '../../../../utils/snackbar_helper.dart';
+import '../../../../utils/text_styles.dart';
+import '../../../../widgets/custom_text_field.dart';
+import '../../../../widgets/quarter_circle_background.dart';
 
 class KelolaKataSandiView extends StatefulWidget {
   const KelolaKataSandiView({Key? key}) : super(key: key);
@@ -35,18 +36,20 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'Kelola Kata Sandi',
-          style: AppTextStyles.h4.copyWith(
-            color: AppColors.primary,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
         ),

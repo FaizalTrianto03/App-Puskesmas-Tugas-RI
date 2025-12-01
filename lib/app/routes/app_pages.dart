@@ -10,6 +10,9 @@ import '../modules/apoteker/dashboard/views/apoteker_dashboard_view.dart';
 // Apoteker
 import '../modules/apoteker/login/bindings/apoteker_login_binding.dart';
 import '../modules/apoteker/login/views/apoteker_login_view.dart';
+// Common (Shared across all roles)
+import '../modules/common/lupa_kata_sandi/views/lupa_kata_sandi_email_view.dart';
+import '../modules/common/lupa_kata_sandi/views/lupa_kata_sandi_reset_view.dart';
 import '../modules/dokter/dashboard/bindings/dokter_dashboard_binding.dart';
 import '../modules/dokter/dashboard/views/dokter_dashboard_view.dart';
 // Dokter
@@ -47,6 +50,16 @@ class AppPages {
       name: _Paths.splash,
       page: () => const SplashView(),
       binding: SplashBinding(),
+    ),
+
+    // Common Routes (Shared across all roles)
+    GetPage(
+      name: _Paths.lupaKataSandi,
+      page: () => const LupaKataSandiEmailView(),
+    ),
+    GetPage(
+      name: _Paths.lupaKataSandiReset,
+      page: () => const LupaKataSandiResetView(),
     ),
 
     // Admin Routes

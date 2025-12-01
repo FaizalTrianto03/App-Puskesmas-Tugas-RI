@@ -18,8 +18,11 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
   final _alamatController = TextEditingController(text: 'Jln. Tirto Mulyo, Perum. GRAHA SEJAHTERA RESIDENCE, Dusun Klandungan, Landungsari, Kec. Dau, Kabupaten Malang, Jawa Timur 65151');
   final _noHpController = TextEditingController(text: '081234567899');
   final _emailController = TextEditingController(text: 'anisaayu09@gmail.com');
+  final ScrollController _scrollController = ScrollController();
   String _jenisKelamin = 'P';
   String _tanggalLahir = '09/09/2003';
+  bool _isLoading = false;
+  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   @override
   void dispose() {
@@ -28,6 +31,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
     _alamatController.dispose();
     _noHpController.dispose();
     _emailController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -73,9 +77,11 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
             ),
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 padding: const EdgeInsets.all(24),
                 child: Form(
                   key: _formKey,
+                  autovalidateMode: _autovalidateMode,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -262,6 +268,10 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Email harus diisi';
+                          }
+                          final emailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
+                          if (!emailRegex.hasMatch(value)) {
+                            return 'Email harus menggunakan Gmail (@gmail.com)';
                           }
                           return null;
                         },
@@ -462,8 +472,15 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: _isLoading ? null : () async {
+                            setState(() {
+                              _autovalidateMode = AutovalidateMode.always;
+                            });
+                            
                             if (_formKey.currentState!.validate()) {
+                              setState(() => _isLoading = true);
+                              await Future.delayed(const Duration(seconds: 2));
+                              setState(() => _isLoading = false);
                               SnackbarHelper.showSuccess('Data berhasil diperbarui');
                               Navigator.pop(context);
                             }
@@ -476,14 +493,23 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            'SIMPAN PERUBAHAN',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Text(
+                                  'SIMPAN PERUBAHAN',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 16),

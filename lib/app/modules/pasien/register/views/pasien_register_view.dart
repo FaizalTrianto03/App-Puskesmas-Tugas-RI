@@ -19,11 +19,38 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
   final _tanggalLahirController = TextEditingController();
   final _kataSandiController = TextEditingController();
   final _konfirmasiKataSandiController = TextEditingController();
+  
+  final _namaLengkapFocus = FocusNode();
+  final _nikFocus = FocusNode();
+  final _alamatFocus = FocusNode();
+  final _noHpFocus = FocusNode();
+  final _tanggalLahirFocus = FocusNode();
+  final _kataSandiFocus = FocusNode();
+  final _konfirmasiKataSandiFocus = FocusNode();
+  
+  final _namaLengkapKey = GlobalKey();
+  final _nikKey = GlobalKey();
+  final _alamatKey = GlobalKey();
+  final _noHpKey = GlobalKey();
+  final _tanggalLahirKey = GlobalKey();
+  final _kataSandiKey = GlobalKey();
+  final _konfirmasiKataSandiKey = GlobalKey();
+  
+  final ScrollController _scrollController = ScrollController();
+  
   String _jenisKelamin = '';
   bool _isPasswordVisible = false;
   bool _isKonfirmasiPasswordVisible = false;
+  bool _isLoading = false;
+
+  bool _isNamaLengkapFocused = false;
+  bool _isNikFocused = false;
+  bool _isAlamatFocused = false;
+  bool _isNoHpFocused = false;
+  bool _isTanggalLahirFocused = false;
+  bool _isKataSandiFocused = false;
+  bool _isKonfirmasiKataSandiFocused = false;
   
-  // Error messages
   String? namaError;
   String? nikError;
   String? alamatError;
@@ -34,6 +61,53 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
   String? konfirmasiKataSandiError;
 
   @override
+  void initState() {
+    super.initState();
+    
+    _namaLengkapController.clear();
+    _nikController.clear();
+    _alamatController.clear();
+    _noHpController.clear();
+    _tanggalLahirController.clear();
+    _kataSandiController.clear();
+    _konfirmasiKataSandiController.clear();
+    _jenisKelamin = '';
+    _isPasswordVisible = false;
+    _isKonfirmasiPasswordVisible = false;
+
+    namaError = null;
+    nikError = null;
+    alamatError = null;
+    noHpError = null;
+    tanggalLahirError = null;
+    jenisKelaminError = null;
+    kataSandiError = null;
+    konfirmasiKataSandiError = null;
+    
+    _namaLengkapFocus.addListener(() {
+      setState(() => _isNamaLengkapFocused = _namaLengkapFocus.hasFocus);
+    });
+    _nikFocus.addListener(() {
+      setState(() => _isNikFocused = _nikFocus.hasFocus);
+    });
+    _alamatFocus.addListener(() {
+      setState(() => _isAlamatFocused = _alamatFocus.hasFocus);
+    });
+    _noHpFocus.addListener(() {
+      setState(() => _isNoHpFocused = _noHpFocus.hasFocus);
+    });
+    _tanggalLahirFocus.addListener(() {
+      setState(() => _isTanggalLahirFocused = _tanggalLahirFocus.hasFocus);
+    });
+    _kataSandiFocus.addListener(() {
+      setState(() => _isKataSandiFocused = _kataSandiFocus.hasFocus);
+    });
+    _konfirmasiKataSandiFocus.addListener(() {
+      setState(() => _isKonfirmasiKataSandiFocused = _konfirmasiKataSandiFocus.hasFocus);
+    });
+  }
+
+  @override
   void dispose() {
     _namaLengkapController.dispose();
     _nikController.dispose();
@@ -42,6 +116,15 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
     _tanggalLahirController.dispose();
     _kataSandiController.dispose();
     _konfirmasiKataSandiController.dispose();
+    
+    _scrollController.dispose();
+    _namaLengkapFocus.dispose();
+    _nikFocus.dispose();
+    _alamatFocus.dispose();
+    _noHpFocus.dispose();
+    _tanggalLahirFocus.dispose();
+    _kataSandiFocus.dispose();
+    _konfirmasiKataSandiFocus.dispose();
     super.dispose();
   }
 
@@ -76,6 +159,7 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
@@ -96,20 +180,23 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
         ),
       ),
       body: QuarterCircleBackground(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Lengkapi Data Anda',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF02B1BA),
+        child: FocusTraversalGroup(
+          policy: OrderedTraversalPolicy(),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Lengkapi Data Anda',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF02B1BA),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
               
               _buildLabel('Nama Lengkap'),
               const SizedBox(height: 8),
@@ -117,6 +204,9 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                 _namaLengkapController, 
                 'Isi nama lengkap Anda...',
                 errorText: namaError,
+                focusNode: _namaLengkapFocus,
+                isFocused: _isNamaLengkapFocused,
+                fieldKey: _namaLengkapKey,
                 onChanged: (value) {
                   if (namaError != null && value.isNotEmpty) {
                     setState(() => namaError = null);
@@ -132,6 +222,9 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                 'Isi NIK Anda...', 
                 keyboardType: TextInputType.number,
                 errorText: nikError,
+                focusNode: _nikFocus,
+                isFocused: _isNikFocused,
+                fieldKey: _nikKey,
                 onChanged: (value) {
                   if (nikError != null && value.isNotEmpty) {
                     setState(() => nikError = null);
@@ -147,6 +240,9 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                 'Isi alamat Anda', 
                 maxLines: 3,
                 errorText: alamatError,
+                focusNode: _alamatFocus,
+                isFocused: _isAlamatFocused,
+                fieldKey: _alamatKey,
                 onChanged: (value) {
                   if (alamatError != null && value.isNotEmpty) {
                     setState(() => alamatError = null);
@@ -162,6 +258,9 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                 'Isi nomor HP Anda...', 
                 keyboardType: TextInputType.phone,
                 errorText: noHpError,
+                focusNode: _noHpFocus,
+                isFocused: _isNoHpFocused,
+                fieldKey: _noHpKey,
                 onChanged: (value) {
                   if (noHpError != null && value.isNotEmpty) {
                     setState(() => noHpError = null);
@@ -171,6 +270,7 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
               const SizedBox(height: 16),
               
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Column(
@@ -181,23 +281,26 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                         Row(
                           children: [
                             Expanded(child: _buildGenderButton('L')),
-                            const SizedBox(width: 8),
                             Expanded(child: _buildGenderButton('P')),
                           ],
                         ),
-                        if (jenisKelaminError != null) ...[
-                          const SizedBox(height: 4),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 12),
-                            child: Text(
-                              jenisKelaminError!,
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ],
+                        SizedBox(
+                          height: jenisKelaminError != null ? 24 : 0,
+                          child: jenisKelaminError != null
+                              ? Padding(
+                                  padding: const EdgeInsets.only(left: 12, top: 4),
+                                  child: Text(
+                                    jenisKelaminError!,
+                                    style: const TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 12,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.visible,
+                                  ),
+                                )
+                              : null,
+                        ),
                       ],
                     ),
                   ),
@@ -215,6 +318,9 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                               _tanggalLahirController, 
                               'dd/mm/yyyy',
                               errorText: tanggalLahirError,
+                              focusNode: _tanggalLahirFocus,
+                              isFocused: _isTanggalLahirFocused,
+                              fieldKey: _tanggalLahirKey,
                             ),
                           ),
                         ),
@@ -235,6 +341,9 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                   setState(() => _isPasswordVisible = !_isPasswordVisible);
                 },
                 errorText: kataSandiError,
+                focusNode: _kataSandiFocus,
+                isFocused: _isKataSandiFocused,
+                fieldKey: _kataSandiKey,
                 onChanged: (value) {
                   if (kataSandiError != null && value.isNotEmpty) {
                     setState(() => kataSandiError = null);
@@ -253,6 +362,9 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                   setState(() => _isKonfirmasiPasswordVisible = !_isKonfirmasiPasswordVisible);
                 },
                 errorText: konfirmasiKataSandiError,
+                focusNode: _konfirmasiKataSandiFocus,
+                isFocused: _isKonfirmasiKataSandiFocused,
+                fieldKey: _konfirmasiKataSandiKey,
                 onChanged: (value) {
                   if (konfirmasiKataSandiError != null && value.isNotEmpty) {
                     setState(() => konfirmasiKataSandiError = null);
@@ -265,7 +377,7 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: _isLoading ? null : () async {
                     bool isValid = true;
                     
                     if (_namaLengkapController.text.trim().isEmpty) {
@@ -297,7 +409,7 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                     }
                     
                     if (_jenisKelamin.isEmpty) {
-                      setState(() => jenisKelaminError = 'Jenis kelamin harus dipilih');
+                      setState(() => jenisKelaminError = 'Pilih jenis kelamin');
                       isValid = false;
                     }
                     
@@ -321,22 +433,40 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                       return;
                     }
                     
+                    setState(() => _isLoading = true);
+                    await Future.delayed(const Duration(seconds: 2));
+                    setState(() => _isLoading = false);
+                    
                     SnackbarHelper.showSuccess('Pendaftaran berhasil! Selamat datang.');
                     
-                    Navigator.of(context).pushNamedAndRemoveUntil('/pasien/dashboard', (route) => false);
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/pasien/dashboard',
+                      (route) => false,
+                      arguments: {'hasActiveQueue': true},
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF02B1BA),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'DAFTAR SEKARANG',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'DAFTAR SEKARANG',
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),
@@ -363,9 +493,14 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
       TextInputType? keyboardType,
       String? errorText,
       Function(String)? onChanged,
+      FocusNode? focusNode,
+      bool isFocused = false,
+      GlobalKey? fieldKey,
     }
   ) {
-    return Column(
+    return Container(
+      key: fieldKey,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
@@ -374,11 +509,21 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: errorText != null ? Colors.red : const Color(0xFF02B1BA),
-              width: 2,
+              width: isFocused ? 2.5 : 2,
             ),
+            boxShadow: isFocused
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF02B1BA).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: TextField(
             controller: controller,
+            focusNode: focusNode,
             maxLines: maxLines,
             keyboardType: keyboardType,
             onChanged: onChanged,
@@ -403,6 +548,7 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
           ),
         ],
       ],
+      ),
     );
   }
 
@@ -414,9 +560,14 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
     {
       String? errorText,
       Function(String)? onChanged,
+      FocusNode? focusNode,
+      bool isFocused = false,
+      GlobalKey? fieldKey,
     }
   ) {
-    return Column(
+    return Container(
+      key: fieldKey,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
@@ -425,11 +576,21 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: errorText != null ? Colors.red : const Color(0xFF02B1BA),
-              width: 2,
+              width: isFocused ? 2.5 : 2,
             ),
+            boxShadow: isFocused
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF02B1BA).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: TextField(
             controller: controller,
+            focusNode: focusNode,
             obscureText: !isVisible,
             onChanged: onChanged,
             decoration: InputDecoration(
@@ -457,11 +618,15 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
           ),
         ],
       ],
+      ),
     );
   }
 
   Widget _buildGenderButton(String gender) {
     final isSelected = _jenisKelamin == gender;
+    final isLeft = gender == 'L';
+    final errorColor = jenisKelaminError != null ? Colors.red : const Color(0xFF02B1BA);
+    
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -470,13 +635,23 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
         });
       },
       child: Container(
-        height: 48,
+        height: 54,
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF02B1BA) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: jenisKelaminError != null ? Colors.red : const Color(0xFF02B1BA),
-            width: 2,
+          borderRadius: isLeft 
+            ? const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              )
+            : const BorderRadius.only(
+                topRight: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+          border: Border(
+            top: BorderSide(color: errorColor, width: 2),
+            bottom: BorderSide(color: errorColor, width: 2),
+            left: isLeft ? BorderSide(color: errorColor, width: 2) : BorderSide(color: errorColor, width: 1),
+            right: isLeft ? BorderSide(color: errorColor, width: 1) : BorderSide(color: errorColor, width: 2),
           ),
         ),
         child: Center(

@@ -3,9 +3,14 @@ import 'package:flutter/material.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../../pasien/settings/views/pasien_settings_view.dart';
 
-class PasienProfileView extends StatelessWidget {
+class PasienProfileView extends StatefulWidget {
   const PasienProfileView({Key? key}) : super(key: key);
 
+  @override
+  State<PasienProfileView> createState() => _PasienProfileViewState();
+}
+
+class _PasienProfileViewState extends State<PasienProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,40 +277,51 @@ class PasienProfileView extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PasienSettingsView(),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade300),
+                        ],
+                      ),
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PasienSettingsView(),
+                            ),
+                          );
+                        },
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF02B1BA).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.settings,
+                            color: Color(0xFF02B1BA),
+                            size: 24,
+                          ),
                         ),
-                        child: Row(
-                          children: const [
-                            Icon(Icons.settings, color: Colors.black87),
-                            SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Pengaturan',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ),
-                            Icon(
-                              Icons.chevron_right,
-                              color: Colors.black87,
-                            ),
-                          ],
+                        title: const Text(
+                          'Pengaturan',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.chevron_right,
+                          color: Color(0xFF02B1BA),
                         ),
                       ),
                     ),

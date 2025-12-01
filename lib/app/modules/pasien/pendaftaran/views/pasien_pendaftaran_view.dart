@@ -17,10 +17,23 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
   final _formKey = GlobalKey<FormState>();
   String? selectedPoli;
   final TextEditingController _keluhanController = TextEditingController();
-  String selectedPembayaran = 'BPJS';
+  final FocusNode _keluhanFocusNode = FocusNode();
+  final FocusNode _poliFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoading = false;
+  
+  final _poliKey = GlobalKey();
+  final _keluhanKey = GlobalKey();
+  
+  String? selectedPembayaran;
   bool showPoliOptions = false;
   String? poliError;
   String? keluhanError;
+  String? pembayaranError;
+  bool isHoverBPJS = false;
+  bool isHoverUmum = false;
+  bool _isKeluhanFocused = false;
+  bool _isPoliFocused = false;
 
   final List<String> poliList = [
     'Poli Umum',
@@ -41,7 +54,35 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    
+    _keluhanController.clear();
+    selectedPoli = null;
+    selectedPembayaran = null;
+    poliError = null;
+    keluhanError = null;
+    pembayaranError = null;
+    showPoliOptions = false;
+    
+    _keluhanFocusNode.addListener(() {
+      setState(() {
+        _isKeluhanFocused = _keluhanFocusNode.hasFocus;
+      });
+    });
+    
+    _poliFocusNode.addListener(() {
+      setState(() {
+        _isPoliFocused = _poliFocusNode.hasFocus;
+      });
+    });
+  }
+
+  @override
   void dispose() {
+    _keluhanFocusNode.dispose();
+    _poliFocusNode.dispose();
+    _scrollController.dispose();
     _keluhanController.dispose();
     super.dispose();
   }
@@ -49,6 +90,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
@@ -74,6 +116,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
             : Form(
           key: _formKey,
           child: SingleChildScrollView(
+          controller: _scrollController,
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,25 +229,39 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
               // Poli Tujuan
               _buildLabel('Poli Tujuan'),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    showPoliOptions = !showPoliOptions;
-                    poliError = null;
-                  });
-                },
+              Focus(
+                focusNode: _poliFocusNode,
                 child: Container(
-                  height: 56,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: poliError != null ? Colors.red : const Color(0xFF02B1BA),
-                      width: 2,
+                  key: _poliKey,
+                  child: GestureDetector(
+                  onTap: () {
+                    _poliFocusNode.requestFocus();
+                    setState(() {
+                      showPoliOptions = !showPoliOptions;
+                      poliError = null;
+                    });
+                  },
+                  child: Container(
+                    height: 56,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: poliError != null ? Colors.red : const Color(0xFF02B1BA),
+                        width: _isPoliFocused ? 2.5 : 2,
+                      ),
+                      boxShadow: _isPoliFocused
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF02B1BA).withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
                     ),
-                  ),
-                  child: Row(
+                    child: Row(
                     children: [
                       const Icon(
                         Icons.medical_services_outlined,
@@ -229,6 +286,8 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                     ],
                   ),
                 ),
+                ),
+              ),
               ),
               if (poliError != null) ...[
                 const SizedBox(height: 4),
@@ -332,16 +391,28 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
               _buildLabel('Keluhan'),
               const SizedBox(height: 8),
               Container(
+                key: _keluhanKey,
                 height: 56,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: keluhanError != null ? Colors.red : const Color(0xFF02B1BA),
-                    width: 2,
+                    color: keluhanError != null 
+                        ? Colors.red 
+                        : (_isKeluhanFocused ? const Color(0xFF02B1BA) : const Color(0xFF02B1BA)),
+                    width: _isKeluhanFocused ? 2.5 : 2,
                   ),
-                ),
-                child: Row(
+                  boxShadow: _isKeluhanFocused
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF02B1BA).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                        : [],
+                  ),
+                  child: Row(
                   children: [
                     const Padding(
                       padding: EdgeInsets.only(left: 16),
@@ -354,6 +425,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                     Expanded(
                       child: TextField(
                         controller: _keluhanController,
+                        focusNode: _keluhanFocusNode,
                         maxLines: 1,
                         onChanged: (value) {
                           if (keluhanError != null && value.isNotEmpty) {
@@ -401,30 +473,50 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
               Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () {
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      onEnter: (_) {
                         setState(() {
-                          selectedPembayaran = 'BPJS';
+                          isHoverBPJS = true;
                         });
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        decoration: BoxDecoration(
-                          color: selectedPembayaran == 'BPJS'
-                              ? const Color(0xFF02B1BA)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF02B1BA), width: 2),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'BPJS',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: selectedPembayaran == 'BPJS'
-                                  ? Colors.white
+                      onExit: (_) {
+                        setState(() {
+                          isHoverBPJS = false;
+                        });
+                      },
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedPembayaran = 'BPJS';
+                            pembayaranError = null;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: selectedPembayaran == 'BPJS'
+                                ? const Color(0xFF02B1BA)
+                                : (isHoverBPJS ? const Color(0xFFE0F7F8) : Colors.white),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: pembayaranError != null 
+                                  ? Colors.red 
                                   : const Color(0xFF02B1BA),
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'BPJS',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: selectedPembayaran == 'BPJS'
+                                    ? Colors.white
+                                    : const Color(0xFF02B1BA),
+                              ),
                             ),
                           ),
                         ),
@@ -433,30 +525,50 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () {
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      onEnter: (_) {
                         setState(() {
-                          selectedPembayaran = 'Umum';
+                          isHoverUmum = true;
                         });
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        decoration: BoxDecoration(
-                          color: selectedPembayaran == 'Umum'
-                              ? const Color(0xFF02B1BA)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFF02B1BA), width: 2),
-                        ),
-                        child: Center(
-                          child: Text(
-                            'Umum',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: selectedPembayaran == 'Umum'
-                                  ? Colors.white
+                      onExit: (_) {
+                        setState(() {
+                          isHoverUmum = false;
+                        });
+                      },
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedPembayaran = 'Umum';
+                            pembayaranError = null;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: selectedPembayaran == 'Umum'
+                                ? const Color(0xFF02B1BA)
+                                : (isHoverUmum ? const Color(0xFFE0F7F8) : Colors.white),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: pembayaranError != null 
+                                  ? Colors.red 
                                   : const Color(0xFF02B1BA),
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Umum',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: selectedPembayaran == 'Umum'
+                                    ? Colors.white
+                                    : const Color(0xFF02B1BA),
+                              ),
                             ),
                           ),
                         ),
@@ -465,6 +577,17 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                   ),
                 ],
               ),
+              if (pembayaranError != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 12, top: 4),
+                  child: Text(
+                    pembayaranError!,
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 16),
               
               // Estimasi Waktu
@@ -580,6 +703,14 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       isValid = false;
                     }
                     
+                    // Validasi Jenis Pembayaran
+                    if (selectedPembayaran == null) {
+                      setState(() {
+                        pembayaranError = 'Jenis pembayaran harus dipilih';
+                      });
+                      isValid = false;
+                    }
+                    
                     if (!isValid) {
                       return;
                     }
@@ -595,14 +726,23 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'DAFTAR & AMBIL NOMOR ANTREAN',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'DAFTAR & AMBIL NOMOR ANTREAN',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 16),
