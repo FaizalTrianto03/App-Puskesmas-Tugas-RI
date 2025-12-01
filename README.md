@@ -211,17 +211,27 @@ assets/
   - ✅ Responsive forms dengan validasi
   - ✅ Dynamic button berdasarkan status pasien
 
+### ✅ Week 3 - Interaktivitas & Navigasi (1-7 Des 2025)
+
+**Completed:**
+- ✅ Fungsionalitas Navigasi - Route management, transitions, deep linking
+- ✅ Interaksi Dasar - Button states (loading, disabled, hover), input fields dengan focus animations
+- ✅ Validasi Input - Form validation, email (Gmail/umum), NIK, password, OTP dengan error messages
+- ✅ Loading & Feedback States - Loading indicators, snackbars, dialogs
+- ✅ UI/UX Improvements - Focus management, spacing konsisten, responsive layouts
+
 ---
 
 ## 📱 Development Branch
 
 - `main` - Production ready code
 - `Minggu-1-SetupProject` - Week 1 setup ✅
-- `Minggu-2-ImplementasiLayoutUI` - Week 2 UI implementation ✅ (current)
+- `Minggu-2-ImplementasiLayoutUI` - Week 2 UI implementation ✅
+- `Minggu-3-InteraktivitasNavigasi` - Week 3 Interactivity & Navigation 🔄 (current)
 
 ---
 
 📌 *Project ini dikembangkan untuk memenuhi tugas mata kuliah Rekayasa Interaksi dan sebagai studi penerapan Flutter dalam digitalisasi layanan puskesmas melalui aplikasi mobile.*
 
-**Last Updated:** November 26, 2025  
-**Status:** Week 2 - Layout UI Implementation Completed ✅
+**Last Updated:** December 2, 2025  
+**Status:** Week 3 - Interaktivitas & Navigasi In Progress 🔄

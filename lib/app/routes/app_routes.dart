@@ -8,6 +8,10 @@ abstract class Routes {
   static const splash = _Paths.splash;
   static const onboarding = _Paths.onboarding;
 
+  // Common (Shared across all roles)
+  static const lupaKataSandi = _Paths.lupaKataSandi;
+  static const lupaKataSandiReset = _Paths.lupaKataSandiReset;
+
   // Admin
   static const adminLogin = _Paths.adminLogin;
   static const adminDashboard = _Paths.adminDashboard;
@@ -39,6 +43,10 @@ abstract class _Paths {
   // Splash & Onboarding
   static const splash = '/splash';
   static const onboarding = '/onboarding';
+
+  // Common (Shared across all roles)
+  static const lupaKataSandi = '/lupa-kata-sandi';
+  static const lupaKataSandiReset = '/lupa-kata-sandi/reset';
 
   // Admin
   static const adminLogin = '/admin/login';

@@ -12,6 +12,9 @@ class NotifikasiListView extends StatefulWidget {
 
 class _NotifikasiListViewState extends State<NotifikasiListView> {
   String selectedFilter = 'Semua';
+  int? _hoveredIndex;
+  int? _pressedIndex;
+  int? _hoveredFilterIndex;
 
   final List<String> filterOptions = [
     'Semua',
@@ -209,31 +212,50 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: filterOptions.map((filter) {
+                  children: filterOptions.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final filter = entry.value;
                     final isSelected = selectedFilter == filter;
+                    final isHovered = _hoveredFilterIndex == index;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        label: Text(filter),
-                        selected: isSelected,
-                        onSelected: (selected) {
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        onEnter: (_) {
                           setState(() {
-                            selectedFilter = filter;
+                            _hoveredFilterIndex = index;
                           });
                         },
-                        backgroundColor: Colors.white,
-                        selectedColor: const Color(0xFF02B1BA).withOpacity(0.2),
-                        labelStyle: TextStyle(
-                          color: isSelected
-                              ? const Color(0xFF02B1BA)
-                              : const Color(0xFF64748B),
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                        side: BorderSide(
-                          color: isSelected
-                              ? const Color(0xFF02B1BA)
-                              : const Color(0xFFE2E8F0),
+                        onExit: (_) {
+                          setState(() {
+                            _hoveredFilterIndex = null;
+                          });
+                        },
+                        child: FilterChip(
+                          label: Text(filter),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() {
+                              selectedFilter = filter;
+                            });
+                          },
+                          backgroundColor: isHovered ? const Color(0xFFE0E0E0) : Colors.white,
+                          selectedColor: isSelected 
+                              ? (isHovered ? const Color(0xFF00959F) : const Color(0xFF02B1BA).withOpacity(0.2))
+                              : (isHovered ? const Color(0xFFE0E0E0) : Colors.white),
+                          labelStyle: TextStyle(
+                            color: isSelected
+                                ? const Color(0xFF02B1BA)
+                                : const Color(0xFF64748B),
+                            fontWeight:
+                                isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          side: BorderSide(
+                            color: isSelected
+                                ? const Color(0xFF02B1BA)
+                                : (isHovered ? Colors.grey.shade400 : const Color(0xFFE2E8F0)),
+                            width: isHovered ? 1.5 : 1,
+                          ),
                         ),
                       ),
                     );
@@ -269,30 +291,7 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
                       itemCount: notifList.length,
                       itemBuilder: (context, index) {
                         final notif = notifList[index];
-                        return Dismissible(
-                          key: Key(notif['id'].toString()),
-                          background: Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF4242),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 20),
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (direction) {
-                            setState(() {
-                              allNotifications.removeWhere(
-                                  (n) => n['id'] == notif['id']);
-                            });
-                          },
-                          child: _buildNotificationCard(notif),
-                        );
+                        return _buildNotificationCard(notif, index);
                       },
                     ),
             ),
@@ -302,129 +301,168 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
     );
   }
 
-  Widget _buildNotificationCard(Map<String, dynamic> notif) {
-    return GestureDetector(
-      onTap: () {
+  Widget _buildNotificationCard(Map<String, dynamic> notif, int index) {
+    final isHovered = _hoveredIndex == index;
+    final isPressed = _pressedIndex == index;
+    
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) {
         setState(() {
-          notif['isRead'] = true;
+          _hoveredIndex = index;
         });
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DetailNotifikasiView(notification: notif),
-          ),
-        );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: notif['isRead'] ? Colors.white : const Color(0xFF02B1BA).withOpacity(0.05),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: notif['isRead']
-                ? const Color(0xFFE2E8F0)
-                : const Color(0xFF02B1BA).withOpacity(0.3),
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: (notif['color'] as Color).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                notif['icon'],
-                color: notif['color'],
-                size: 24,
-              ),
+      onExit: (_) {
+        setState(() {
+          _hoveredIndex = null;
+        });
+      },
+      child: GestureDetector(
+        onTapDown: (_) {
+          setState(() {
+            _pressedIndex = index;
+          });
+        },
+        onTapUp: (_) {
+          setState(() {
+            _pressedIndex = null;
+          });
+        },
+        onTapCancel: () {
+          setState(() {
+            _pressedIndex = null;
+          });
+        },
+        onTap: () {
+          setState(() {
+            notif['isRead'] = true;
+          });
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailNotifikasiView(notification: notif),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          notif['title'],
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: notif['isRead']
-                                ? FontWeight.w600
-                                : FontWeight.bold,
-                            color: const Color(0xFF1E293B),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isPressed
+                ? (notif['isRead'] ? const Color(0xFFF0F0F0) : const Color(0xFF84F3EE).withOpacity(0.4))
+                : (isHovered 
+                    ? (notif['isRead'] ? const Color(0xFFE0E0E0) : const Color(0xFF84F3EE).withOpacity(0.35))
+                    : (notif['isRead'] ? Colors.white : const Color(0xFF84F3EE).withOpacity(0.15))),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isPressed
+                  ? (notif['isRead'] ? Colors.grey.shade300 : const Color(0xFF02B1BA).withOpacity(0.7))
+                  : (isHovered
+                      ? (notif['isRead'] ? Colors.grey.shade300 : const Color(0xFF02B1BA).withOpacity(0.6))
+                      : (notif['isRead']
+                          ? const Color(0xFFE2E8F0)
+                          : const Color(0xFF02B1BA).withOpacity(0.5))),
+              width: (isPressed || isHovered) ? 2 : 1.5,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: (notif['color'] as Color).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  notif['icon'],
+                  color: notif['color'],
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notif['title'],
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: notif['isRead']
+                                  ? FontWeight.w600
+                                  : FontWeight.bold,
+                              color: const Color(0xFF1E293B),
+                            ),
                           ),
                         ),
-                      ),
-                      if (!notif['isRead'])
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF02B1BA),
-                            shape: BoxShape.circle,
+                        if (!notif['isRead'])
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF02B1BA),
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    notif['message'],
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF64748B),
-                      height: 1.4,
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: Colors.grey[500],
+                    const SizedBox(height: 6),
+                    Text(
+                      notif['message'],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF64748B),
+                        height: 1.4,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        notif['time'],
-                        style: TextStyle(
-                          fontSize: 12,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
                           color: Colors.grey[500],
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: (notif['color'] as Color).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          notif['type'],
+                        const SizedBox(width: 4),
+                        Text(
+                          notif['time'],
                           style: TextStyle(
-                            fontSize: 11,
-                            color: notif['color'],
-                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: Colors.grey[500],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (notif['color'] as Color).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            notif['type'],
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: notif['color'],
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

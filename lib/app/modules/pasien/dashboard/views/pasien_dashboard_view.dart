@@ -18,11 +18,32 @@ class PasienDashboardView extends StatefulWidget {
 
 class _PasienDashboardViewState extends State<PasienDashboardView> {
   late bool hasActiveQueue;
+  bool _isHoverDaftarBaru = false;
+  bool _isHoverStatusAntrean = false;
+  bool _isHoverRiwayat = false;
+  bool _isHoverLayananLain = false;
+  bool _isHoverProfileCard = false;
+  bool _isPressedProfileCard = false;
+  bool _isPressedDaftarBaru = false;
+  bool _isPressedStatusAntrean = false;
+  bool _isPressedRiwayat = false;
+  bool _isPressedLayananLain = false;
   
   @override
   void initState() {
     super.initState();
     hasActiveQueue = widget.initialHasActiveQueue;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null && args.containsKey('hasActiveQueue')) {
+      setState(() {
+        hasActiveQueue = args['hasActiveQueue'] as bool;
+      });
+    }
   }
   
   @override
@@ -126,6 +147,18 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
                         context,
                         icon: Icons.add_circle_outline,
                         title: 'Daftar Baru',
+                        isHover: _isHoverDaftarBaru,
+                        isPressed: _isPressedDaftarBaru,
+                        onHoverChange: (hover) {
+                          setState(() {
+                            _isHoverDaftarBaru = hover;
+                          });
+                        },
+                        onPressedChange: (pressed) {
+                          setState(() {
+                            _isPressedDaftarBaru = pressed;
+                          });
+                        },
                         onTap: () async {
                           final result = await Navigator.push(
                             context,
@@ -143,6 +176,18 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
                         context,
                         icon: Icons.receipt_long,
                         title: 'Status Antrean',
+                        isHover: _isHoverStatusAntrean,
+                        isPressed: _isPressedStatusAntrean,
+                        onHoverChange: (hover) {
+                          setState(() {
+                            _isHoverStatusAntrean = hover;
+                          });
+                        },
+                        onPressedChange: (pressed) {
+                          setState(() {
+                            _isPressedStatusAntrean = pressed;
+                          });
+                        },
                         onTap: () async {
                           final result = await Navigator.push(
                             context,
@@ -160,8 +205,20 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
                         context,
                         icon: Icons.history,
                         title: 'Riwayat Kunjungan',
-                        onTap: () {
-                          Navigator.push(
+                        isHover: _isHoverRiwayat,
+                        isPressed: _isPressedRiwayat,
+                        onHoverChange: (hover) {
+                          setState(() {
+                            _isHoverRiwayat = hover;
+                          });
+                        },
+                        onPressedChange: (pressed) {
+                          setState(() {
+                            _isPressedRiwayat = pressed;
+                          });
+                        },
+                        onTap: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => const RiwayatKunjunganView()),
                           );
@@ -172,6 +229,18 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
                         context,
                         icon: Icons.apps,
                         title: 'Layanan Lainnya',
+                        isHover: _isHoverLayananLain,
+                        isPressed: _isPressedLayananLain,
+                        onHoverChange: (hover) {
+                          setState(() {
+                            _isHoverLayananLain = hover;
+                          });
+                        },
+                        onPressedChange: (pressed) {
+                          setState(() {
+                            _isPressedLayananLain = pressed;
+                          });
+                        },
                         onTap: () {
                           Navigator.push(
                             context,
@@ -193,75 +262,117 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
   }
 
   Widget _buildProfileCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const PasienProfileView()),
-        );
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) {
+        setState(() {
+          _isHoverProfileCard = true;
+        });
       },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
+      onExit: (_) {
+        setState(() {
+          _isHoverProfileCard = false;
+        });
+      },
+      child: GestureDetector(
+        onTapDown: (_) {
+          setState(() {
+            _isPressedProfileCard = true;
+          });
+        },
+        onTapUp: (_) {
+          setState(() {
+            _isPressedProfileCard = false;
+          });
+        },
+        onTapCancel: () {
+          setState(() {
+            _isPressedProfileCard = false;
+          });
+        },
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const PasienProfileView()),
+          );
+        },
+        child: Transform.scale(
+          scale: _isPressedProfileCard ? 0.95 : (_isHoverProfileCard ? 1.02 : 1.0),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _isHoverProfileCard
+                    ? [const Color(0xFF007880), const Color(0xFF00A09A)]
+                    : [const Color(0xFF02B1BA), const Color(0xFF84F3EE)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: _isHoverProfileCard
+                      ? const Color(0xFF02B1BA).withOpacity(0.6)
+                      : Colors.black.withOpacity(0.1),
+                  blurRadius: _isHoverProfileCard ? 16 : 4,
+                  offset: Offset(0, _isHoverProfileCard ? 6 : 2),
+                ),
+              ],
+            ),
+            child: Row(
+            children: [
+              const CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.white,
+                child: Icon(
+                  Icons.person,
+                  size: 35,
+                  color: Color(0xFF02B1BA),
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Selamat Datang,',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Anisa Ayu',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.chevron_right,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+            ],
           ),
-          borderRadius: BorderRadius.circular(12),
         ),
-        child: Row(
-          children: [
-            const CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.person,
-                size: 35,
-                color: Color(0xFF02B1BA),
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Selamat Datang,',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Anisa Ayu',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.chevron_right,
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
-          ],
-        ),
+      ),
       ),
     );
   }
@@ -418,46 +529,72 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    required bool isHover,
+    required bool isPressed,
+    required Function(bool) onHoverChange,
+    required Function(bool) onPressedChange,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => onHoverChange(true),
+      onExit: (_) => onHoverChange(false),
+      child: GestureDetector(
+        onTapDown: (_) => onPressedChange(true),
+        onTapUp: (_) => onPressedChange(false),
+        onTapCancel: () => onPressedChange(false),
+        onTap: onTap,
+        child: Transform.scale(
+          scale: isPressed ? 0.95 : (isHover ? 1.02 : 1.0),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isHover 
+                    ? [const Color(0xFF007880), const Color(0xFF00A09A)]
+                    : [const Color(0xFF02B1BA), const Color(0xFF84F3EE)],
               ),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 28,
-              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: isHover 
+                      ? const Color(0xFF02B1BA).withOpacity(0.6)
+                      : Colors.black.withOpacity(0.1),
+                  blurRadius: isHover ? 16 : 4,
+                  offset: Offset(0, isHover ? 6 : 2),
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+            child: Row(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(isHover ? 0.5 : 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
                   color: Colors.white,
+                  size: 28,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
       ),
     );
   }
 }
-
