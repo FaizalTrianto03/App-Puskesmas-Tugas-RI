@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../widgets/custom_text_field.dart';
+import '../../../../widgets/quarter_circle_background.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../utils/colors.dart';
 import '../../../../utils/text_styles.dart';
@@ -42,7 +43,15 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
   final _riwayatPenyakitController = TextEditingController();
   final _alergiController = TextEditingController();
 
-  bool _showWarning = false;
+  // Error states untuk validasi
+  String? _tekananDarahSistolikError;
+  String? _tekananDarahDiastolikError;
+  String? _nadiError;
+  String? _suhuError;
+  String? _beratBadanError;
+  String? _tinggiBadanError;
+  String? _keluhanUtamaError;
+  String? _alergiError;
 
   @override
   void initState() {
@@ -72,34 +81,69 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
   }
 
   void _simpanData() {
+    // Reset semua error
     setState(() {
-      _showWarning = false;
+      _tekananDarahSistolikError = null;
+      _tekananDarahDiastolikError = null;
+      _nadiError = null;
+      _suhuError = null;
+      _beratBadanError = null;
+      _tinggiBadanError = null;
+      _keluhanUtamaError = null;
+      _alergiError = null;
     });
 
-    if (_formKey.currentState!.validate()) {
-      // Validasi semua field tanda vital terisi
-      if (_tekananDarahSistolikController.text.isEmpty ||
-          _tekananDarahDiastolikController.text.isEmpty ||
-          _nadiController.text.isEmpty ||
-          _suhuController.text.isEmpty ||
-          _pernapasanController.text.isEmpty ||
-          _beratBadanController.text.isEmpty ||
-          _tinggiBadanController.text.isEmpty ||
-          _keluhanUtamaController.text.isEmpty) {
-        setState(() {
-          _showWarning = true;
-        });
-        return;
-      }
-
-      // TODO: Simpan ke database
-      SnackbarHelper.showSuccess('Data rekam medis berhasil disimpan');
-      Navigator.pop(context);
-    } else {
-      setState(() {
-        _showWarning = true;
-      });
+    // Validasi field wajib
+    bool hasError = false;
+    
+    if (_tekananDarahSistolikController.text.trim().isEmpty) {
+      _tekananDarahSistolikError = 'Tekanan darah sistolik wajib diisi';
+      hasError = true;
     }
+    
+    if (_tekananDarahDiastolikController.text.trim().isEmpty) {
+      _tekananDarahDiastolikError = 'Tekanan darah diastolik wajib diisi';
+      hasError = true;
+    }
+    
+    if (_nadiController.text.trim().isEmpty) {
+      _nadiError = 'Nadi wajib diisi';
+      hasError = true;
+    }
+    
+    if (_suhuController.text.trim().isEmpty) {
+      _suhuError = 'Suhu wajib diisi';
+      hasError = true;
+    }
+    
+    if (_beratBadanController.text.trim().isEmpty) {
+      _beratBadanError = 'Berat badan wajib diisi';
+      hasError = true;
+    }
+    
+    if (_tinggiBadanController.text.trim().isEmpty) {
+      _tinggiBadanError = 'Tinggi badan wajib diisi';
+      hasError = true;
+    }
+    
+    if (_keluhanUtamaController.text.trim().isEmpty) {
+      _keluhanUtamaError = 'Keluhan utama wajib diisi';
+      hasError = true;
+    }
+    
+    if (_alergiController.text.trim().isEmpty) {
+      _alergiError = 'Alergi wajib diisi';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setState(() {});
+      return;
+    }
+
+    // TODO: Simpan ke database
+    SnackbarHelper.showSuccess('Data rekam medis berhasil disimpan');
+    Navigator.pop(context);
   }
 
   @override
@@ -125,29 +169,47 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        elevation: 0,
+        backgroundColor: Colors.white,
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.08),
+        scrolledUnderElevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Form Rekam Medis',
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
+            color: Color(0xFF02B1BA),
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+      body: Column(
+        children: [
+          Container(
+            height: 4,
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: QuarterCircleBackground(
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Identitas Pasien
@@ -185,6 +247,14 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
                     child: _buildNumberField(
                       controller: _tekananDarahSistolikController,
                       hintText: '120',
+                      errorText: _tekananDarahSistolikError,
+                      onChanged: (value) {
+                        if (_tekananDarahSistolikError != null && value.trim().isNotEmpty) {
+                          setState(() {
+                            _tekananDarahSistolikError = null;
+                          });
+                        }
+                      },
                     ),
                   ),
                   const Padding(
@@ -196,6 +266,14 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
                       controller: _tekananDarahDiastolikController,
                       hintText: '80',
                       suffix: 'mmHg',
+                      errorText: _tekananDarahDiastolikError,
+                      onChanged: (value) {
+                        if (_tekananDarahDiastolikError != null && value.trim().isNotEmpty) {
+                          setState(() {
+                            _tekananDarahDiastolikError = null;
+                          });
+                        }
+                      },
                     ),
                   ),
                 ],
@@ -208,6 +286,14 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
                 controller: _nadiController,
                 hintText: '78',
                 suffix: '/menit',
+                errorText: _nadiError,
+                onChanged: (value) {
+                  if (_nadiError != null && value.trim().isNotEmpty) {
+                    setState(() {
+                      _nadiError = null;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
               
@@ -217,6 +303,14 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
                 controller: _suhuController,
                 hintText: '36',
                 suffix: '°C',
+                errorText: _suhuError,
+                onChanged: (value) {
+                  if (_suhuError != null && value.trim().isNotEmpty) {
+                    setState(() {
+                      _suhuError = null;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
               
@@ -239,6 +333,14 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
                 controller: _beratBadanController,
                 hintText: '60',
                 suffix: 'kg',
+                errorText: _beratBadanError,
+                onChanged: (value) {
+                  if (_beratBadanError != null && value.trim().isNotEmpty) {
+                    setState(() {
+                      _beratBadanError = null;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
               
@@ -248,6 +350,14 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
                 controller: _tinggiBadanController,
                 hintText: '170',
                 suffix: 'cm',
+                errorText: _tinggiBadanError,
+                onChanged: (value) {
+                  if (_tinggiBadanError != null && value.trim().isNotEmpty) {
+                    setState(() {
+                      _tinggiBadanError = null;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
               
@@ -296,15 +406,38 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
               
               _buildLabelRequired('Keluhan Utama'),
               const SizedBox(height: 8),
-              CustomTextField(
-                controller: _keluhanUtamaController,
-                hintText: 'Contoh : Demam sejak 3 hari yang lalu, dan flu',
-                maxLines: 3,
-                backgroundColor: AppColors.white,
-                textColor: Colors.black87,
-                hintColor: Colors.grey,
-                borderColor: AppColors.primary,
-                borderWidth: 2,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomTextField(
+                    controller: _keluhanUtamaController,
+                    hintText: 'Contoh : Demam sejak 3 hari yang lalu, dan flu',
+                    maxLines: 3,
+                    backgroundColor: AppColors.white,
+                    textColor: Colors.black87,
+                    hintColor: Colors.grey,
+                    borderColor: _keluhanUtamaError != null ? Colors.red : AppColors.primary,
+                    borderWidth: 2,
+                    onChanged: (value) {
+                      if (_keluhanUtamaError != null && value.trim().isNotEmpty) {
+                        setState(() {
+                          _keluhanUtamaError = null;
+                        });
+                      }
+                    },
+                  ),
+                  if (_keluhanUtamaError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, top: 4),
+                      child: Text(
+                        _keluhanUtamaError!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 12),
               
@@ -324,31 +457,53 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
               
               _buildLabelRequired('Alergi'),
               const SizedBox(height: 8),
-              CustomTextField(
-                controller: _alergiController,
-                hintText: 'Contoh : Udang dan kacang tanah',
-                maxLines: 2,
-                backgroundColor: AppColors.white,
-                textColor: Colors.black87,
-                hintColor: Colors.grey,
-                borderColor: AppColors.primary,
-                borderWidth: 2,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomTextField(
+                    controller: _alergiController,
+                    hintText: 'Contoh : Udang dan kacang tanah',
+                    maxLines: 2,
+                    backgroundColor: AppColors.white,
+                    textColor: Colors.black87,
+                    hintColor: Colors.grey,
+                    borderColor: _alergiError != null ? Colors.red : AppColors.primary,
+                    borderWidth: 2,
+                    onChanged: (value) {
+                      if (_alergiError != null && value.trim().isNotEmpty) {
+                        setState(() {
+                          _alergiError = null;
+                        });
+                      }
+                    },
+                  ),
+                  if (_alergiError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, top: 4),
+                      child: Text(
+                        _alergiError!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 16),
               
-              // Warning Box
-              if (_showWarning)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF3CD),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: const Color(0xFFFFB020),
-                      width: 1,
-                    ),
+              // Warning Box - Permanen Visible
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3CD),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: const Color(0xFFFFB020),
+                    width: 1,
                   ),
-                  child: Row(
+                ),
+                child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(
@@ -434,6 +589,10 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
           ),
         ),
       ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -467,7 +626,7 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
         children: [
           TextSpan(text: label),
           const TextSpan(
-            text: ' (*)',
+            text: ' *',
             style: TextStyle(color: AppColors.accent),
           ),
         ],
@@ -521,44 +680,63 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
   Widget _buildNumberField({
     required TextEditingController controller,
     required String hintText,
+    String? errorText,
+    Function(String)? onChanged,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      textAlign: TextAlign.center,
-      style: AppTextStyles.bodyMedium.copyWith(
-        color: Colors.black87,
-      ),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.grey,
-        ),
-        filled: true,
-        fillColor: AppColors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 2,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.left,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: Colors.black87,
+          ),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: AppTextStyles.bodyMedium.copyWith(
+              color: Colors.grey,
+            ),
+            filled: true,
+            fillColor: AppColors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : AppColors.primary,
+                width: 2,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : AppColors.primary,
+                width: 2,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : AppColors.primary,
+                width: 2,
+              ),
+            ),
           ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 2,
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 4),
+            child: Text(
+              errorText,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 12,
+              ),
+            ),
           ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 2,
-          ),
-        ),
-      ),
+      ],
     );
   }
 
@@ -567,50 +745,69 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
     required String hintText,
     required String suffix,
     bool readOnly = false,
+    String? errorText,
+    Function(String)? onChanged,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      textAlign: TextAlign.center,
-      readOnly: readOnly,
-      style: AppTextStyles.bodyMedium.copyWith(
-        color: Colors.black87,
-      ),
-      decoration: InputDecoration(
-        hintText: hintText,
-        suffixText: suffix,
-        suffixStyle: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.black87,
-          fontWeight: FontWeight.w600,
-        ),
-        hintStyle: AppTextStyles.bodyMedium.copyWith(
-          color: Colors.grey,
-        ),
-        filled: true,
-        fillColor: readOnly ? AppColors.backgroundLight : AppColors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 2,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.left,
+          readOnly: readOnly,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: Colors.black87,
+          ),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: hintText,
+            suffixText: suffix,
+            suffixStyle: AppTextStyles.bodyMedium.copyWith(
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+            ),
+            hintStyle: AppTextStyles.bodyMedium.copyWith(
+              color: Colors.grey,
+            ),
+            filled: true,
+            fillColor: readOnly ? AppColors.backgroundLight : AppColors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : AppColors.primary,
+                width: 2,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : AppColors.primary,
+                width: 2,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: errorText != null ? Colors.red : AppColors.primary,
+                width: 2,
+              ),
+            ),
           ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 2,
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 4),
+            child: Text(
+              errorText,
+              style: const TextStyle(
+                color: Colors.red,
+                fontSize: 12,
+              ),
+            ),
           ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 2,
-          ),
-        ),
-      ),
+      ],
     );
   }
 }
