@@ -517,11 +517,6 @@ class _ApotekerDashboardViewState extends State<ApotekerDashboardView> {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.chevron_right,
-                color: Color(0xFF02B1BA),
-                size: 24,
-              ),
             ],
           ),
         ),
