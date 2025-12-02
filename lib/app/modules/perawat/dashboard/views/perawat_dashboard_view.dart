@@ -204,7 +204,7 @@ class PerawatDashboardView extends StatelessWidget {
           antrian: 'A-012',
           keluhan: 'Demam dan pusing',
           status: 'Proses',
-          statusColor: const Color(0xFF4CAF50),
+          statusColor: const Color(0xFF2196F3), // Blue - Material Blue 500
         ),
         const SizedBox(height: 12),
         
@@ -249,10 +249,6 @@ class PerawatDashboardView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF02B1BA).withOpacity(0.3),
-          width: 2,
-        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -301,15 +297,15 @@ class PerawatDashboardView extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: statusColor,
+                  color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   status,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: statusColor,
                   ),
                 ),
               ),
@@ -370,46 +366,102 @@ class PerawatDashboardView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                final pasienData = {
-                  'nama': nama,
-                  'umur': umur,
-                  'keterangan': keterangan,
-                  'antrian': antrian,
-                  'keluhan': keluhan,
-                  'status': status,
-                };
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FormRekamMedisView(
-                      pasienData: pasienData,
+          _HoverAnimatedButton(
+            onPressed: () {
+              final pasienData = {
+                'nama': nama,
+                'umur': umur,
+                'keterangan': keterangan,
+                'antrian': antrian,
+                'keluhan': keluhan,
+                'status': status,
+              };
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FormRekamMedisView(
+                    pasienData: pasienData,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Widget tombol dengan efek hover animasi
+class _HoverAnimatedButton extends StatefulWidget {
+  final VoidCallback onPressed;
+
+  const _HoverAnimatedButton({
+    required this.onPressed,
+  });
+
+  @override
+  State<_HoverAnimatedButton> createState() => _HoverAnimatedButtonState();
+}
+
+class _HoverAnimatedButtonState extends State<_HoverAnimatedButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: _isHovered
+                ? const LinearGradient(
+                    colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  )
+                : null,
+            color: _isHovered ? null : const Color(0xFF02B1BA),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: _isHovered
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF02B1BA).withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: widget.onPressed,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Center(
+                  child: Text(
+                    'Klik untuk isi rekam medis',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: _isHovered ? 0.5 : 0,
                     ),
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF02B1BA),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Klik untuk isi rekam medis',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
