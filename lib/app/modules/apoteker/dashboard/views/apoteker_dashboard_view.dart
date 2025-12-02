@@ -3,8 +3,20 @@ import '../../../../widgets/quarter_circle_background.dart';
 import '../../settings/views/apoteker_settings_view.dart';
 import '../../peringatan_obat/views/peringatan_obat_view.dart';
 
-class ApotekerDashboardView extends StatelessWidget {
+class ApotekerDashboardView extends StatefulWidget {
   const ApotekerDashboardView({Key? key}) : super(key: key);
+
+  @override
+  State<ApotekerDashboardView> createState() => _ApotekerDashboardViewState();
+}
+
+class _ApotekerDashboardViewState extends State<ApotekerDashboardView> {
+  bool _isHoverProfileCard = false;
+  bool _isPressedProfileCard = false;
+  bool _isHoverLihatDetail = false;
+  bool _isPressedLihatDetail = false;
+  int? _hoveredStokIndex;
+  int? _hoveredObatIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -68,66 +80,78 @@ class ApotekerDashboardView extends StatelessWidget {
   }
 
   Widget _buildProfileCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => const ApotekerSettingsView()));
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHoverProfileCard = true),
+      onExit: (_) => setState(() => _isHoverProfileCard = false),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressedProfileCard = true),
+        onTapUp: (_) => setState(() => _isPressedProfileCard = false),
+        onTapCancel: () => setState(() => _isPressedProfileCard = false),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ApotekerSettingsView()),
+          );
+        },
+        child: AnimatedScale(
+          scale:
+              _isPressedProfileCard ? 0.97 : (_isHoverProfileCard ? 1.02 : 1.0),
+          duration: const Duration(milliseconds: 150),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 35, color: Color(0xFF02B1BA)),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'apt. Aditama, S. Farm',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Apoteker',
+                        style: TextStyle(fontSize: 14, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.chevron_right,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+              ],
+            ),
           ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            const CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.white,
-              child: Icon(Icons.person, size: 35, color: Color(0xFF02B1BA)),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'apt. Aditama, S. Farm',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Apoteker',
-                    style: TextStyle(fontSize: 14, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.chevron_right,
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -235,28 +259,46 @@ class ApotekerDashboardView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const PeringatanObatView()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF02B1BA),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Lihat Detail',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+          MouseRegion(
+            onEnter: (_) => setState(() => _isHoverLihatDetail = true),
+            onExit: (_) => setState(() => _isHoverLihatDetail = false),
+            child: GestureDetector(
+              onTapDown: (_) => setState(() => _isPressedLihatDetail = true),
+              onTapUp: (_) => setState(() => _isPressedLihatDetail = false),
+              onTapCancel: () => setState(() => _isPressedLihatDetail = false),
+              child: AnimatedScale(
+                scale:
+                    _isPressedLihatDetail
+                        ? 0.95
+                        : (_isHoverLihatDetail ? 1.03 : 1.0),
+                duration: const Duration(milliseconds: 150),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const PeringatanObatView(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF02B1BA),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: _isHoverLihatDetail ? 4 : 0,
+                    ),
+                    child: const Text(
+                      'Lihat Detail',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -287,6 +329,7 @@ class ApotekerDashboardView extends StatelessWidget {
                 label: 'Stok Aman',
                 color: const Color(0xFF4CAF50),
                 backgroundColor: const Color(0xFFE8F5E9),
+                index: 0,
               ),
             ),
             const SizedBox(width: 12),
@@ -296,6 +339,7 @@ class ApotekerDashboardView extends StatelessWidget {
                 label: 'Stok Hampir',
                 color: const Color(0xFF9C27B0),
                 backgroundColor: const Color(0xFFF3E5F5),
+                index: 1,
               ),
             ),
           ],
@@ -309,6 +353,7 @@ class ApotekerDashboardView extends StatelessWidget {
                 label: 'Stok Kritis',
                 color: const Color(0xFFFF4242),
                 backgroundColor: const Color(0xFFFFEBEE),
+                index: 2,
               ),
             ),
             const SizedBox(width: 12),
@@ -318,6 +363,7 @@ class ApotekerDashboardView extends StatelessWidget {
                 label: 'Segera Expired',
                 color: const Color(0xFFFF9800),
                 backgroundColor: const Color(0xFFFFF3E0),
+                index: 3,
               ),
             ),
           ],
@@ -331,35 +377,45 @@ class ApotekerDashboardView extends StatelessWidget {
     required String label,
     required Color color,
     required Color backgroundColor,
+    int? index,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color, width: 2),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+    final isHovered = _hoveredStokIndex == index;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hoveredStokIndex = index),
+      onExit: (_) => setState(() => _hoveredStokIndex = null),
+      child: AnimatedScale(
+        scale: isHovered ? 1.05 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color, width: 2),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-            textAlign: TextAlign.center,
+          child: Column(
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -381,18 +437,21 @@ class ApotekerDashboardView extends StatelessWidget {
           namaObat: 'Paracetamol',
           jumlahResep: '175 Resep/Bulan',
           icon: Icons.medication,
+          index: 0,
         ),
         const SizedBox(height: 12),
         _buildObatItem(
           namaObat: 'Vitamin C',
           jumlahResep: '105 Resep/Bulan',
           icon: Icons.medication,
+          index: 1,
         ),
         const SizedBox(height: 12),
         _buildObatItem(
           namaObat: 'Amoxicillin',
           jumlahResep: '98 Resep/Bulan',
           icon: Icons.medication,
+          index: 2,
         ),
       ],
     );
@@ -402,53 +461,70 @@ class ApotekerDashboardView extends StatelessWidget {
     required String namaObat,
     required String jumlahResep,
     required IconData icon,
+    int? index,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+    final isHovered = _hoveredObatIndex == index;
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hoveredObatIndex = index),
+      onExit: (_) => setState(() => _hoveredObatIndex = null),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        transform: Matrix4.translationValues(isHovered ? 4 : 0, 0, 0),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF02B1BA).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: const Color(0xFF02B1BA), size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  namaObat,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF02B1BA).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  jumlahResep,
-                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                child: Icon(icon, color: const Color(0xFF02B1BA), size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      namaObat,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      jumlahResep,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: Color(0xFF02B1BA),
+                size: 24,
+              ),
+            ],
           ),
-          const Icon(Icons.chevron_right, color: Color(0xFF02B1BA), size: 24),
-        ],
+        ),
       ),
     );
   }
