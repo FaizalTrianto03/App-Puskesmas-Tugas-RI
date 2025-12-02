@@ -11,8 +11,8 @@ import '../modules/apoteker/dashboard/views/apoteker_dashboard_view.dart';
 import '../modules/apoteker/login/bindings/apoteker_login_binding.dart';
 import '../modules/apoteker/login/views/apoteker_login_view.dart';
 // Common (Shared across all roles)
-import '../modules/common/lupa_kata_sandi/views/lupa_kata_sandi_email_view.dart';
-import '../modules/common/lupa_kata_sandi/views/lupa_kata_sandi_reset_view.dart';
+import '../modules/common/views/lupa_kata_sandi_email_view.dart';
+import '../modules/common/views/lupa_kata_sandi_reset_view.dart';
 import '../modules/dokter/dashboard/bindings/dokter_dashboard_binding.dart';
 import '../modules/dokter/dashboard/views/dokter_dashboard_view.dart';
 // Dokter

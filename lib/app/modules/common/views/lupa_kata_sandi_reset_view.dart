@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../utils/colors.dart';
-import '../../../../utils/text_styles.dart';
-import '../../../../widgets/custom_button.dart';
-import '../../../../widgets/custom_text_field.dart';
+import '../../../utils/colors.dart';
+import '../../../utils/text_styles.dart';
+import '../../../widgets/custom_button.dart';
+import '../../../widgets/custom_text_field.dart';
 
 class LupaKataSandiResetView extends StatefulWidget {
   const LupaKataSandiResetView({Key? key}) : super(key: key);
