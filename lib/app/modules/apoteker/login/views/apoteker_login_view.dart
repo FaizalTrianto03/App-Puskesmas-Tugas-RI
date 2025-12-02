@@ -28,7 +28,22 @@ class _ApotekerLoginViewState extends State<ApotekerLoginView>
   late Animation<double> _fadeAnimation;
 
   @override
+  void initState() {
+    super.initState();
+    // Inisialisasi animation controller
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+    _animationController.forward();
+  }
+
+  @override
   void dispose() {
+    _animationController.dispose();
     _dataDiriController.dispose();
     _passwordController.dispose();
     super.dispose();
