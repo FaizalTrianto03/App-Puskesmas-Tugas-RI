@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../widgets/custom_text_field.dart';
 import '../../../../utils/snackbar_helper.dart';
 
@@ -78,7 +79,7 @@ class _FormPemeriksaanViewState extends State<FormPemeriksaanView> {
       SnackbarHelper.showSuccess('Hasil pemeriksaan berhasil disimpan');
       
       // Kembali ke dashboard
-      Navigator.pop(context);
+      Get.back();
     }
   }
 
@@ -111,7 +112,7 @@ class _FormPemeriksaanViewState extends State<FormPemeriksaanView> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Form Pemeriksaan Pasien',
