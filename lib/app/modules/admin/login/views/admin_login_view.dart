@@ -191,9 +191,7 @@ class _AdminLoginViewState extends State<AdminLoginView> {
                 CustomButton(
                   text: 'MASUK',
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const AdminDashboardView()),
-                    );
+                    Get.offAll(() => const AdminDashboardView());
                   },
                   backgroundColor: AppColors.white,
                   textColor: AppColors.primary,
@@ -204,7 +202,7 @@ class _AdminLoginViewState extends State<AdminLoginView> {
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Get.back();
                     },
                     child: RichText(
                       text: TextSpan(

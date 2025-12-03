@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../settings/views/admin_settings_view.dart';
 import '../../kelola_pengguna/views/kelola_pengguna_list_view.dart';
 import '../../kelola_pengguna/bindings/kelola_pengguna_binding.dart';
 import '../../laporan_statistik/views/laporan_statistik_view.dart';
+import '../../notifikasi/views/admin_notifikasi_list_view.dart';
+import '../controllers/admin_dashboard_controller.dart';
 
-class AdminDashboardView extends StatelessWidget {
+class AdminDashboardView extends GetView<AdminDashboardController> {
   const AdminDashboardView({Key? key}) : super(key: key);
 
   @override
@@ -19,6 +22,7 @@ class AdminDashboardView extends StatelessWidget {
           elevation: 2,
           shadowColor: Colors.black.withOpacity(0.08),
           scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
           automaticallyImplyLeading: false,
           centerTitle: true,
           title: const Text(
@@ -29,6 +33,48 @@ class AdminDashboardView extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+          actions: [
+            Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: Color(0xFF02B1BA),
+                    size: 28,
+                  ),
+                  onPressed: () {
+                    Get.to(() => const AdminNotifikasiListView());
+                  },
+                ),
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF4242),
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '3',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 8),
+          ],
         ),
         body: Column(
           children: [
@@ -70,9 +116,7 @@ class AdminDashboardView extends StatelessWidget {
   Widget _buildProfileCard(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AdminSettingsView()),
-        );
+        Get.to(() => const AdminSettingsView());
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -157,11 +201,7 @@ class AdminDashboardView extends StatelessWidget {
             ),
             TextButton.icon(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const LaporanStatistikView(),
-                  ),
-                );
+                Get.to(() => const LaporanStatistikView());
               },
               icon: const Icon(Icons.arrow_forward, size: 18),
               label: const Text('Lihat Semua'),
@@ -309,19 +349,15 @@ class AdminDashboardView extends StatelessWidget {
         'icon': Icons.people_outline,
         'title': 'Kelola Pengguna',
         'onTap': () {
-          KelolaPenggunaBinding().dependencies();
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const KelolaPenggunaListView()),
-          );
+          Get.to(() => const KelolaPenggunaListView(),
+              binding: KelolaPenggunaBinding());
         },
       },
       {
         'icon': Icons.bar_chart_outlined,
         'title': 'Laporan & Statistik',
         'onTap': () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const LaporanStatistikView()),
-          );
+          Get.to(() => const LaporanStatistikView());
         },
       },
     ];
