@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class DetailPemeriksaanView extends StatelessWidget {
   final Map<String, dynamic> rekamMedisData;
@@ -15,19 +16,17 @@ class DetailPemeriksaanView extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
-        scrolledUnderElevation: 0,
+        backgroundColor: const Color(0xFF02B1BA),
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Detail Pemeriksaan',
           style: TextStyle(
-            color: Color(0xFF02B1BA),
+            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),

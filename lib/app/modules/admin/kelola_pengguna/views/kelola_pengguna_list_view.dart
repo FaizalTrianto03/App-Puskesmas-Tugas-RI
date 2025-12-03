@@ -11,18 +11,17 @@ class KelolaPenggunaListView extends GetView<KelolaPenggunaController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F9FF),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
-        scrolledUnderElevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Kelola Pengguna',
           style: TextStyle(
-            color: Color(0xFF02B1BA),
+            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),

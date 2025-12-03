@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
@@ -11,7 +12,6 @@ class PasienRegisterView extends StatefulWidget {
 }
 
 class _PasienRegisterViewState extends State<PasienRegisterView> {
-  final _formKey = GlobalKey<FormState>();
   final _namaLengkapController = TextEditingController();
   final _nikController = TextEditingController();
   final _alamatController = TextEditingController();
@@ -167,7 +167,7 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: const Text(
@@ -439,9 +439,8 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                     
                     SnackbarHelper.showSuccess('Pendaftaran berhasil! Selamat datang.');
                     
-                    Navigator.of(context).pushNamedAndRemoveUntil(
+                    Get.offAllNamed(
                       '/pasien/dashboard',
-                      (route) => false,
                       arguments: {'hasActiveQueue': true},
                     );
                   },

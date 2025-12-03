@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../../../widgets/custom_text_field.dart';
 import '../../../../utils/colors.dart';
@@ -44,7 +45,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
         ),
         title: Text(
           'Kelola Data Diri',
@@ -460,7 +461,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
                               SnackbarHelper.showSuccess('Data berhasil diperbarui');
-                              Navigator.pop(context);
+                              Get.back();
                             }
                           },
                           style: ElevatedButton.styleFrom(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class JadwalPraktekView extends StatelessWidget {
   const JadwalPraktekView({Key? key}) : super(key: key);
@@ -86,10 +87,11 @@ class JadwalPraktekView extends StatelessWidget {
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.08),
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Jadwal Praktek',

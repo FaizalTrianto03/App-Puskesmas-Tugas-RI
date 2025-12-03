@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
 import '../../../../utils/confirmation_dialog.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
@@ -19,10 +19,11 @@ class AdminSettingsView extends StatelessWidget {
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.08),
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Pengaturan',
@@ -116,24 +117,14 @@ class AdminSettingsView extends StatelessWidget {
                       icon: Icons.person_outline,
                       title: 'Kelola Data Diri',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const KelolaDataDiriView(),
-                          ),
-                        );
+                        Get.to(() => const KelolaDataDiriView());
                       },
                     ),
                     _buildMenuItem(
                       icon: Icons.vpn_key_outlined,
                       title: 'Kelola Kata Sandi',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const KelolaKataSandiView(),
-                          ),
-                        );
+                        Get.to(() => const KelolaKataSandiView());
                       },
                     ),
                     const SizedBox(height: 24),
@@ -162,13 +153,7 @@ class AdminSettingsView extends StatelessWidget {
       cancelText: 'Batal',
       onConfirm: () {
         SnackbarHelper.showSuccess('Berhasil keluar dari akun');
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const StaffSelectorView(),
-          ),
-          (route) => false,
-        );
+        Get.offAll(() => const StaffSelectorView());
       },
     );
   }

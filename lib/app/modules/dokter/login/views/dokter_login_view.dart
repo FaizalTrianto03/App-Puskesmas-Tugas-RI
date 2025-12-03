@@ -191,9 +191,7 @@ class _DokterLoginViewState extends State<DokterLoginView> {
                 CustomButton(
                   text: 'MASUK',
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const DokterDashboardView()),
-                    );
+                    Get.offAll(() => const DokterDashboardView());
                   },
                   backgroundColor: AppColors.white,
                   textColor: AppColors.primary,
@@ -204,7 +202,7 @@ class _DokterLoginViewState extends State<DokterLoginView> {
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Get.back();
                     },
                     child: RichText(
                       text: TextSpan(

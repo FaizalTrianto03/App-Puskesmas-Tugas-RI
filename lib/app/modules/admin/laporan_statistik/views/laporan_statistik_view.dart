@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../laporan/views/laporan_kunjungan_pasien_view.dart';
 import '../../laporan/views/laporan_stok_obat_view.dart';
@@ -12,18 +13,17 @@ class LaporanStatistikView extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F9FF),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
-        scrolledUnderElevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Laporan & Statistik',
           style: TextStyle(
-            color: Color(0xFF02B1BA),
+            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -374,10 +374,7 @@ class LaporanStatistikView extends StatelessWidget {
   ) {
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => destination),
-        );
+        Get.to(() => destination);
       },
       borderRadius: BorderRadius.circular(12),
       child: Container(

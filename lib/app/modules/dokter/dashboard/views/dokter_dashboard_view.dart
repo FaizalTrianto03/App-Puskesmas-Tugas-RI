@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../settings/views/dokter_settings_view.dart';
 import '../../rekam_medis/views/rekam_medis_detail_view.dart';
 import '../../pemeriksaan/views/form_pemeriksaan_view.dart';
+import '../../notifikasi/views/dokter_notifikasi_list_view.dart';
+import '../controllers/dokter_dashboard_controller.dart';
 
-class DokterDashboardView extends StatelessWidget {
+class DokterDashboardView extends GetView<DokterDashboardController> {
   const DokterDashboardView({Key? key}) : super(key: key);
 
   @override
@@ -18,6 +21,7 @@ class DokterDashboardView extends StatelessWidget {
           elevation: 2,
           shadowColor: Colors.black.withOpacity(0.08),
           scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
           automaticallyImplyLeading: false,
           centerTitle: true,
           title: const Text(
@@ -28,6 +32,48 @@ class DokterDashboardView extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+          actions: [
+            Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: Color(0xFF02B1BA),
+                    size: 28,
+                  ),
+                  onPressed: () {
+                    Get.to(() => const DokterNotifikasiListView());
+                  },
+                ),
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF4242),
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 18,
+                      minHeight: 18,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '3',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 8),
+          ],
         ),
         body: Column(
           children: [
@@ -69,9 +115,7 @@ class DokterDashboardView extends StatelessWidget {
   Widget _buildProfileCard(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const DokterSettingsView()),
-        );
+        Get.to(() => const DokterSettingsView());
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -397,24 +441,14 @@ class DokterDashboardView extends StatelessWidget {
 
                 // Jika status Menunggu Pemeriksaan, buka form isi hasil
                 if (status == 'Menunggu Pemeriksaan') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FormPemeriksaanView(
-                        pasienData: pasienData,
-                      ),
-                    ),
-                  );
+                  Get.to(() => FormPemeriksaanView(
+                    pasienData: pasienData,
+                  ));
                 } else {
                   // Jika sudah selesai, buka detail rekam medis
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RekamMedisDetailView(
-                        pasienData: pasienData,
-                      ),
-                    ),
-                  );
+                  Get.to(() => RekamMedisDetailView(
+                    pasienData: pasienData,
+                  ));
                 }
               },
               style: ElevatedButton.styleFrom(

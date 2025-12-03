@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 
 class LaporanKeuanganView extends StatelessWidget {
@@ -10,12 +11,14 @@ class LaporanKeuanganView extends StatelessWidget {
       backgroundColor: const Color(0xFFF1F9FF),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.08),
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Laporan Keuangan',
