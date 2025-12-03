@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../routes/app_pages.dart';
+import '../../../utils/snackbar_helper.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/text_styles.dart';
 import '../../../widgets/custom_button.dart';
@@ -68,42 +69,7 @@ class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
   }
 
   void _showErrorSnackBar(String message) {
-    Get.snackbar(
-      'Terjadi kesalahan,',
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: const Color(0xFFFF3B30),
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      duration: const Duration(seconds: 3),
-      isDismissible: true,
-      dismissDirection: DismissDirection.up,
-      showProgressIndicator: false,
-      messageText: Text(
-        message,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      titleText: const Text(
-        'Terjadi kesalahan,',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      boxShadows: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.2),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    );
+    SnackbarHelper.showError(message);
   }
 
   @override
@@ -121,42 +87,63 @@ class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              // AppBar manual
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                // Icon ilustrasi dengan container background
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
                     ),
-                  ],
+                    child: const Icon(
+                      Icons.lock_outline,
+                      size: 80,
+                      color: AppColors.white,
+                    ),
+                  ),
                 ),
-              ),
-              // Content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 40),
-                      // Icon ilustrasi
-                      const Icon(
-                        Icons.lock_outline,
-                        size: 80,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(height: 40),
+                const SizedBox(height: 24),
+                // Judul
+                Text(
+                  'Lupa Kata Sandi?',
+                  style: AppTextStyles.h3.copyWith(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                // Deskripsi
+                Text(
+                  'Masukkan email yang terdaftar. Kami akan mengirimkan kode OTP untuk verifikasi akun Anda.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.white,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 48),
                       // Label Email
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Email',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.w600,
+                        child: RichText(
+                          text: TextSpan(
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            children: const [
+                              TextSpan(text: 'Email'),
+                              TextSpan(
+                                text: ' *',
+                                style: TextStyle(color: AppColors.accent),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -177,23 +164,46 @@ class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
                         borderWidth: 0,
                       ),
                       const SizedBox(height: 270),
-                      // Tombol Kirim Kode OTP
-                      Semantics(
-                        button: true,
-                        label: 'Tombol kirim kode OTP',
-                        enabled: !_isLoading,
-                        child: CustomButton(
-                          text: 'Kirim Kode OTP',
-                          isLoading: _isLoading,
-                          onPressed: _isLoading ? null : _handleKirimOTP,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                    ],
+                // Tombol Kirim Kode OTP
+                Semantics(
+                  button: true,
+                  label: 'Tombol kirim kode OTP',
+                  enabled: !_isLoading,
+                  child: CustomButton(
+                    text: 'Kirim Kode OTP',
+                    isLoading: _isLoading,
+                    onPressed: _isLoading ? null : _handleKirimOTP,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                // Tombol Kembali ke Login
+                TextButton(
+                  onPressed: () => Get.back(),
+                  child: RichText(
+                    text: TextSpan(
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.normal,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.white,
+                      ),
+                      children: const [
+                        TextSpan(text: 'Kembali ke Halaman '),
+                        TextSpan(
+                          text: 'Login',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

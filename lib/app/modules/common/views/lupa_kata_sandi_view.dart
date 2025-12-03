@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../utils/colors.dart';
 import '../../../utils/text_styles.dart';
@@ -83,8 +84,8 @@ class _LupaKataSandiViewState extends State<LupaKataSandiView> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop(); // Kembali ke halaman login
+              Get.back(); // Close dialog
+              Get.back(); // Kembali ke halaman login
             },
             child: Text(
               'OK',
@@ -112,7 +113,7 @@ class _LupaKataSandiViewState extends State<LupaKataSandiView> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Lupa Kata Sandi',
@@ -226,12 +227,22 @@ class _LupaKataSandiViewState extends State<LupaKataSandiView> {
                 // Link kembali ke login
                 Center(
                   child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'Kembali ke Halaman Login',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                    onPressed: () => Get.back(),
+                    child: RichText(
+                      text: TextSpan(
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        children: const [
+                          TextSpan(text: 'Kembali ke Halaman '),
+                          TextSpan(
+                            text: 'Login',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
