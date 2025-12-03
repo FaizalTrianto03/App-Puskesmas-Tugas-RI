@@ -48,6 +48,7 @@ android/local.properties
 android/key.properties
 android/.idea/
 android/*.iml
+android/app/.cxx/
 /android/app/debug
 /android/app/profile
 /android/app/release
