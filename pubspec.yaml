@@ -29,6 +29,7 @@ dependencies:
 
   # Storage
   shared_preferences: ^2.2.3
+  get_storage: ^2.1.1
 
   # UI
   google_fonts: ^6.2.1

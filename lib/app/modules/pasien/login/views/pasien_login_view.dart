@@ -6,16 +6,25 @@ import '../../../../utils/colors.dart';
 import '../../../../utils/text_styles.dart';
 import '../../../../widgets/custom_button.dart';
 import '../../../../widgets/custom_text_field.dart';
+import '../controllers/pasien_login_controller.dart';
 import 'staff_selector_view.dart';
 
-class PasienLoginView extends StatefulWidget {
+class PasienLoginView extends GetView<PasienLoginController> {
   const PasienLoginView({Key? key}) : super(key: key);
 
   @override
-  State<PasienLoginView> createState() => _PasienLoginViewState();
+  Widget build(BuildContext context) {
+    return _PasienLoginViewContent();
+  }
 }
 
-class _PasienLoginViewState extends State<PasienLoginView> with SingleTickerProviderStateMixin {
+class _PasienLoginViewContent extends StatefulWidget {
+  @override
+  State<_PasienLoginViewContent> createState() => _PasienLoginViewContentState();
+}
+
+class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with SingleTickerProviderStateMixin {
+  late final PasienLoginController controller;
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -31,6 +40,9 @@ class _PasienLoginViewState extends State<PasienLoginView> with SingleTickerProv
   @override
   void initState() {
     super.initState();
+    // Initialize controller
+    controller = Get.put(PasienLoginController());
+    
     // Clear fields saat halaman dibuka
     _usernameController.clear();
     _passwordController.clear();
