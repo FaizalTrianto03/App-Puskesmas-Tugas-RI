@@ -139,14 +139,15 @@ assets/
 - `main` - Production ready code
 - `Minggu-1-SetupProject` - Week 1 setup ✅
 - `Minggu-2-ImplementasiLayoutUI` - Week 2 UI implementation ✅
-- `Minggu-3-InteraktivitasNavigasi` - Week 3 Interactivity & Navigation ✅ (completed)
+- `Minggu-3-InteraktivitasNavigasi` - Week 3 Interactivity & Navigation ✅
+- `Minggu-4-IntegrasiLogika` - Week 4 Logic Integration ✅ (in progress)
 
 ---
 
 📌 *Project ini dikembangkan untuk memenuhi tugas mata kuliah Rekayasa Interaksi dan sebagai studi penerapan Flutter dalam digitalisasi layanan puskesmas melalui aplikasi mobile.*
 
-**Last Updated:** December 2, 2025  
-**Status:** Week 3 - Interaktivitas & Navigasi Completed ✅
+**Last Updated:** December 8, 2025  
+**Status:** Week 4 - Integrasi Logika In Progress 🚧
 
 ---
 
@@ -237,3 +238,12 @@ assets/
 - ✅ Interactive Feedback - Loading states, button states (disabled, loading), SnackbarHelper untuk success/error messaging
 - ✅ Password Recovery Flow - 3-step forgot password dengan email validation, OTP timer (60s), dan password reset confirmation
 - ✅ UI Consistency & Polish - AppBar standardization (scrolledUnderElevation: 0), typography emphasis, form label alignment, responsive spacing
+
+### 🚧 Week 4 - Integrasi Logika (8-14 Des 2025) - In Progress
+
+**Progress:**
+- ✅ GetX Architecture & State Management - GetView pattern implementation dengan controller lifecycle management, hybrid pattern (GetView + StatefulWidget) untuk animasi
+- ✅ Local Storage Integration - StorageService dengan GetStorage untuk dummy data (no Firebase/Backend API), user authentication, session management dengan auto-login
+- ✅ Business Logic Implementation - Login/Register/Dashboard controller logic, multi-field validation dengan error handling, auto-generate User ID & No Rekam Medis
+- ✅ Form Validation & Error Handling - Field-level error messages, general validation notification, email uniqueness check, password confirmation
+- ✅ UI/UX Refinements - Loading states, success/error notifications dengan icon, smooth navigation flow (auto-login after registration), clean architecture pattern (MVC)

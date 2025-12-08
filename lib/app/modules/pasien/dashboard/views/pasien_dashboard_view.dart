@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../layanan_lainnya/views/layanan_lainnya_view.dart';
@@ -7,16 +8,28 @@ import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
 import '../../profile/views/pasien_profile_view.dart';
 import '../../riwayat/views/riwayat_kunjungan_view.dart';
 import '../../status_antrean/views/status_antrean_view.dart';
+import '../controllers/pasien_dashboard_controller.dart';
 
-class PasienDashboardView extends StatefulWidget {
+class PasienDashboardView extends GetView<PasienDashboardController> {
   final bool initialHasActiveQueue;
   const PasienDashboardView({super.key, this.initialHasActiveQueue = false});
 
   @override
-  State<PasienDashboardView> createState() => _PasienDashboardViewState();
+  Widget build(BuildContext context) {
+    return _PasienDashboardViewContent(initialHasActiveQueue: initialHasActiveQueue);
+  }
 }
 
-class _PasienDashboardViewState extends State<PasienDashboardView> {
+class _PasienDashboardViewContent extends StatefulWidget {
+  final bool initialHasActiveQueue;
+  const _PasienDashboardViewContent({this.initialHasActiveQueue = false});
+
+  @override
+  State<_PasienDashboardViewContent> createState() => _PasienDashboardViewContentState();
+}
+
+class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent> {
+  late final PasienDashboardController controller;
   late bool hasActiveQueue;
   bool _isHoverDaftarBaru = false;
   bool _isHoverStatusAntrean = false;
@@ -32,6 +45,8 @@ class _PasienDashboardViewState extends State<PasienDashboardView> {
   @override
   void initState() {
     super.initState();
+    // Initialize controller
+    controller = Get.put(PasienDashboardController());
     hasActiveQueue = widget.initialHasActiveQueue;
   }
 

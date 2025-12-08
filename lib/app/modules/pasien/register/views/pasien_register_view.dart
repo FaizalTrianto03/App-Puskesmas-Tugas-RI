@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/pasien_register_controller.dart';
 
-class PasienRegisterView extends StatefulWidget {
+class PasienRegisterView extends GetView<PasienRegisterController> {
   const PasienRegisterView({Key? key}) : super(key: key);
 
   @override
-  State<PasienRegisterView> createState() => _PasienRegisterViewState();
+  Widget build(BuildContext context) {
+    return _PasienRegisterViewContent();
+  }
 }
 
-class _PasienRegisterViewState extends State<PasienRegisterView> {
+class _PasienRegisterViewContent extends StatefulWidget {
+  @override
+  State<_PasienRegisterViewContent> createState() => _PasienRegisterViewContentState();
+}
+
+class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> {
+  late final PasienRegisterController controller;
   final _namaLengkapController = TextEditingController();
   final _nikController = TextEditingController();
   final _alamatController = TextEditingController();
@@ -63,6 +71,9 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
   @override
   void initState() {
     super.initState();
+    
+    // Initialize controller
+    controller = Get.put(PasienRegisterController());
     
     _namaLengkapController.clear();
     _nikController.clear();
@@ -378,6 +389,25 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : () async {
+                    // Get controller instance
+                    final controller = Get.find<PasienRegisterController>();
+                    
+                    // Set values to controller
+                    controller.namaLengkapController.text = _namaLengkapController.text;
+                    controller.nikController.text = _nikController.text;
+                    controller.alamatController.text = _alamatController.text;
+                    controller.noHpController.text = _noHpController.text;
+                    controller.tanggalLahirController.text = _tanggalLahirController.text;
+                    controller.passwordController.text = _kataSandiController.text;
+                    controller.konfirmasiPasswordController.text = _konfirmasiKataSandiController.text;
+                    controller.selectedJenisKelamin.value = _jenisKelamin.isNotEmpty ? _jenisKelamin : null;
+                    
+                    // Set dummy values for fields not in current view
+                    // Generate unique email using timestamp to avoid duplicates
+                    final timestamp = DateTime.now().millisecondsSinceEpoch;
+                    controller.emailController.text = 'pasien$timestamp@gmail.com';
+                    controller.tempatLahirController.text = 'Malang';
+                    
                     bool isValid = true;
                     
                     if (_namaLengkapController.text.trim().isEmpty) {
@@ -396,10 +426,19 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                     if (_alamatController.text.trim().isEmpty) {
                       setState(() => alamatError = 'Alamat harus diisi');
                       isValid = false;
+                    } else if (_alamatController.text.trim().length < 10) {
+                      setState(() => alamatError = 'Alamat minimal 10 karakter');
+                      isValid = false;
                     }
                     
                     if (_noHpController.text.trim().isEmpty) {
                       setState(() => noHpError = 'Nomor HP harus diisi');
+                      isValid = false;
+                    } else if (_noHpController.text.trim().length < 10 || _noHpController.text.trim().length > 13) {
+                      setState(() => noHpError = 'Nomor HP tidak valid (10-13 digit)');
+                      isValid = false;
+                    } else if (!RegExp(r'^\d+$').hasMatch(_noHpController.text.trim())) {
+                      setState(() => noHpError = 'Nomor HP hanya boleh angka');
                       isValid = false;
                     }
                     
@@ -430,19 +469,27 @@ class _PasienRegisterViewState extends State<PasienRegisterView> {
                     }
                     
                     if (!isValid) {
+                      // Show general error message
+                      Get.snackbar(
+                        'Validasi Gagal',
+                        'Silakan isi semua field sesuai ketentuan',
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                        icon: const Icon(Icons.error_outline, color: Colors.white),
+                        snackPosition: SnackPosition.TOP,
+                        margin: const EdgeInsets.all(16),
+                        borderRadius: 8,
+                        duration: const Duration(seconds: 3),
+                      );
                       return;
                     }
                     
                     setState(() => _isLoading = true);
-                    await Future.delayed(const Duration(seconds: 2));
+                    
+                    // Call controller register
+                    await controller.register();
+                    
                     setState(() => _isLoading = false);
-                    
-                    SnackbarHelper.showSuccess('Pendaftaran berhasil! Selamat datang.');
-                    
-                    Get.offAllNamed(
-                      '/pasien/dashboard',
-                      arguments: {'hasActiveQueue': true},
-                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF02B1BA),
