@@ -5,36 +5,15 @@ import '../../../../widgets/custom_text_field.dart';
 import '../../../../utils/colors.dart';
 import '../../../../utils/text_styles.dart';
 import '../../../../utils/snackbar_helper.dart';
+import '../controllers/kelola_data_diri_controller.dart';
 
-class KelolaDataDiriView extends StatefulWidget {
+class KelolaDataDiriView extends GetView<KelolaDataDiriController> {
   const KelolaDataDiriView({Key? key}) : super(key: key);
 
   @override
-  State<KelolaDataDiriView> createState() => _KelolaDataDiriViewState();
-}
-
-class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
-  final _formKey = GlobalKey<FormState>();
-  final _namaController = TextEditingController(text: 'dr. Trianto');
-  final _nikController = TextEditingController(text: '3201234567890123');
-  final _alamatController = TextEditingController(text: 'Jl. Merdeka No. 123, Jakarta Pusat');
-  final _noHpController = TextEditingController(text: '081234567890');
-  final _emailController = TextEditingController(text: 'trianto@puskesmas.id');
-  String _jenisKelamin = 'L';
-  String _tanggalLahir = '09/07/2003';
-
-  @override
-  void dispose() {
-    _namaController.dispose();
-    _nikController.dispose();
-    _alamatController.dispose();
-    _noHpController.dispose();
-    _emailController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    Get.delete<KelolaDataDiriController>();
+    final controller = Get.put(KelolaDataDiriController());
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.backgroundLight,
@@ -75,7 +54,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Form(
-                  key: _formKey,
+                  key: controller.formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -106,7 +85,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _namaController,
+                        controller: controller.namaController,
                         hintText: 'Masukkan nama lengkap',
                         prefixIcon: const Icon(Icons.person_outline, color: Colors.grey),
                         backgroundColor: AppColors.white,
@@ -141,7 +120,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _nikController,
+                        controller: controller.nikController,
                         hintText: 'Masukkan 16 digit NIK',
                         keyboardType: TextInputType.number,
                         prefixIcon: const Icon(Icons.badge_outlined, color: Colors.grey),
@@ -177,7 +156,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _alamatController,
+                        controller: controller.alamatController,
                         hintText: 'Masukkan alamat lengkap',
                         maxLines: 3,
                         prefixIcon: const Icon(Icons.home_outlined, color: Colors.grey),
@@ -213,7 +192,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _noHpController,
+                        controller: controller.noHpController,
                         hintText: 'Masukkan nomor telepon',
                         keyboardType: TextInputType.phone,
                         prefixIcon: const Icon(Icons.phone_outlined, color: Colors.grey),
@@ -249,7 +228,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _emailController,
+                        controller: controller.emailController,
                         hintText: 'Masukkan email',
                         keyboardType: TextInputType.emailAddress,
                         prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
@@ -290,7 +269,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Container(
+                                Obx(() => Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
@@ -303,14 +282,12 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            setState(() {
-                                              _jenisKelamin = 'L';
-                                            });
+                                            controller.jenisKelamin.value = 'L';
                                           },
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(vertical: 16),
                                             decoration: BoxDecoration(
-                                              color: _jenisKelamin == 'L'
+                                              color: controller.jenisKelamin.value == 'L'
                                                   ? AppColors.primary
                                                   : AppColors.white,
                                               borderRadius: const BorderRadius.only(
@@ -322,9 +299,9 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                               'L',
                                               style: AppTextStyles.bodyMedium.copyWith(
                                                 fontWeight: FontWeight.bold,
-                                                color: _jenisKelamin == 'L'
-                                                    ? AppColors.white
-                                                    : AppColors.primary,
+                                              color: controller.jenisKelamin.value == 'L'
+                                                  ? AppColors.white
+                                                  : AppColors.primary,
                                               ),
                                               textAlign: TextAlign.center,
                                             ),
@@ -339,14 +316,12 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            setState(() {
-                                              _jenisKelamin = 'P';
-                                            });
+                                            controller.jenisKelamin.value = 'P';
                                           },
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(vertical: 16),
                                             decoration: BoxDecoration(
-                                              color: _jenisKelamin == 'P'
+                                              color: controller.jenisKelamin.value == 'P'
                                                   ? AppColors.primary
                                                   : AppColors.white,
                                               borderRadius: const BorderRadius.only(
@@ -358,9 +333,9 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                               'P',
                                               style: AppTextStyles.bodyMedium.copyWith(
                                                 fontWeight: FontWeight.bold,
-                                                color: _jenisKelamin == 'P'
-                                                    ? AppColors.white
-                                                    : AppColors.primary,
+                                                color: controller.jenisKelamin.value == 'P'
+                                                  ? AppColors.white
+                                                  : AppColors.primary,
                                               ),
                                               textAlign: TextAlign.center,
                                             ),
@@ -369,7 +344,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                       ),
                                     ],
                                   ),
-                                ),
+                                )),
                               ],
                             ),
                           ),
@@ -413,12 +388,10 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                       },
                                     );
                                     if (picked != null) {
-                                      setState(() {
-                                        _tanggalLahir = '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
-                                      });
+                                      controller.tanggalLahir.value = '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
                                     }
                                   },
-                                  child: Container(
+                                  child: Obx(() => Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                                     decoration: BoxDecoration(
                                       color: AppColors.white,
@@ -435,9 +408,9 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            _tanggalLahir.isEmpty ? 'dd/mm/yyyy' : _tanggalLahir,
-                                            style: AppTextStyles.bodySmall.copyWith(
-                                              color: _tanggalLahir.isEmpty ? Colors.grey : Colors.black87,
+                                            controller.tanggalLahir.value.isEmpty ? 'dd/mm/yyyy' : controller.tanggalLahir.value,
+                                            style: AppTextStyles.bodyMedium.copyWith(
+                                              color: controller.tanggalLahir.value.isEmpty ? Colors.grey : Colors.black87,
                                             ),
                                             textAlign: TextAlign.center,
                                           ),
@@ -445,6 +418,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                       ],
                                     ),
                                   ),
+                                ),
                                 ),
                               ],
                             ),
@@ -457,11 +431,12 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                       // Button Simpan
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              SnackbarHelper.showSuccess('Data berhasil diperbarui');
-                              Get.back();
+                        child: Obx(() => ElevatedButton(
+                          onPressed: controller.isLoading.value ? null : () {
+                            if (controller.formKey.currentState!.validate()) {
+                              // Tampilkan info snackbar saat mulai menyimpan
+                              SnackbarHelper.showInfo('Menyimpan perubahan...');
+                              controller.saveProfile();
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -472,13 +447,22 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                             ),
                             elevation: 0,
                           ),
-                          child: Text(
-                            'SIMPAN PERUBAHAN',
-                            style: AppTextStyles.button.copyWith(
-                              color: AppColors.white,
-                            ),
-                          ),
-                        ),
+                          child: controller.isLoading.value
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                'SIMPAN PERUBAHAN',
+                                style: AppTextStyles.button.copyWith(
+                                  color: AppColors.white,
+                                ),
+                              ),
+                        )),
                       ),
                       const SizedBox(height: 16),
                     ],

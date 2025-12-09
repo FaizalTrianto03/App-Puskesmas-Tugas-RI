@@ -6,51 +6,15 @@ import '../../../../utils/colors.dart';
 import '../../../../utils/text_styles.dart';
 import '../../../../widgets/custom_text_field.dart';
 import '../../../../widgets/custom_button.dart';
-import '../../dashboard/views/apoteker_dashboard_view.dart';
+import '../controllers/apoteker_login_controller.dart';
 
-class ApotekerLoginView extends StatefulWidget {
+class ApotekerLoginView extends GetView<ApotekerLoginController> {
   const ApotekerLoginView({Key? key}) : super(key: key);
 
   @override
-  State<ApotekerLoginView> createState() => _ApotekerLoginViewState();
-}
-
-class _ApotekerLoginViewState extends State<ApotekerLoginView>
-    with SingleTickerProviderStateMixin {
-  final _dataDiriController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isPasswordVisible = false;
-  bool _rememberMe = false;
-  bool _isLoading = false;
-  String? _dataDiriError;
-  String? _passwordError;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    // Inisialisasi animation controller
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _dataDiriController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    Get.delete<ApotekerLoginController>();
+    final controller = Get.put(ApotekerLoginController());
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -63,13 +27,13 @@ class _ApotekerLoginViewState extends State<ApotekerLoginView>
           ),
         ),
         child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 40.0,
-              ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 40.0,
+            ),
+            child: Form(
+              key: controller.formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -115,35 +79,20 @@ class _ApotekerLoginViewState extends State<ApotekerLoginView>
                   ),
                   const SizedBox(height: 8),
                   CustomTextField(
-                    controller: _dataDiriController,
-                    hintText: 'Masukkan email atau username',
-                    keyboardType: TextInputType.text,
+                    controller: controller.emailController,
+                    hintText: 'Masukkan email',
+                    keyboardType: TextInputType.emailAddress,
+                    validator: controller.validateEmail,
                     prefixIcon: const Icon(
-                      Icons.person_outline,
+                      Icons.email_outlined,
                       color: Colors.grey,
                     ),
                     backgroundColor: AppColors.white,
                     textColor: Colors.black87,
                     hintColor: Colors.grey,
-                    borderColor:
-                        _dataDiriError != null ? Colors.red : AppColors.white,
-                    borderWidth: _dataDiriError != null ? 2 : 0,
-                    onChanged: (value) {
-                      if (_dataDiriError != null && value.trim().isNotEmpty) {
-                        setState(() {
-                          _dataDiriError = null;
-                        });
-                      }
-                    },
+                    borderColor: AppColors.white,
+                    borderWidth: 0,
                   ),
-                  if (_dataDiriError != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12, top: 4),
-                      child: Text(
-                        _dataDiriError!,
-                        style: const TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    ),
                   const SizedBox(height: 16),
                   RichText(
                     text: TextSpan(
@@ -161,63 +110,41 @@ class _ApotekerLoginViewState extends State<ApotekerLoginView>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  CustomTextField(
-                    controller: _passwordController,
+                  Obx(() => CustomTextField(
+                    controller: controller.passwordController,
                     hintText: 'Masukkan kata sandi',
-                    obscureText: !_isPasswordVisible,
+                    obscureText: !controller.isPasswordVisible.value,
+                    validator: controller.validatePassword,
                     prefixIcon: const Icon(
                       Icons.lock_outline,
                       color: Colors.grey,
                     ),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _isPasswordVisible
+                        controller.isPasswordVisible.value
                             ? Icons.visibility
                             : Icons.visibility_off,
                         color: Colors.grey,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
-                      },
+                      onPressed: controller.togglePasswordVisibility,
                     ),
                     backgroundColor: AppColors.white,
                     textColor: Colors.black87,
                     hintColor: Colors.grey,
-                    borderColor:
-                        _passwordError != null ? Colors.red : AppColors.white,
-                    borderWidth: _passwordError != null ? 2 : 0,
-                    onChanged: (value) {
-                      if (_passwordError != null && value.trim().isNotEmpty) {
-                        setState(() {
-                          _passwordError = null;
-                        });
-                      }
-                    },
+                    borderColor: AppColors.white,
+                    borderWidth: 0,
                   ),
-                  if (_passwordError != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 12, top: 4),
-                      child: Text(
-                        _passwordError!,
-                        style: const TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    ),
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Checkbox(
-                        value: _rememberMe,
-                        onChanged: (value) {
-                          setState(() {
-                            _rememberMe = value ?? false;
-                          });
-                        },
+                        value: true,
+                        onChanged: null,
                         checkColor: AppColors.white,
                         fillColor: MaterialStateProperty.all(AppColors.primary),
                         side: const BorderSide(
-                          color: AppColors.primary,
+                          color: AppColors.white,
                           width: 2,
                         ),
                       ),
@@ -243,55 +170,14 @@ class _ApotekerLoginViewState extends State<ApotekerLoginView>
                     ],
                   ),
                   const SizedBox(height: 32),
-                  CustomButton(
-                    text: _isLoading ? 'MEMPROSES...' : 'MASUK',
-                    onPressed:
-                        _isLoading
-                            ? null
-                            : () async {
-                              setState(() {
-                                _dataDiriError = null;
-                                _passwordError = null;
-                              });
-
-                              bool hasError = false;
-                              if (_dataDiriController.text.trim().isEmpty) {
-                                setState(() {
-                                  _dataDiriError = 'Email/Username harus diisi';
-                                });
-                                hasError = true;
-                              }
-
-                              if (_passwordController.text.trim().isEmpty) {
-                                setState(() {
-                                  _passwordError = 'Kata sandi harus diisi';
-                                });
-                                hasError = true;
-                              }
-
-                              if (hasError) return;
-
-                              setState(() {
-                                _isLoading = true;
-                              });
-
-                              await Future.delayed(
-                                const Duration(milliseconds: 800),
-                              );
-
-                              if (!mounted) return;
-
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (_) => const ApotekerDashboardView(),
-                                ),
-                              );
-                            },
+                  Obx(() => CustomButton(
+                    text: controller.isLoading.value ? 'MEMPROSES...' : 'MASUK',
+                    onPressed: controller.isLoading.value ? null : controller.login,
                     backgroundColor: AppColors.white,
                     textColor: AppColors.primary,
                     borderColor: AppColors.primary,
                     borderWidth: 2,
-                  ),
+                  )),
                   const SizedBox(height: 24),
                   Center(
                     child: TextButton(

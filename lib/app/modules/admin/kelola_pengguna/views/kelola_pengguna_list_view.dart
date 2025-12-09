@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/kelola_pengguna_controller.dart';
 import '../../../../widgets/quarter_circle_background.dart';
+import 'kelola_pengguna_form_dialog.dart';
 
 class KelolaPenggunaListView extends GetView<KelolaPenggunaController> {
   const KelolaPenggunaListView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    Get.delete<KelolaPenggunaController>();
+    final controller = Get.put(KelolaPenggunaController());
     return Scaffold(
       backgroundColor: const Color(0xFFF1F9FF),
       appBar: AppBar(
@@ -109,7 +112,7 @@ class KelolaPenggunaListView extends GetView<KelolaPenggunaController> {
                               ),
                               child: Center(
                                 child: Text(
-                                  user['username'][0].toUpperCase(),
+                                  user['namaLengkap'][0].toUpperCase(),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -124,7 +127,7 @@ class KelolaPenggunaListView extends GetView<KelolaPenggunaController> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    user['username'],
+                                    user['namaLengkap'],
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
@@ -177,7 +180,15 @@ class KelolaPenggunaListView extends GetView<KelolaPenggunaController> {
                                       size: 20,
                                     ),
                                   ),
-                                  onPressed: () => controller.showEditUserDialog(user),
+                                  onPressed: () {
+                                    controller.populateFormForEdit(user);
+                                    Get.dialog(
+                                      KelolaPenggunaFormDialog(
+                                        userId: user['id'],
+                                        title: 'Edit Pengguna',
+                                      ),
+                                    );
+                                  },
                                 ),
                                 const SizedBox(width: 4),
                                 IconButton(
@@ -193,9 +204,9 @@ class KelolaPenggunaListView extends GetView<KelolaPenggunaController> {
                                       size: 20,
                                     ),
                                   ),
-                                  onPressed: () => controller.confirmDeleteUser(
+                                  onPressed: () => controller.deleteUser(
                                     user['id'],
-                                    user['username'],
+                                    user['namaLengkap'],
                                   ),
                                 ),
                               ],
@@ -212,7 +223,14 @@ class KelolaPenggunaListView extends GetView<KelolaPenggunaController> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => controller.showAddUserDialog(),
+        onPressed: () {
+          controller.clearForm();
+          Get.dialog(
+            const KelolaPenggunaFormDialog(
+              title: 'Tambah Pengguna',
+            ),
+          );
+        },
         backgroundColor: const Color(0xFF02B1BA),
         child: const Icon(Icons.add, color: Colors.white),
       ),

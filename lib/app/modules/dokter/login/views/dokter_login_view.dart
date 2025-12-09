@@ -6,30 +6,15 @@ import '../../../../utils/colors.dart';
 import '../../../../utils/text_styles.dart';
 import '../../../../widgets/custom_button.dart';
 import '../../../../widgets/custom_text_field.dart';
-import '../../dashboard/views/dokter_dashboard_view.dart';
+import '../controllers/dokter_login_controller.dart';
 
-class DokterLoginView extends StatefulWidget {
+class DokterLoginView extends GetView<DokterLoginController> {
   const DokterLoginView({Key? key}) : super(key: key);
 
   @override
-  State<DokterLoginView> createState() => _DokterLoginViewState();
-}
-
-class _DokterLoginViewState extends State<DokterLoginView> {
-  final _dataDiriController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isPasswordVisible = false;
-  bool _rememberMe = false;
-
-  @override
-  void dispose() {
-    _dataDiriController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    Get.delete<DokterLoginController>();
+    final controller = Get.put(DokterLoginController());
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -47,9 +32,11 @@ class _DokterLoginViewState extends State<DokterLoginView> {
         child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+            child: Form(
+              key: controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                 const SizedBox(height: 20),
                 Center(
                   child: Container(
@@ -92,11 +79,12 @@ class _DokterLoginViewState extends State<DokterLoginView> {
                 ),
                 const SizedBox(height: 8),
                 CustomTextField(
-                  controller: _dataDiriController,
-                  hintText: 'Masukkan email atau username',
-                  keyboardType: TextInputType.text,
+                  controller: controller.emailController,
+                  hintText: 'Masukkan email',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: controller.validateEmail,
                   prefixIcon: const Icon(
-                    Icons.person_outline,
+                    Icons.email_outlined,
                     color: Colors.grey,
                   ),
                   backgroundColor: AppColors.white,
@@ -122,47 +110,40 @@ class _DokterLoginViewState extends State<DokterLoginView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                CustomTextField(
-                  controller: _passwordController,
+                Obx(() => CustomTextField(
+                  controller: controller.passwordController,
                   hintText: 'Masukkan kata sandi',
-                  obscureText: !_isPasswordVisible,
+                  obscureText: !controller.isPasswordVisible.value,
+                  validator: controller.validatePassword,
                   prefixIcon: const Icon(
                     Icons.lock_outline,
                     color: Colors.grey,
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isPasswordVisible
+                      controller.isPasswordVisible.value
                           ? Icons.visibility
                           : Icons.visibility_off,
                       color: Colors.grey,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
+                    onPressed: controller.togglePasswordVisibility,
                   ),
                   backgroundColor: AppColors.white,
                   textColor: Colors.black87,
                   hintColor: Colors.grey,
                   borderColor: AppColors.white,
                   borderWidth: 0,
-                ),
+                )),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     Checkbox(
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value ?? false;
-                        });
-                      },
+                      value: true,
+                      onChanged: null,
                       checkColor: AppColors.white,
                       fillColor: MaterialStateProperty.all(AppColors.primary),
                       side: const BorderSide(
-                        color: AppColors.primary,
+                        color: AppColors.white,
                         width: 2,
                       ),
                     ),
@@ -188,16 +169,14 @@ class _DokterLoginViewState extends State<DokterLoginView> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                CustomButton(
-                  text: 'MASUK',
-                  onPressed: () {
-                    Get.offAll(() => const DokterDashboardView());
-                  },
+                Obx(() => CustomButton(
+                  text: controller.isLoading.value ? 'MEMPROSES...' : 'MASUK',
+                  onPressed: controller.isLoading.value ? null : controller.login,
                   backgroundColor: AppColors.white,
                   textColor: AppColors.primary,
                   borderColor: AppColors.primary,
                   borderWidth: 2,
-                ),
+                )),
                 const SizedBox(height: 24),
                 Center(
                   child: TextButton(
@@ -228,6 +207,7 @@ class _DokterLoginViewState extends State<DokterLoginView> {
                 const SizedBox(height: 24),
               ],
             ),
+          ),
           ),
         ),
       ),

@@ -3,15 +3,19 @@ import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../utils/confirmation_dialog.dart';
+import '../../../../utils/auth_helper.dart';
+import '../controllers/dokter_settings_controller.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
 import '../../../pasien/login/views/staff_selector_view.dart';
 
-class DokterSettingsView extends StatelessWidget {
+class DokterSettingsView extends GetView<DokterSettingsController> {
   const DokterSettingsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Inject controller
+    Get.lazyPut(() => DokterSettingsController());
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -76,28 +80,28 @@ class DokterSettingsView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
+                          Expanded(
+                            child: Obx(() => Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'dr. Faizal Qadri',
-                                  style: TextStyle(
+                                  controller.userName.value,
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Dokter',
-                                  style: TextStyle(
+                                  controller.userRole.value,
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.white,
                                   ),
                                 ),
                               ],
-                            ),
+                            )),
                           ),
                         ],
                       ),
@@ -152,8 +156,7 @@ class DokterSettingsView extends StatelessWidget {
       confirmText: 'Keluar',
       cancelText: 'Batal',
       onConfirm: () {
-        SnackbarHelper.showSuccess('Berhasil keluar dari akun');
-        Get.offAll(() => const StaffSelectorView());
+        controller.logout();
       },
     );
   }

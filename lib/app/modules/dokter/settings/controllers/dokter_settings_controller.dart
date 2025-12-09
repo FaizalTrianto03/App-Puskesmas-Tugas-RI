@@ -1,38 +1,43 @@
 import 'package:get/get.dart';
 import '../../../../utils/auth_helper.dart';
 
-class AdminDashboardController extends GetxController {
+class DokterSettingsController extends GetxController {
+  // Observable untuk data user
   final userName = ''.obs;
+  final userRole = ''.obs;
   final userEmail = ''.obs;
-  final userRole = 'Administrator'.obs;
-  
+
   @override
   void onInit() {
     super.onInit();
     loadUserData();
   }
-  
+
   void loadUserData() {
     final userData = AuthHelper.currentUserData;
     if (userData != null) {
-      userName.value = userData['namaLengkap'] ?? 'Admin';
-      userEmail.value = userData['email'] ?? '-';
-      userRole.value = _getRoleDisplay(userData['role']);
+      userName.value = userData['namaLengkap'] ?? '';
+      userRole.value = _formatRole(userData['role'] ?? '');
+      userEmail.value = userData['email'] ?? '';
     }
   }
-  
-  String _getRoleDisplay(String? role) {
-    switch (role) {
-      case 'admin':
-        return 'Administrator';
+
+  String _formatRole(String role) {
+    switch (role.toLowerCase()) {
       case 'dokter':
         return 'Dokter';
+      case 'admin':
+        return 'Admin';
       case 'perawat':
         return 'Perawat';
       case 'apoteker':
         return 'Apoteker';
       default:
-        return 'User';
+        return 'Pasien';
     }
+  }
+
+  void logout() {
+    AuthHelper.logout();
   }
 }

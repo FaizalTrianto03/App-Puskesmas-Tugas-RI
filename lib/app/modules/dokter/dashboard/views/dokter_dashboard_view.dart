@@ -12,6 +12,8 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
 
   @override
   Widget build(BuildContext context) {
+    // Inject controller
+    Get.lazyPut(() => DokterDashboardController());
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
@@ -100,7 +102,9 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
                       const SizedBox(height: 16),
                       _buildStatisticCards(),
                       const SizedBox(height: 24),
-                      _buildRekamMedisList(context),
+                      _buildTabBar(),
+                      const SizedBox(height: 16),
+                      _buildTabContent(context),
                     ],
                   ),
                 ),
@@ -137,28 +141,28 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
+            Expanded(
+              child: Obx(() => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'dr. Faizal Qadri',
-                    style: TextStyle(
+                    controller.userName.value,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Poli Umum',
-                    style: TextStyle(
+                    controller.userRole.value,
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white,
                     ),
                   ),
                 ],
-              ),
+              )),
             ),
             Container(
               decoration: BoxDecoration(
@@ -184,15 +188,27 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
   }
   
   Widget _buildStatisticCards() {
-    return Row(
+    return Obx(() => Row(
       children: [
-        _buildStatCard('7', 'Total', const Color(0xFF02B1BA)),
+        _buildStatCard(
+          controller.getTotalPasien().toString(), 
+          'Total', 
+          const Color(0xFF02B1BA)
+        ),
         const SizedBox(width: 12),
-        _buildStatCard('2', 'Sisa', const Color(0xFFFF9800)),
+        _buildStatCard(
+          controller.getPasienMenunggu().toString(), 
+          'Sisa', 
+          const Color(0xFFFF9800)
+        ),
         const SizedBox(width: 12),
-        _buildStatCard('5', 'Selesai', const Color(0xFF4CAF50)),
+        _buildStatCard(
+          controller.getPasienSelesai().toString(), 
+          'Selesai', 
+          const Color(0xFF4CAF50)
+        ),
       ],
-    );
+    ));
   }
   
   Widget _buildStatCard(String value, String label, Color color) {
@@ -229,8 +245,188 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
     );
   }
   
+  Widget _buildTabBar() {
+    return Obx(() => Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => controller.changeTab(0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: controller.currentTabIndex.value == 0
+                      ? const Color(0xFF02B1BA)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Saat Ini',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: controller.currentTabIndex.value == 0
+                        ? Colors.white
+                        : const Color(0xFF02B1BA),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => controller.changeTab(1),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: controller.currentTabIndex.value == 1
+                      ? const Color(0xFF02B1BA)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Selesai',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: controller.currentTabIndex.value == 1
+                        ? Colors.white
+                        : const Color(0xFF02B1BA),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ));
+  }
+  
+  Widget _buildTabContent(BuildContext context) {
+    return Obx(() {
+      if (controller.currentTabIndex.value == 0) {
+        // Tab "Saat Ini"
+        return _buildSaatIniList(context);
+      } else {
+        // Tab "Selesai"
+        return _buildSelesaiList(context);
+      }
+    });
+  }
+  
+  Widget _buildSaatIniList(BuildContext context) {
+    return Obx(() {
+      final pasienSaatIni = controller.pasienSaatIni;
+      
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      
+      if (pasienSaatIni.isEmpty) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(32.0),
+            child: Text('Tidak ada pasien saat ini'),
+          ),
+        );
+      }
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: pasienSaatIni.map((pasien) {
+          final status = controller.getStatusPasien(pasien['id']);
+          Color statusColor;
+          
+          if (status == 'Sedang Diperiksa') {
+            statusColor = const Color(0xFF2196F3); // Biru untuk sedang diperiksa
+          } else {
+            statusColor = const Color(0xFFFF9800); // Orange untuk menunggu
+          }
+          
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildRekamMedisCard(
+              context: context,
+              pasienData: pasien,
+              nama: pasien['nama'],
+              umur: pasien['umur'],
+              antrian: pasien['antrian'],
+              keluhan: pasien['keluhan'],
+              status: status,
+              statusColor: statusColor,
+              alergi: pasien['alergi'],
+              jenisLayanan: pasien['jenisLayanan'],
+              golDarah: pasien['golDarah'],
+              tinggiBerat: pasien['tinggiBerat'],
+              isSaatIni: true,
+            ),
+          );
+        }).toList(),
+      );
+    });
+  }
+  
+  Widget _buildSelesaiList(BuildContext context) {
+    return Obx(() {
+      final pasienSelesai = controller.pasienSelesai;
+      
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      
+      if (pasienSelesai.isEmpty) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(32.0),
+            child: Text('Belum ada pasien yang selesai'),
+          ),
+        );
+      }
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: pasienSelesai.map((pasien) {
+          final status = controller.getStatusPasien(pasien['id']);
+          const statusColor = Color(0xFF4CAF50); // Hijau untuk selesai
+          
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildRekamMedisCard(
+              context: context,
+              pasienData: pasien,
+              nama: pasien['nama'],
+              umur: pasien['umur'],
+              antrian: pasien['antrian'],
+              keluhan: pasien['keluhan'],
+              status: status,
+              statusColor: statusColor,
+              alergi: pasien['alergi'],
+              jenisLayanan: pasien['jenisLayanan'],
+              golDarah: pasien['golDarah'],
+              tinggiBerat: pasien['tinggiBerat'],
+              isSaatIni: false,
+            ),
+          );
+        }).toList(),
+      );
+    });
+  }
+  
   Widget _buildRekamMedisList(BuildContext context) {
-    return Column(
+    return Obx(() => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
@@ -243,55 +439,47 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
         ),
         const SizedBox(height: 12),
         
-        _buildRekamMedisCard(
-          context: context,
-          nama: 'Anisa Ayu',
-          umur: '22 Tahun',
-          antrian: 'A-012',
-          keluhan: 'Demam dan pusing',
-          status: 'Menunggu Pemeriksaan',
-          statusColor: const Color(0xFFFF9800),
-          alergi: 'Tidak ada',
-          jenisLayanan: 'Rawat Jalan',
-          golDarah: 'A+',
-          tinggiBerat: '160 cm / 55 kg',
-        ),
-        const SizedBox(height: 12),
-        
-        _buildRekamMedisCard(
-          context: context,
-          nama: 'Dias Aditama',
-          umur: '25 Tahun',
-          antrian: 'A-014',
-          keluhan: 'Batuk berdarah',
-          status: 'Menunggu',
-          statusColor: const Color(0xFFFF9800),
-          alergi: 'Penisilin',
-          jenisLayanan: 'Rawat Jalan',
-          golDarah: 'B+',
-          tinggiBerat: '170 cm / 68 kg',
-        ),
-        const SizedBox(height: 12),
-        
-        _buildRekamMedisCard(
-          context: context,
-          nama: 'Faisal Qadri',
-          umur: '21 Tahun',
-          antrian: 'A-011',
-          keluhan: 'Sakit kepala',
-          status: 'Selesai',
-          statusColor: const Color(0xFF4CAF50),
-          alergi: 'Tidak ada',
-          jenisLayanan: 'Rawat Jalan',
-          golDarah: 'O+',
-          tinggiBerat: '175 cm / 70 kg',
-        ),
+        if (controller.isLoading.value)
+          const Center(child: CircularProgressIndicator())
+        else if (controller.pasienList.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Text('Tidak ada data pasien'),
+            ),
+          )
+        else
+          ...controller.pasienList.map((pasien) {
+            final status = controller.getStatusPasien(pasien['id']);
+            final statusColor = status == 'Selesai Pemeriksaan' 
+                ? const Color(0xFF4CAF50) 
+                : const Color(0xFFFF9800);
+            
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildRekamMedisCard(
+                context: context,
+                pasienData: pasien,
+                nama: pasien['nama'],
+                umur: pasien['umur'],
+                antrian: pasien['antrian'],
+                keluhan: pasien['keluhan'],
+                status: status,
+                statusColor: statusColor,
+                alergi: pasien['alergi'],
+                jenisLayanan: pasien['jenisLayanan'],
+                golDarah: pasien['golDarah'],
+                tinggiBerat: pasien['tinggiBerat'],
+              ),
+            );
+          }).toList(),
       ],
-    );
+    ));
   }
   
   Widget _buildRekamMedisCard({
     required BuildContext context,
+    required Map<String, dynamic> pasienData,
     required String nama,
     required String umur,
     required String antrian,
@@ -302,6 +490,7 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
     required String jenisLayanan,
     required String golDarah,
     required String tinggiBerat,
+    bool isSaatIni = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -423,69 +612,160 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
             ],
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                final pasienData = {
-                  'nama': nama,
-                  'umur': umur,
-                  'antrian': antrian,
-                  'keluhan': keluhan,
-                  'status': status,
-                  'alergi': alergi,
-                  'jenisLayanan': jenisLayanan,
-                  'golDarah': golDarah,
-                  'tinggiBerat': tinggiBerat,
-                };
-
-                // Jika status Menunggu Pemeriksaan, buka form isi hasil
-                if (status == 'Menunggu Pemeriksaan') {
-                  Get.to(() => FormPemeriksaanView(
-                    pasienData: pasienData,
-                  ));
-                } else {
-                  // Jika sudah selesai, buka detail rekam medis
+          // Jika pasien sedang diperiksa, tampilkan 2 button
+          if (status == 'Sedang Diperiksa') ...[
+            Row(
+              children: [
+                // Button Isi Hasil Pemeriksaan
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final result = await Get.to(() => FormPemeriksaanView(
+                        pasienData: pasienData,
+                      ));
+                      
+                      if (result == true) {
+                        controller.refreshData();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.edit_note, color: Colors.white, size: 18),
+                        SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Isi Hasil',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Button Lihat Rekam Medis
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Get.to(() => RekamMedisDetailView(
+                        pasienData: pasienData,
+                      ));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF02B1BA),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.history, color: Colors.white, size: 18),
+                        SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Lihat Riwayat',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ]
+          // Jika pasien menunggu antrian, hanya bisa lihat rekam medis
+          else if (status == 'Menunggu Pemeriksaan') ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
                   Get.to(() => RekamMedisDetailView(
                     pasienData: pasienData,
                   ));
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: status == 'Menunggu Pemeriksaan' 
-                    ? const Color(0xFFFF9800) 
-                    : const Color(0xFF02B1BA),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF9E9E9E),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
                 ),
-                elevation: 0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    status == 'Menunggu Pemeriksaan' 
-                        ? Icons.edit_note 
-                        : Icons.visibility,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    status == 'Menunggu Pemeriksaan' 
-                        ? 'Isi Hasil Pemeriksaan' 
-                        : 'Lihat Detail Medis',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.visibility, color: Colors.white, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Lihat Rekam Medis',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
+          ]
+          // Jika tab selesai, hanya lihat detail
+          else ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Get.to(() => RekamMedisDetailView(
+                    pasienData: pasienData,
+                  ));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF02B1BA),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.visibility, color: Colors.white, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Lihat Detail Medis',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -1,23 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import '../../../../data/services/storage_service.dart';
 import '../../../../utils/snackbar_helper.dart';
-import '../../../../utils/form_modal.dart';
 import '../../../../utils/confirmation_dialog.dart';
 
 class KelolaPenggunaController extends GetxController {
-  final usernameController = TextEditingController();
+  final StorageService _storage = StorageService();
+  
+  final namaController = TextEditingController();
+  final nikController = TextEditingController();
   final emailController = TextEditingController();
+  final noHpController = TextEditingController();
+  final alamatController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   
-  final selectedRole = 'Dokter'.obs;
+  final selectedRole = 'dokter'.obs;
+  final selectedJenisKelamin = 'Laki-laki'.obs;
+  final tanggalLahir = Rx<DateTime?>(null);
+  
   final userList = <Map<String, dynamic>>[].obs;
+  final filteredUserList = <Map<String, dynamic>>[].obs;
+  final searchQuery = ''.obs;
+  final selectedRoleFilter = 'Semua'.obs;
+  
   final isPasswordVisible = false.obs;
   final isConfirmPasswordVisible = false.obs;
+  final isLoading = false.obs;
   
-  final roles = ['Dokter', 'Perawat', 'Apoteker'];
+  final roles = ['dokter', 'perawat', 'apoteker'];
+  final roleFilters = ['Semua', 'Admin', 'Dokter', 'Perawat', 'Apoteker', 'Pasien'];
+  final jenisKelaminOptions = ['Laki-laki', 'Perempuan'];
+  
+  final formKey = GlobalKey<FormState>();
 
   @override
   void onInit() {
@@ -25,14 +40,19 @@ class KelolaPenggunaController extends GetxController {
     loadUsers();
   }
 
-  @override
-  void onClose() {
-    usernameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.onClose();
-  }
+  // JANGAN dispose controller di sini karena dialog masih menggunakan controller yang sama
+  // Controller akan otomatis di-dispose saat navigasi keluar dari halaman
+  // @override
+  // void onClose() {
+  //   namaController.dispose();
+  //   nikController.dispose();
+  //   emailController.dispose();
+  //   noHpController.dispose();
+  //   alamatController.dispose();
+  //   passwordController.dispose();
+  //   confirmPasswordController.dispose();
+  //   super.onClose();
+  // }
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
@@ -43,228 +63,289 @@ class KelolaPenggunaController extends GetxController {
   }
 
   Future<void> loadUsers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final usersJson = prefs.getString('users') ?? '[]';
-    final List<dynamic> decoded = json.decode(usersJson);
-    userList.value = decoded.map((e) => Map<String, dynamic>.from(e)).toList();
+    isLoading.value = true;
+    try {
+      final users = _storage.getAllUsers();
+      userList.value = users;
+      applyFilters();
+    } catch (e) {
+      SnackbarHelper.showError('Gagal memuat data pengguna: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  Future<void> saveUsers() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('users', json.encode(userList));
+  void applyFilters() {
+    var filtered = userList.toList();
+    
+    // Filter by role
+    if (selectedRoleFilter.value != 'Semua') {
+      filtered = filtered.where((user) => 
+        user['role'].toString().toLowerCase() == selectedRoleFilter.value.toLowerCase()
+      ).toList();
+    }
+    
+    // Filter by search query
+    if (searchQuery.value.isNotEmpty) {
+      final query = searchQuery.value.toLowerCase();
+      filtered = filtered.where((user) =>
+        user['namaLengkap'].toString().toLowerCase().contains(query) ||
+        user['email'].toString().toLowerCase().contains(query) ||
+        user['nik'].toString().toLowerCase().contains(query)
+      ).toList();
+    }
+    
+    filteredUserList.value = filtered;
   }
 
-  void addUser() {
-    if (usernameController.text.isEmpty ||
-        emailController.text.isEmpty ||
-        passwordController.text.isEmpty ||
-        confirmPasswordController.text.isEmpty) {
-      SnackbarHelper.showError('Semua field harus diisi');
+  void onSearchChanged(String query) {
+    searchQuery.value = query;
+    applyFilters();
+  }
+
+  void onRoleFilterChanged(String role) {
+    selectedRoleFilter.value = role;
+    applyFilters();
+  }
+
+  // Validation methods
+  String? validateNama(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Nama lengkap tidak boleh kosong';
+    }
+    if (value.length < 3) {
+      return 'Nama minimal 3 karakter';
+    }
+    return null;
+  }
+
+  String? validateNIK(String? value, {String? excludeId}) {
+    if (value == null || value.isEmpty) {
+      return 'NIK tidak boleh kosong';
+    }
+    if (value.length != 16) {
+      return 'NIK harus 16 digit';
+    }
+    if (!GetUtils.isNumericOnly(value)) {
+      return 'NIK harus berupa angka';
+    }
+    if (_storage.isNIKExists(value, excludeId: excludeId)) {
+      return 'NIK sudah terdaftar';
+    }
+    return null;
+  }
+
+  String? validateEmail(String? value, {String? excludeId}) {
+    if (value == null || value.isEmpty) {
+      return 'Email tidak boleh kosong';
+    }
+    if (!GetUtils.isEmail(value)) {
+      return 'Format email tidak valid';
+    }
+    if (_storage.isEmailExists(value, excludeId: excludeId)) {
+      return 'Email sudah terdaftar';
+    }
+    return null;
+  }
+
+  String? validateNoHp(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Nomor HP tidak boleh kosong';
+    }
+    if (!GetUtils.isNumericOnly(value)) {
+      return 'Nomor HP harus berupa angka';
+    }
+    if (value.length < 10 || value.length > 13) {
+      return 'Nomor HP tidak valid (10-13 digit)';
+    }
+    return null;
+  }
+
+  String? validateAlamat(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Alamat tidak boleh kosong';
+    }
+    if (value.length < 10) {
+      return 'Alamat minimal 10 karakter';
+    }
+    return null;
+  }
+
+  String? validatePassword(String? value, {bool isRequired = true}) {
+    if (!isRequired && (value == null || value.isEmpty)) {
+      return null;
+    }
+    if (isRequired && (value == null || value.isEmpty)) {
+      return 'Password tidak boleh kosong';
+    }
+    if (value != null && value.isNotEmpty && value.length < 6) {
+      return 'Password minimal 6 karakter';
+    }
+    return null;
+  }
+
+  String? validateConfirmPassword(String? value, {bool isRequired = true}) {
+    if (!isRequired && (value == null || value.isEmpty) && passwordController.text.isEmpty) {
+      return null;
+    }
+    if (value != passwordController.text) {
+      return 'Password tidak sama';
+    }
+    return null;
+  }
+
+  // CRUD Operations
+  Future<void> addUser() async {
+    if (!formKey.currentState!.validate()) {
       return;
     }
 
-    if (passwordController.text != confirmPasswordController.text) {
-      SnackbarHelper.showError('Password dan konfirmasi password tidak sama');
-      return;
-    }
+    isLoading.value = true;
 
-    final newUser = {
-      'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      'username': usernameController.text,
-      'email': emailController.text,
-      'password': passwordController.text,
-      'role': selectedRole.value,
-    };
-
-    userList.add(newUser);
-    saveUsers();
-
-    usernameController.clear();
-    emailController.clear();
-    passwordController.clear();
-    confirmPasswordController.clear();
-    selectedRole.value = 'Dokter';
-
-    Get.back();
-    SnackbarHelper.showSuccess('Pengguna berhasil ditambahkan');
-  }
-
-  void updateUser(String id) {
-    if (usernameController.text.isEmpty ||
-        emailController.text.isEmpty) {
-      SnackbarHelper.showError('Semua field harus diisi');
-      return;
-    }
-
-    // If password fields are filled, validate them
-    if (passwordController.text.isNotEmpty || confirmPasswordController.text.isNotEmpty) {
-      if (passwordController.text != confirmPasswordController.text) {
-        SnackbarHelper.showError('Password dan konfirmasi password tidak sama');
-        return;
-      }
-    }
-
-    final index = userList.indexWhere((user) => user['id'] == id);
-    if (index != -1) {
-      userList[index] = {
-        'id': id,
-        'username': usernameController.text,
-        'email': emailController.text,
-        'password': passwordController.text.isNotEmpty 
-          ? passwordController.text 
-          : userList[index]['password'],
+    try {
+      final userId = _storage.generateUserId(selectedRole.value);
+      final newUser = {
+        'id': userId,
+        'namaLengkap': namaController.text.trim(),
+        'nik': nikController.text.trim(),
+        'email': emailController.text.trim().toLowerCase(),
+        'noHp': noHpController.text.trim(),
+        'jenisKelamin': selectedJenisKelamin.value,
+        'tanggalLahir': tanggalLahir.value?.toIso8601String().split('T')[0] ?? '',
+        'alamat': alamatController.text.trim(),
+        'password': passwordController.text,
         'role': selectedRole.value,
+        'createdAt': DateTime.now().toIso8601String(),
       };
-      saveUsers();
 
-      usernameController.clear();
-      emailController.clear();
-      passwordController.clear();
-      confirmPasswordController.clear();
-      selectedRole.value = 'Dokter';
+      await _storage.addUser(newUser);
+      await loadUsers();
+
+      SnackbarHelper.showSuccess('Pengguna berhasil ditambahkan');
+      
+      // Delay sebentar agar snackbar terlihat
+      await Future.delayed(const Duration(milliseconds: 600));
 
       Get.back();
-      SnackbarHelper.showSuccess('Pengguna berhasil diperbarui');
+      clearForm();
+    } catch (e) {
+      SnackbarHelper.showError('Gagal menambahkan pengguna: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  void deleteUser(String id) {
-    userList.removeWhere((user) => user['id'] == id);
-    saveUsers();
-    SnackbarHelper.showSuccess('Pengguna berhasil dihapus');
+  Future<void> updateUser(String userId) async {
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
+    isLoading.value = true;
+
+    try {
+      final updates = {
+        'namaLengkap': namaController.text.trim(),
+        'nik': nikController.text.trim(),
+        'email': emailController.text.trim().toLowerCase(),
+        'noHp': noHpController.text.trim(),
+        'jenisKelamin': selectedJenisKelamin.value,
+        'tanggalLahir': tanggalLahir.value?.toIso8601String().split('T')[0] ?? '',
+        'alamat': alamatController.text.trim(),
+        'role': selectedRole.value,
+      };
+
+      // Update password only if filled
+      if (passwordController.text.isNotEmpty) {
+        updates['password'] = passwordController.text;
+      }
+
+      final success = await _storage.updateUser(userId, updates);
+
+      if (success) {
+        await loadUsers();
+
+        SnackbarHelper.showSuccess('Data pengguna berhasil diperbarui');
+        
+        // Delay sebentar agar snackbar terlihat
+        await Future.delayed(const Duration(milliseconds: 600));
+
+        Get.back();
+        clearForm();
+      } else {
+        SnackbarHelper.showError('Pengguna tidak ditemukan');
+      }
+    } catch (e) {
+      SnackbarHelper.showError('Gagal memperbarui pengguna: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void showAddUserDialog() {
-    // Clear fields
-    usernameController.clear();
-    emailController.clear();
-    passwordController.clear();
-    confirmPasswordController.clear();
-    selectedRole.value = 'Dokter';
-
-    FormModal.show(
-      title: 'Tambah Pengguna',
-      titleIcon: Icons.person_add,
-      fields: [
-        FormFieldConfig(
-          label: 'Username',
-          type: FormFieldType.text,
-          controller: usernameController,
-          icon: Icons.person_outline,
-        ),
-        FormFieldConfig(
-          label: 'Email',
-          type: FormFieldType.email,
-          controller: emailController,
-          icon: Icons.email_outlined,
-        ),
-        FormFieldConfig(
-          label: 'Role',
-          type: FormFieldType.dropdown,
-          icon: Icons.badge_outlined,
-          dropdownItems: roles,
-          dropdownValue: selectedRole.value,
-          onDropdownChanged: (value) => selectedRole.value = value,
-        ),
-        FormFieldConfig(
-          label: 'Password',
-          type: FormFieldType.password,
-          controller: passwordController,
-          icon: Icons.lock_outline,
-          obscureText: isPasswordVisible,
-          onToggleVisibility: togglePasswordVisibility,
-        ),
-        FormFieldConfig(
-          label: 'Konfirmasi Password',
-          type: FormFieldType.password,
-          controller: confirmPasswordController,
-          icon: Icons.lock_outline,
-          obscureText: isConfirmPasswordVisible,
-          onToggleVisibility: toggleConfirmPasswordVisibility,
-        ),
-      ],
-      onSubmit: addUser,
-      onCancel: () {
-        usernameController.clear();
-        emailController.clear();
-        passwordController.clear();
-        confirmPasswordController.clear();
-      },
-    );
-  }
-
-  void showEditUserDialog(Map<String, dynamic> user) {
-    // Populate fields with existing data
-    usernameController.text = user['username'];
-    emailController.text = user['email'];
-    passwordController.clear();
-    confirmPasswordController.clear();
-    selectedRole.value = user['role'];
-
-    FormModal.show(
-      title: 'Edit Pengguna',
-      titleIcon: Icons.edit,
-      fields: [
-        FormFieldConfig(
-          label: 'Username',
-          type: FormFieldType.text,
-          controller: usernameController,
-          icon: Icons.person_outline,
-        ),
-        FormFieldConfig(
-          label: 'Email',
-          type: FormFieldType.email,
-          controller: emailController,
-          icon: Icons.email_outlined,
-        ),
-        FormFieldConfig(
-          label: 'Role',
-          type: FormFieldType.dropdown,
-          icon: Icons.badge_outlined,
-          dropdownItems: roles,
-          dropdownValue: selectedRole.value,
-          onDropdownChanged: (value) => selectedRole.value = value,
-        ),
-        FormFieldConfig(
-          label: 'Password Baru',
-          type: FormFieldType.password,
-          controller: passwordController,
-          icon: Icons.lock_outline,
-          obscureText: isPasswordVisible,
-          onToggleVisibility: togglePasswordVisibility,
-          required: false,
-          hint: 'Kosongkan jika tidak ingin mengubah',
-        ),
-        FormFieldConfig(
-          label: 'Konfirmasi Password Baru',
-          type: FormFieldType.password,
-          controller: confirmPasswordController,
-          icon: Icons.lock_outline,
-          obscureText: isConfirmPasswordVisible,
-          onToggleVisibility: toggleConfirmPasswordVisibility,
-          required: false,
-          hint: 'Kosongkan jika tidak ingin mengubah',
-        ),
-      ],
-      onSubmit: () => updateUser(user['id']),
-      onCancel: () {
-        usernameController.clear();
-        emailController.clear();
-        passwordController.clear();
-        confirmPasswordController.clear();
-      },
-      submitText: 'Perbarui',
-    );
-  }
-
-  void confirmDeleteUser(String id, String username) {
-    ConfirmationDialog.show(
+  Future<void> deleteUser(String userId, String nama) async {
+    final confirmed = await ConfirmationDialog.show(
       title: 'Hapus Pengguna',
-      message: 'Apakah Anda yakin ingin menghapus pengguna "$username"?',
-      type: ConfirmationType.danger,
+      message: 'Apakah Anda yakin ingin menghapus pengguna "$nama"?\n\nData yang dihapus tidak dapat dikembalikan.',
       confirmText: 'Hapus',
       cancelText: 'Batal',
-      onConfirm: () => deleteUser(id),
+      type: ConfirmationType.danger,
     );
+
+    if (confirmed != true) return;
+
+    isLoading.value = true;
+
+    try {
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      final success = await _storage.deleteUser(userId);
+
+      if (success) {
+        await loadUsers();
+
+        SnackbarHelper.showSuccess('Pengguna berhasil dihapus');
+      } else {
+        SnackbarHelper.showError('Pengguna tidak ditemukan');
+      }
+    } catch (e) {
+      SnackbarHelper.showError('Gagal menghapus pengguna: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void clearForm() {
+    namaController.clear();
+    nikController.clear();
+    emailController.clear();
+    noHpController.clear();
+    alamatController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    selectedRole.value = 'dokter';
+    selectedJenisKelamin.value = 'Laki-laki';
+    tanggalLahir.value = null;
+  }
+
+  void populateFormForEdit(Map<String, dynamic> user) {
+    namaController.text = user['namaLengkap'] ?? '';
+    nikController.text = user['nik'] ?? '';
+    emailController.text = user['email'] ?? '';
+    noHpController.text = user['noHp'] ?? '';
+    alamatController.text = user['alamat'] ?? '';
+    selectedRole.value = user['role'] ?? 'dokter';
+    selectedJenisKelamin.value = user['jenisKelamin'] ?? 'Laki-laki';
+    
+    if (user['tanggalLahir'] != null && user['tanggalLahir'].toString().isNotEmpty) {
+      try {
+        tanggalLahir.value = DateTime.parse(user['tanggalLahir']);
+      } catch (e) {
+        tanggalLahir.value = null;
+      }
+    } else {
+      tanggalLahir.value = null;
+    }
+    
+    passwordController.clear();
+    confirmPasswordController.clear();
   }
 }
