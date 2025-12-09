@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../settings/views/dokter_settings_view.dart';
 import '../../rekam_medis/views/rekam_medis_detail_view.dart';
-import '../../pemeriksaan/views/form_pemeriksaan_view.dart';
 import '../../notifikasi/views/dokter_notifikasi_list_view.dart';
 import '../controllers/dokter_dashboard_controller.dart';
 
@@ -191,19 +190,19 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
     return Obx(() => Row(
       children: [
         _buildStatCard(
-          controller.getTotalPasien().toString(), 
+          controller.getTotalAntrianHariIni().toString(), 
           'Total', 
           const Color(0xFF02B1BA)
         ),
         const SizedBox(width: 12),
         _buildStatCard(
-          controller.getPasienMenunggu().toString(), 
+          controller.getAntrianMenungguCount().toString(), 
           'Sisa', 
           const Color(0xFFFF9800)
         ),
         const SizedBox(width: 12),
         _buildStatCard(
-          controller.getPasienSelesai().toString(), 
+          controller.getAntrianSelesaiCount().toString(), 
           'Selesai', 
           const Color(0xFF4CAF50)
         ),
@@ -329,65 +328,61 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
   
   Widget _buildSaatIniList(BuildContext context) {
     return Obx(() {
-      final pasienSaatIni = controller.pasienSaatIni;
+      final antrianMenunggu = controller.antrianMenunggu;
+      final antrianSedangDilayani = controller.antrianSedangDilayani;
       
       if (controller.isLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }
       
-      if (pasienSaatIni.isEmpty) {
+      if (antrianMenunggu.isEmpty && antrianSedangDilayani.isEmpty) {
         return const Center(
           child: Padding(
             padding: EdgeInsets.all(32.0),
-            child: Text('Tidak ada pasien saat ini'),
+            child: Text('Tidak ada antrian saat ini'),
           ),
         );
       }
       
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: pasienSaatIni.map((pasien) {
-          final status = controller.getStatusPasien(pasien['id']);
-          Color statusColor;
-          
-          if (status == 'Sedang Diperiksa') {
-            statusColor = const Color(0xFF2196F3); // Biru untuk sedang diperiksa
-          } else {
-            statusColor = const Color(0xFFFF9800); // Orange untuk menunggu
-          }
-          
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildRekamMedisCard(
-              context: context,
-              pasienData: pasien,
-              nama: pasien['nama'],
-              umur: pasien['umur'],
-              antrian: pasien['antrian'],
-              keluhan: pasien['keluhan'],
-              status: status,
-              statusColor: statusColor,
-              alergi: pasien['alergi'],
-              jenisLayanan: pasien['jenisLayanan'],
-              golDarah: pasien['golDarah'],
-              tinggiBerat: pasien['tinggiBerat'],
-              isSaatIni: true,
-            ),
-          );
-        }).toList(),
+        children: [
+          ...antrianSedangDilayani.map((antrian) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildAntrianCard(
+                context: context,
+                antrian: antrian,
+                status: 'Sedang Dilayani',
+                statusColor: const Color(0xFF2196F3),
+              ),
+            );
+          }).toList(),
+          ...antrianMenunggu.map((antrian) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildAntrianCard(
+                context: context,
+                antrian: antrian,
+                status: 'Menunggu',
+                statusColor: const Color(0xFFFF9800),
+              ),
+            );
+          }).toList(),
+        ],
       );
     });
   }
   
   Widget _buildSelesaiList(BuildContext context) {
     return Obx(() {
-      final pasienSelesai = controller.pasienSelesai;
+      final antrianSelesai = controller.antrianSelesai;
       
       if (controller.isLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }
       
-      if (pasienSelesai.isEmpty) {
+      if (antrianSelesai.isEmpty) {
         return const Center(
           child: Padding(
             padding: EdgeInsets.all(32.0),
@@ -398,26 +393,15 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
       
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: pasienSelesai.map((pasien) {
-          final status = controller.getStatusPasien(pasien['id']);
-          const statusColor = Color(0xFF4CAF50); // Hijau untuk selesai
-          
+        children: antrianSelesai.map((antrian) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _buildRekamMedisCard(
+            child: _buildAntrianCard(
               context: context,
-              pasienData: pasien,
-              nama: pasien['nama'],
-              umur: pasien['umur'],
-              antrian: pasien['antrian'],
-              keluhan: pasien['keluhan'],
-              status: status,
-              statusColor: statusColor,
-              alergi: pasien['alergi'],
-              jenisLayanan: pasien['jenisLayanan'],
-              golDarah: pasien['golDarah'],
-              tinggiBerat: pasien['tinggiBerat'],
-              isSaatIni: false,
+              antrian: antrian,
+              status: 'Selesai',
+              statusColor: const Color(0xFF4CAF50),
+              isSelesai: true,
             ),
           );
         }).toList(),
@@ -425,72 +409,12 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
     });
   }
   
-  Widget _buildRekamMedisList(BuildContext context) {
-    return Obx(() => Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Rekam Medis Hari Ini',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF02B1BA),
-          ),
-        ),
-        const SizedBox(height: 12),
-        
-        if (controller.isLoading.value)
-          const Center(child: CircularProgressIndicator())
-        else if (controller.pasienList.isEmpty)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Text('Tidak ada data pasien'),
-            ),
-          )
-        else
-          ...controller.pasienList.map((pasien) {
-            final status = controller.getStatusPasien(pasien['id']);
-            final statusColor = status == 'Selesai Pemeriksaan' 
-                ? const Color(0xFF4CAF50) 
-                : const Color(0xFFFF9800);
-            
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildRekamMedisCard(
-                context: context,
-                pasienData: pasien,
-                nama: pasien['nama'],
-                umur: pasien['umur'],
-                antrian: pasien['antrian'],
-                keluhan: pasien['keluhan'],
-                status: status,
-                statusColor: statusColor,
-                alergi: pasien['alergi'],
-                jenisLayanan: pasien['jenisLayanan'],
-                golDarah: pasien['golDarah'],
-                tinggiBerat: pasien['tinggiBerat'],
-              ),
-            );
-          }).toList(),
-      ],
-    ));
-  }
-  
-  Widget _buildRekamMedisCard({
+  Widget _buildAntrianCard({
     required BuildContext context,
-    required Map<String, dynamic> pasienData,
-    required String nama,
-    required String umur,
-    required String antrian,
-    required String keluhan,
+    required Map<String, dynamic> antrian,
     required String status,
     required Color statusColor,
-    required String alergi,
-    required String jenisLayanan,
-    required String golDarah,
-    required String tinggiBerat,
-    bool isSaatIni = false,
+    bool isSelesai = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -524,7 +448,7 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      nama,
+                      antrian['namaLengkap'] ?? '-',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -533,7 +457,7 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      umur,
+                      'No. RM: ${antrian['noRekamMedis'] ?? '-'}',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade600,
@@ -575,7 +499,7 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      antrian,
+                      antrian['queueNumber'] ?? '-',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -599,12 +523,14 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      keluhan,
+                      antrian['keluhan'] ?? '-',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF1E293B),
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -612,100 +538,15 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
             ],
           ),
           const SizedBox(height: 12),
-          // Jika pasien sedang diperiksa, tampilkan 2 button
-          if (status == 'Sedang Diperiksa') ...[
-            Row(
-              children: [
-                // Button Isi Hasil Pemeriksaan
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final result = await Get.to(() => FormPemeriksaanView(
-                        pasienData: pasienData,
-                      ));
-                      
-                      if (result == true) {
-                        controller.refreshData();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4CAF50),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.edit_note, color: Colors.white, size: 18),
-                        SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            'Isi Hasil',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Button Lihat Rekam Medis
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Get.to(() => RekamMedisDetailView(
-                        pasienData: pasienData,
-                      ));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF02B1BA),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.history, color: Colors.white, size: 18),
-                        SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            'Lihat Riwayat',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ]
-          // Jika pasien menunggu antrian, hanya bisa lihat rekam medis
-          else if (status == 'Menunggu Pemeriksaan') ...[
+          if (status == 'Menunggu') ...[
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Get.to(() => RekamMedisDetailView(
-                    pasienData: pasienData,
-                  ));
+                  controller.mulaiPelayanan(antrian);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF9E9E9E),
+                  backgroundColor: const Color(0xFF02B1BA),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -715,7 +556,40 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
-                    Icon(Icons.visibility, color: Colors.white, size: 18),
+                    Icon(Icons.medical_services, color: Colors.white, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Mulai Pelayanan',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          if (status == 'Sedang Dilayani') ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  controller.navigateToFormPemeriksaan(antrian);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4CAF50),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.medical_information, color: Colors.white, size: 18),
                     SizedBox(width: 8),
                     Text(
                       'Lihat Rekam Medis',
@@ -729,15 +603,14 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
                 ),
               ),
             ),
-          ]
-          // Jika tab selesai, hanya lihat detail
-          else ...[
+          ],
+          if (isSelesai) ...[
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
                   Get.to(() => RekamMedisDetailView(
-                    pasienData: pasienData,
+                    pasienData: antrian,
                   ));
                 },
                 style: ElevatedButton.styleFrom(
@@ -754,7 +627,7 @@ class DokterDashboardView extends GetView<DokterDashboardController> {
                     Icon(Icons.visibility, color: Colors.white, size: 18),
                     SizedBox(width: 8),
                     Text(
-                      'Lihat Detail Medis',
+                      'Lihat Detail',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
