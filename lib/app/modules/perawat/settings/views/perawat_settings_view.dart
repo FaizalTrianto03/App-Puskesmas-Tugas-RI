@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
-import '../../../../utils/snackbar_helper.dart';
 import '../../../../utils/confirmation_dialog.dart';
-import '../../../pasien/login/views/staff_selector_view.dart';
+import '../controllers/perawat_settings_controller.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
 
-class PerawatSettingsView extends StatelessWidget {
+class PerawatSettingsView extends GetView<PerawatSettingsController> {
   const PerawatSettingsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Inject controller
+    Get.lazyPut(() => PerawatSettingsController());
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -209,12 +212,8 @@ class PerawatSettingsView extends StatelessWidget {
       cancelText: 'Batal',
       type: ConfirmationType.danger,
       onConfirm: () {
-        // Logout
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const StaffSelectorView()),
-          (route) => false,
-        );
-        SnackbarHelper.showSuccess('Berhasil keluar');
+        // Logout menggunakan controller
+        controller.logout();
       },
     );
   }

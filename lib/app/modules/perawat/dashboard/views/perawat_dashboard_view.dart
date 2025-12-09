@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../settings/views/perawat_settings_view.dart';
-import '../../rekam_medis/views/form_rekam_medis_view.dart';
+import '../controllers/perawat_dashboard_controller.dart';
 
-class PerawatDashboardView extends StatelessWidget {
+class PerawatDashboardView extends GetView<PerawatDashboardController> {
   const PerawatDashboardView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    Get.lazyPut(() => PerawatDashboardController());
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
@@ -17,6 +19,7 @@ class PerawatDashboardView extends StatelessWidget {
           elevation: 2,
           shadowColor: Colors.black.withOpacity(0.08),
           scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
           automaticallyImplyLeading: false,
           centerTitle: true,
           title: const Text(
@@ -68,9 +71,7 @@ class PerawatDashboardView extends StatelessWidget {
   Widget _buildProfileCard(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PerawatSettingsView()),
-        );
+        Get.to(() => const PerawatSettingsView());
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -106,7 +107,7 @@ class PerawatDashboardView extends StatelessWidget {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Shift Pagi, 27 Oktober 2025',
+                    'Shift Pagi, 9 Desember 2025',
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.white,
@@ -147,15 +148,27 @@ class PerawatDashboardView extends StatelessWidget {
   }
   
   Widget _buildStatisticCards() {
-    return Row(
+    return Obx(() => Row(
       children: [
-        _buildStatCard('7', 'Total', const Color(0xFF02B1BA)),
+        _buildStatCard(
+          controller.getTotalAntrianHariIni().toString(),
+          'Total',
+          const Color(0xFF02B1BA),
+        ),
         const SizedBox(width: 12),
-        _buildStatCard('2', 'Sisa', const Color(0xFFFF9800)),
+        _buildStatCard(
+          controller.getMenungguVerifikasiCount().toString(),
+          'Menunggu',
+          const Color(0xFFFF9800),
+        ),
         const SizedBox(width: 12),
-        _buildStatCard('5', 'Selesai', const Color(0xFF4CAF50)),
+        _buildStatCard(
+          controller.getTerverifikasiCount().toString(),
+          'Selesai',
+          const Color(0xFF4CAF50),
+        ),
       ],
-    );
+    ));
   }
   
   Widget _buildStatCard(String value, String label, Color color) {
@@ -193,57 +206,117 @@ class PerawatDashboardView extends StatelessWidget {
   }
   
   Widget _buildPasienList(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildPasienCard(
-          context: context,
-          nama: 'Anisa Ayu',
-          umur: '22 Tahun',
-          keterangan: 'Perempuan, 22 Tahun',
-          antrian: 'A-012',
-          keluhan: 'Demam dan pusing',
-          status: 'Proses',
-          statusColor: const Color(0xFF2196F3), // Blue - Material Blue 500
-        ),
-        const SizedBox(height: 12),
-        
-        _buildPasienCard(
-          context: context,
-          nama: 'Dias Aditama',
-          umur: '23 Tahun',
-          keterangan: 'Laki-laki, 23 Tahun',
-          antrian: 'A-014',
-          keluhan: 'Batuk berdarah',
-          status: 'Menunggu',
-          statusColor: const Color(0xFFFF9800),
-        ),
-        const SizedBox(height: 12),
-        
-        _buildPasienCard(
-          context: context,
-          nama: 'Faizal Qadri',
-          umur: '23 Tahun',
-          keterangan: 'Laki-laki, 23 Tahun',
-          antrian: 'A-011',
-          keluhan: 'Meriang dan pusing',
-          status: 'Selesai',
-          statusColor: const Color(0xFF4CAF50),
-        ),
-      ],
-    );
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      final antrianMenunggu = controller.antrianMenungguVerifikasi;
+      final antrianTerverifikasi = controller.antrianTerverifikasi;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Antrian Menunggu Verifikasi',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF02B1BA),
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (antrianMenunggu.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: Text('Tidak ada antrian menunggu verifikasi'),
+              ),
+            )
+          else
+            ...antrianMenunggu.map((antrian) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildAntrianCard(
+                  context: context,
+                  antrian: antrian,
+                ),
+              );
+            }).toList(),
+          const SizedBox(height: 24),
+          const Text(
+            'Antrian Terverifikasi',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF02B1BA),
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (antrianTerverifikasi.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: Text('Tidak ada antrian terverifikasi'),
+              ),
+            )
+          else
+            ...antrianTerverifikasi.map((antrian) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildAntrianCard(
+                  context: context,
+                  antrian: antrian,
+                ),
+              );
+            }).toList(),
+        ],
+      );
+    });
   }
   
-  Widget _buildPasienCard({
+  Widget _buildAntrianCard({
     required BuildContext context,
-    required String nama,
-    required String umur,
-    required String keterangan,
-    required String antrian,
-    required String keluhan,
-    required String status,
-    required Color statusColor,
+    required Map<String, dynamic> antrian,
   }) {
+    String getStatusText(String status) {
+      switch (status) {
+        case 'menunggu_verifikasi':
+          return 'Menunggu Verifikasi';
+        case 'menunggu_dokter':
+          return 'Terverifikasi';
+        case 'sedang_dilayani':
+          return 'Sedang Dilayani';
+        case 'selesai':
+          return 'Selesai';
+        case 'dibatalkan':
+          return 'Dibatalkan';
+        default:
+          return status;
+      }
+    }
+
+    Color getStatusColor(String status) {
+      switch (status) {
+        case 'menunggu_verifikasi':
+          return const Color(0xFFFF9800);
+        case 'menunggu_dokter':
+          return const Color(0xFF2196F3);
+        case 'sedang_dilayani':
+          return const Color(0xFF9C27B0);
+        case 'selesai':
+          return const Color(0xFF4CAF50);
+        case 'dibatalkan':
+          return const Color(0xFFF44336);
+        default:
+          return const Color(0xFF9E9E9E);
+      }
+    }
+
+    final status = antrian['status'] as String;
+    final statusText = getStatusText(status);
+    final statusColor = getStatusColor(status);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -276,16 +349,16 @@ class PerawatDashboardView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      nama,
+                      antrian['namaLengkap'] ?? '-',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF02B1BA),
+                        color: Color(0xFF1E293B),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      keterangan,
+                      'No. RM: ${antrian['noRekamMedis'] ?? '-'}',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade600,
@@ -301,7 +374,7 @@ class PerawatDashboardView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  status,
+                  statusText,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -322,13 +395,12 @@ class PerawatDashboardView extends StatelessWidget {
                       'Antrian',
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade700,
+                        color: Colors.grey.shade600,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      antrian,
+                      antrian['queueNumber'] ?? '-',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -347,18 +419,19 @@ class PerawatDashboardView extends StatelessWidget {
                       'Keluhan',
                       style: TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade700,
+                        color: Colors.grey.shade600,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      keluhan,
+                      antrian['keluhan'] ?? '-',
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF1E293B),
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -366,102 +439,58 @@ class PerawatDashboardView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _HoverAnimatedButton(
-            onPressed: () {
-              final pasienData = {
-                'nama': nama,
-                'umur': umur,
-                'keterangan': keterangan,
-                'antrian': antrian,
-                'keluhan': keluhan,
-                'status': status,
-              };
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FormRekamMedisView(
-                    pasienData: pasienData,
+          if (status == 'menunggu_verifikasi') ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  controller.verifikasiAntrian(antrian);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF02B1BA),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
+                  elevation: 0,
                 ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Widget tombol dengan efek hover animasi
-class _HoverAnimatedButton extends StatefulWidget {
-  final VoidCallback onPressed;
-
-  const _HoverAnimatedButton({
-    required this.onPressed,
-  });
-
-  @override
-  State<_HoverAnimatedButton> createState() => _HoverAnimatedButtonState();
-}
-
-class _HoverAnimatedButtonState extends State<_HoverAnimatedButton> {
-  bool _isHovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-        transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: _isHovered
-                ? const LinearGradient(
-                    colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  )
-                : null,
-            color: _isHovered ? null : const Color(0xFF02B1BA),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: _isHovered
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF02B1BA).withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : [],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: widget.onPressed,
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Center(
-                  child: Text(
-                    'Klik untuk isi rekam medis',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: _isHovered ? 0.5 : 0,
-                    ),
+                child: const Text(
+                  'Verifikasi Antrian',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
-          ),
-        ),
+          ] else if (status == 'menunggu_dokter' || status == 'sedang_dilayani') ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  controller.navigateToFormRekamMedis(antrian);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4CAF50),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Isi Rekam Medis',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
