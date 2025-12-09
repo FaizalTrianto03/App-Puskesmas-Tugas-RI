@@ -54,15 +54,20 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    if (mounted) {
       setState(() {
         _isFocused = _focusNode.hasFocus;
       });
-    });
+    }
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_handleFocusChange);
     _focusNode.dispose();
     super.dispose();
   }
@@ -94,6 +99,13 @@ class _CustomTextFieldState extends State<CustomTextField> {
           labelStyle: AppTextStyles.bodyMedium.copyWith(
             color: widget.textColor,
           ),
+          errorStyle: const TextStyle(
+            color: AppColors.error,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            height: 1.3,
+          ),
+          errorMaxLines: 2,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(widget.borderRadius),
             borderSide: BorderSide(
