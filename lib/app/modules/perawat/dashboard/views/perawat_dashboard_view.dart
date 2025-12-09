@@ -55,6 +55,8 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
                       _buildProfileCard(context),
                       const SizedBox(height: 16),
                       _buildStatisticCards(),
+                      const SizedBox(height: 16),
+                      _buildMenuSection(),
                       const SizedBox(height: 24),
                       _buildSearchAndFilter(),
                       const SizedBox(height: 16),
@@ -199,6 +201,143 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildMenuSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Menu Cepat',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF333333),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMenuCard(
+                  icon: Icons.history,
+                  label: 'Riwayat\nPemeriksaan',
+                  color: const Color(0xFF0B4D3B),
+                  onTap: () {
+                    Get.toNamed('/perawat/riwayat-pemeriksaan');
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMenuCard(
+                  icon: Icons.medical_services,
+                  label: 'Rekam\nMedis',
+                  color: const Color(0xFF02B1BA),
+                  onTap: () {
+                    Get.snackbar(
+                      'Info',
+                      'Silakan pilih pasien dari daftar antrean',
+                      backgroundColor: Colors.blue,
+                      colorText: Colors.white,
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMenuCard(
+                  icon: Icons.assessment,
+                  label: 'Laporan\nKinerja',
+                  color: const Color(0xFFFF9800),
+                  onTap: () {
+                    Get.snackbar(
+                      'Info',
+                      'Fitur laporan kinerja akan segera tersedia',
+                      backgroundColor: Colors.orange,
+                      colorText: Colors.white,
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuCard({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withOpacity(0.3),
+            width: 1.5,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+                height: 1.2,
               ),
             ),
           ],

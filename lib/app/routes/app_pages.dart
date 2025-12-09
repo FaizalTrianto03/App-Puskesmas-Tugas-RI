@@ -33,6 +33,9 @@ import '../modules/perawat/dashboard/views/perawat_dashboard_view.dart';
 // Perawat
 import '../modules/perawat/login/bindings/perawat_login_binding.dart';
 import '../modules/perawat/login/views/perawat_login_view.dart';
+import '../modules/perawat/riwayat_pemeriksaan/bindings/riwayat_pemeriksaan_binding.dart';
+import '../modules/perawat/riwayat_pemeriksaan/views/detail_riwayat_view.dart';
+import '../modules/perawat/riwayat_pemeriksaan/views/riwayat_pemeriksaan_view.dart';
 // Splash
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
@@ -96,6 +99,16 @@ class AppPages {
       name: _Paths.perawatDashboard,
       page: () => const PerawatDashboardView(),
       binding: PerawatDashboardBinding(),
+    ),
+    GetPage(
+      name: _Paths.perawatRiwayatPemeriksaan,
+      page: () => const RiwayatPemeriksaanView(),
+      binding: RiwayatPemeriksaanBinding(),
+    ),
+    GetPage(
+      name: _Paths.perawatRiwayatPemeriksaanDetail,
+      page: () => const DetailRiwayatView(),
+      binding: RiwayatPemeriksaanBinding(),
     ),
 
     // Apoteker Routes
