@@ -227,21 +227,25 @@ class UserService {
 
   // Get Current Logged In User Data
   Map<String, dynamic>? getCurrentUserData() {
-    final userId = _box.read('userId');
+    // Ambil userId dari session_box (bukan dari default box)
+    final sessionBox = GetStorage('session_box');
+    final userId = sessionBox.read('userId');
     if (userId == null) return null;
     return findUserById(userId);
   }
 
   // Sync session with latest user data
   Future<void> syncSessionWithUserData() async {
-    final userId = _box.read('userId');
+    // Ambil userId dari session_box (bukan dari default box)
+    final sessionBox = GetStorage('session_box');
+    final userId = sessionBox.read('userId');
     if (userId == null) return;
     
     final user = findUserById(userId);
     if (user != null) {
-      await _box.write('namaLengkap', user['namaLengkap']);
-      await _box.write('email', user['email']);
-      await _box.write('role', user['role']);
+      await sessionBox.write('namaLengkap', user['namaLengkap']);
+      await sessionBox.write('email', user['email']);
+      await sessionBox.write('role', user['role']);
     }
   }
 }
