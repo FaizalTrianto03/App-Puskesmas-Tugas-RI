@@ -1,54 +1,80 @@
 import 'package:get/get.dart';
 
 import '../../../data/services/auth/session_service.dart';
-import '../../admin/dashboard/views/admin_dashboard_view.dart';
-import '../../apoteker/dashboard/views/apoteker_dashboard_view.dart';
-import '../../dokter/dashboard/views/dokter_dashboard_view.dart';
-import '../../pasien/dashboard/views/pasien_dashboard_view.dart';
-import '../../pasien/login/views/pasien_login_view.dart';
-import '../../perawat/dashboard/views/perawat_dashboard_view.dart';
+import '../../../routes/app_pages.dart';
 
 class SplashController extends GetxController {
-  final _sessionService = SessionService();
+  late final SessionService _sessionService;
 
   @override
   void onInit() {
     super.onInit();
+    try {
+      _sessionService = Get.find<SessionService>();
+    } catch (e) {
+      _sessionService = SessionService();
+    }
     _checkSessionAndNavigate();
   }
 
   void _checkSessionAndNavigate() async {
     await Future.delayed(const Duration(seconds: 2));
     
-    // Cek apakah user sudah login (remember me)
-    if (_sessionService.isLoggedIn()) {
-      // Normalisasi role ke lowercase untuk konsistensi
-      final role = _sessionService.getRole()?.toLowerCase();
+    try {
+      // Debug log dengan detail lengkap
+      print('=== SPLASH CHECK DEBUG ===');
+      final isLoggedIn = _sessionService.isLoggedIn();
+      final role = _sessionService.getRole();
+      final userId = _sessionService.getUserId();
       
-      // Auto-login ke dashboard sesuai role
-      switch (role) {
-        case 'admin':
-          Get.offAll(() => AdminDashboardView());
-          break;
-        case 'dokter':
-          Get.offAll(() => DokterDashboardView());
-          break;
-        case 'perawat':
-          Get.offAll(() => PerawatDashboardView());
-          break;
-        case 'apoteker':
-          Get.offAll(() => ApotekerDashboardView());
-          break;
-        case 'pasien':
-          Get.offAll(() => PasienDashboardView());
-          break;
-        default:
-          // Jika role tidak dikenali, tetap arahkan ke login pasien tanpa menghapus session
-          Get.offAll(() => const PasienLoginView());
+      print('Is logged in: $isLoggedIn');
+      print('Role from session: $role');
+      print('UserId from session: $userId');
+      print('=========================');
+      
+      // Cek apakah user sudah login (remember me)
+      if (isLoggedIn) {
+        // Normalisasi role ke lowercase untuk konsistensi
+        final normalizedRole = role?.toLowerCase() ?? '';
+        
+        print('Normalized role: $normalizedRole');
+        print('Navigating to dashboard...');
+        
+        // Auto-login ke dashboard sesuai role
+        switch (normalizedRole) {
+          case 'admin':
+            print('→ Admin Dashboard');
+            Get.offAllNamed(Routes.adminDashboard);
+            break;
+          case 'dokter':
+            print('→ Dokter Dashboard');
+            Get.offAllNamed(Routes.dokterDashboard);
+            break;
+          case 'perawat':
+            print('→ Perawat Dashboard');
+            Get.offAllNamed(Routes.perawatDashboard);
+            break;
+          case 'apoteker':
+            print('→ Apoteker Dashboard');
+            Get.offAllNamed(Routes.apotekerDashboard);
+            break;
+          case 'pasien':
+            print('→ Pasien Dashboard');
+            Get.offAllNamed(Routes.pasienDashboard);
+            break;
+          default:
+            // Jika role tidak dikenali, arahkan ke login pasien
+            print('→ Unknown role, going to Login');
+            Get.offAllNamed(Routes.pasienLogin);
+        }
+      } else {
+        // Belum login, ke halaman login pasien
+        print('→ Not logged in, going to Login');
+        Get.offAllNamed(Routes.pasienLogin);
       }
-    } else {
-      // Belum login, ke halaman login pasien
-      Get.offAll(() => const PasienLoginView());
+    } catch (e) {
+      // Jika terjadi error, arahkan ke login pasien
+      Get.offAllNamed(Routes.pasienLogin);
     }
   }
 }

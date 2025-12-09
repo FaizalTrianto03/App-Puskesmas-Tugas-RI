@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../data/services/auth/session_service.dart';
 import '../../../../data/services/storage_service.dart';
 import '../../../../routes/app_pages.dart';
 import '../../../../utils/snackbar_helper.dart';
 
 class PasienLoginController extends GetxController {
   final StorageService _storageService = StorageService();
+  final SessionService _sessionService = Get.find<SessionService>();
   
   // Form controllers
   final emailController = TextEditingController();
@@ -107,7 +109,7 @@ class PasienLoginController extends GetxController {
       }
       
       // Simpan session
-      await _storageService.saveUserSession(
+      await _sessionService.saveUserSession(
         userId: user['id'],
         namaLengkap: user['namaLengkap'],
         email: user['email'],
@@ -115,20 +117,33 @@ class PasienLoginController extends GetxController {
       );
       
       // Simpan data user lengkap
-      await _storageService.saveUserData(user['id'], user);
+      await _sessionService.saveUserData(user['id'], user);
       
-      isLoading.value = false;
+      // Tunggu sebentar untuk memastikan session tersimpan
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      // Verifikasi session tersimpan
+      print('=== PASIEN LOGIN DEBUG ===');
+      print('User role dari DB: ${user['role']}');
+      print('Session saved - Is logged in: ${_sessionService.isLoggedIn()}');
+      print('Session saved - Role: ${_sessionService.getRole()}');
+      print('Session saved - UserId: ${_sessionService.getUserId()}');
+      print('==========================');
       
       // Clear form
       emailController.clear();
       passwordController.clear();
       
-      // Navigate to dashboard
-      Get.offAllNamed(Routes.pasienDashboard);
+      isLoading.value = false;
       
+      // Tampilkan pesan sukses
       SnackbarHelper.showSuccess(
         'Selamat datang, ${user['namaLengkap']}!',
       );
+      
+      // Navigate to dashboard - gunakan delay kecil untuk memastikan session tersimpan
+      await Future.delayed(const Duration(milliseconds: 50));
+      Get.offAllNamed(Routes.pasienDashboard);
       
     } catch (e) {
       isLoading.value = false;

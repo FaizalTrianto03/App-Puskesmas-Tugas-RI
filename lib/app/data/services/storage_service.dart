@@ -1,8 +1,9 @@
 import 'package:get_storage/get_storage.dart';
+
 import 'auth/session_service.dart';
-import 'user/user_service.dart';
 import 'pasien/antrean_service.dart';
 import 'pasien/riwayat_service.dart';
+import 'user/user_service.dart';
 
 /// Main Storage Service - Facade pattern untuk mengakses semua services
 class StorageService {
@@ -19,6 +20,8 @@ class StorageService {
   // Initialize GetStorage
   static Future<void> init() async {
     await GetStorage.init();
+    await GetStorage.init('session_box'); // Container khusus untuk session
+    await GetStorage.init('user_box'); // Container khusus untuk user data
   }
 
   // Initialize dummy data
