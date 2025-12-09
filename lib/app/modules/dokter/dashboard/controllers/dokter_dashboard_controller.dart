@@ -1,19 +1,19 @@
 import 'package:get/get.dart';
 import '../../../../utils/auth_helper.dart';
 import '../../../../data/services/pemeriksaan/pemeriksaan_service.dart';
+import '../../../../data/services/storage_service.dart';
+import '../../../../routes/app_pages.dart';
 
 class DokterDashboardController extends GetxController {
   final PemeriksaanService _pemeriksaanService = PemeriksaanService();
+  final StorageService _storageService = StorageService();
 
-  // Observable untuk data user
   final userName = ''.obs;
   final userRole = ''.obs;
 
-  // Observable untuk daftar pasien
   final pasienList = <Map<String, dynamic>>[].obs;
   final isLoading = false.obs;
   
-  // Observable untuk tab
   final currentTabIndex = 0.obs;
 
   @override
@@ -113,5 +113,15 @@ class DokterDashboardController extends GetxController {
       default:
         return 'Pasien';
     }
+  }
+
+  Future<void> logout() async {
+    isLoading.value = true;
+    
+    await _storageService.clearSession();
+    
+    isLoading.value = false;
+    
+    Get.offAllNamed(Routes.dokterLogin);
   }
 }

@@ -1,8 +1,9 @@
 import 'package:get/get.dart';
 import '../../../../utils/auth_helper.dart';
+import '../../../../routes/app_pages.dart';
+import '../../../../utils/snackbar_helper.dart';
 
 class DokterSettingsController extends GetxController {
-  // Observable untuk data user
   final userName = ''.obs;
   final userRole = ''.obs;
   final userEmail = ''.obs;
@@ -37,7 +38,9 @@ class DokterSettingsController extends GetxController {
     }
   }
 
-  void logout() {
-    AuthHelper.logout();
+  Future<void> logout() async {
+    await AuthHelper.logout();
+    Get.offAllNamed(Routes.splash);
+    SnackbarHelper.showSuccess('Berhasil keluar dari akun');
   }
 }
