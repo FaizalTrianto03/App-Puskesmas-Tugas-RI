@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../data/services/auth/session_service.dart';
 import '../../../../data/services/storage_service.dart';
 import '../../../../routes/app_pages.dart';
 import '../../../../utils/snackbar_helper.dart';
 
 class PasienRegisterController extends GetxController {
   final StorageService _storageService = StorageService();
+  final SessionService _sessionService = Get.find<SessionService>();
   
   // Form controllers
   final namaLengkapController = TextEditingController();
@@ -238,7 +240,7 @@ class PasienRegisterController extends GetxController {
       await _storageService.addUser(newUser);
       
       // Simpan session langsung
-      await _storageService.saveUserSession(
+      await _sessionService.saveUserSession(
         userId: newId,
         namaLengkap: namaLengkapController.text.trim(),
         email: emailController.text.trim(),
@@ -246,7 +248,7 @@ class PasienRegisterController extends GetxController {
       );
       
       // Simpan data user lengkap
-      await _storageService.saveUserData(newId, newUser);
+      await _sessionService.saveUserData(newId, newUser);
       
       isLoading.value = false;
       

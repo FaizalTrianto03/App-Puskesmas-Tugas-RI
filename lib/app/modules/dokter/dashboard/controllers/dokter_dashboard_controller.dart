@@ -1,17 +1,21 @@
 import 'package:get/get.dart';
 import '../../../../utils/auth_helper.dart';
 import '../../../../data/services/pemeriksaan/pemeriksaan_service.dart';
-import '../../../../data/services/storage_service.dart';
+import '../../../../data/services/antrian/antrian_service.dart';
+import '../../../../data/services/auth/session_service.dart';
 import '../../../../routes/app_pages.dart';
+import '../../../../utils/snackbar_helper.dart';
+import '../../pemeriksaan/views/form_pemeriksaan_view.dart';
 
 class DokterDashboardController extends GetxController {
   final PemeriksaanService _pemeriksaanService = PemeriksaanService();
-  final StorageService _storageService = StorageService();
+  final AntreanService _antreanService = Get.find<AntreanService>();
+  final SessionService _sessionService = Get.find<SessionService>();
 
   final userName = ''.obs;
   final userRole = ''.obs;
 
-  final pasienList = <Map<String, dynamic>>[].obs;
+  final antrianList = <Map<String, dynamic>>[].obs;
   final isLoading = false.obs;
   
   final currentTabIndex = 0.obs;
@@ -20,29 +24,19 @@ class DokterDashboardController extends GetxController {
   void onInit() {
     super.onInit();
     loadUserData();
-    // Inisialisasi dummy data dari service
     _pemeriksaanService.initializeDummyData();
-    loadPasienList();
+    loadAntrianTerverifikasi();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    // Refresh data setiap kali view siap ditampilkan
+    loadAntrianTerverifikasi();
   }
 
   void changeTab(int index) {
     currentTabIndex.value = index;
-  }
-
-  // Pasien saat ini (1 pasien sedang diperiksa + yang menunggu)
-  List<Map<String, dynamic>> get pasienSaatIni {
-    return pasienList.where((pasien) {
-      final status = getStatusPasien(pasien['id']);
-      return status == 'Sedang Diperiksa' || status == 'Menunggu Pemeriksaan';
-    }).toList();
-  }
-
-  // Pasien yang sudah selesai
-  List<Map<String, dynamic>> get pasienSelesai {
-    return pasienList.where((pasien) {
-      final status = getStatusPasien(pasien['id']);
-      return status == 'Selesai Pemeriksaan';
-    }).toList();
   }
 
   void loadUserData() {
@@ -53,51 +47,118 @@ class DokterDashboardController extends GetxController {
     }
   }
 
-  void loadPasienList() {
+  void loadAntrianTerverifikasi() {
     isLoading.value = true;
     
-    // Load data pasien dari service
-    pasienList.value = _pemeriksaanService.getAllPasien();
+    antrianList.value = _antreanService.getAntrianByStatus('menunggu_dokter')
+      ..sort((a, b) {
+        final dateA = DateTime.parse(a['verifiedAt']);
+        final dateB = DateTime.parse(b['verifiedAt']);
+        return dateA.compareTo(dateB);
+      });
 
     isLoading.value = false;
   }
 
-  String getStatusPasien(String pasienId) {
-    // Cek apakah pasien ini sedang diperiksa
-    final pasien = pasienList.firstWhere(
-      (p) => p['id'] == pasienId,
-      orElse: () => {},
+  List<Map<String, dynamic>> get antrianMenunggu {
+    return antrianList
+        .where((a) => a['status'] == 'menunggu_dokter')
+        .toList();
+  }
+
+  List<Map<String, dynamic>> get antrianSedangDilayani {
+    final dokterId = _sessionService.getUserId();
+    return _antreanService.getAllAntrian()
+        .where((a) => 
+            a['status'] == 'sedang_dilayani' && 
+            a['dokterId'] == dokterId)
+        .toList();
+  }
+
+  List<Map<String, dynamic>> get antrianSelesai {
+    final dokterId = _sessionService.getUserId();
+    return _antreanService.getAllAntrian()
+        .where((a) => 
+            a['status'] == 'selesai' && 
+            a['dokterId'] == dokterId)
+        .toList();
+  }
+
+  Future<void> mulaiPelayanan(Map<String, dynamic> antrian) async {
+    final dokterId = _sessionService.getUserId();
+    final dokterName = _sessionService.getNamaLengkap();
+
+    if (dokterId == null || dokterName == null) {
+      SnackbarHelper.showError('Sesi tidak valid');
+      return;
+    }
+
+    if (antrianSedangDilayani.isNotEmpty) {
+      SnackbarHelper.showWarning('Selesaikan pasien yang sedang dilayani terlebih dahulu');
+      return;
+    }
+
+    isLoading.value = true;
+
+    final success = await _antreanService.assignDokter(
+      antrianId: antrian['id'],
+      dokterId: dokterId,
+      dokterName: dokterName,
     );
-    
-    if (pasien['sedangDiperiksa'] == true) {
-      return 'Sedang Diperiksa';
+
+    isLoading.value = false;
+
+    if (success) {
+      SnackbarHelper.showSuccess('Pasien ${antrian['namaLengkap']} mulai dilayani');
+      loadAntrianTerverifikasi();
+    } else {
+      SnackbarHelper.showError('Gagal memulai pelayanan');
     }
-    
-    // Cek apakah sudah ada hasil pemeriksaan
-    final pemeriksaan = _pemeriksaanService.getPemeriksaanByPasienId(pasienId);
-    return pemeriksaan != null ? 'Selesai Pemeriksaan' : 'Menunggu Pemeriksaan';
   }
 
-  int getTotalPasien() {
-    return pasienList.length;
-  }
+  Future<void> selesaiPelayanan({
+    required String antrianId,
+    required String diagnosis,
+    String? tindakan,
+    String? resep,
+  }) async {
+    isLoading.value = true;
 
-  int getPasienSelesai() {
-    int count = 0;
-    for (var pasien in pasienList) {
-      if (getStatusPasien(pasien['id']) == 'Selesai Pemeriksaan') {
-        count++;
-      }
+    final success = await _antreanService.selesaiPelayanan(
+      antrianId: antrianId,
+      diagnosis: diagnosis,
+      tindakan: tindakan,
+      resep: resep,
+    );
+
+    isLoading.value = false;
+
+    if (success) {
+      SnackbarHelper.showSuccess('Pelayanan selesai');
+      loadAntrianTerverifikasi();
+    } else {
+      SnackbarHelper.showError('Gagal menyelesaikan pelayanan');
     }
-    return count;
   }
 
-  int getPasienMenunggu() {
-    return getTotalPasien() - getPasienSelesai();
+  int getTotalAntrianHariIni() {
+    return antrianList.length;
+  }
+
+  int getAntrianMenungguCount() {
+    return antrianMenunggu.length;
+  }
+
+  int getAntrianSelesaiCount() {
+    return antrianSelesai.length;
   }
 
   void refreshData() {
-    loadPasienList();
+    loadAntrianTerverifikasi();
+  }
+
+  void navigateToFormPemeriksaan(Map<String, dynamic> antrian) {
+    Get.to(() => FormPemeriksaanView(pasienData: antrian));
   }
 
   String _formatRole(String role) {
@@ -117,11 +178,8 @@ class DokterDashboardController extends GetxController {
 
   Future<void> logout() async {
     isLoading.value = true;
-    
-    await _storageService.clearSession();
-    
+    await _sessionService.clearSession();
     isLoading.value = false;
-    
-    Get.offAllNamed(Routes.dokterLogin);
+    Get.offAllNamed(Routes.splash);
   }
 }

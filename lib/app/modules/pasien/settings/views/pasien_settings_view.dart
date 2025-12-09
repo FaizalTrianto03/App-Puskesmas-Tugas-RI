@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../../data/services/auth/session_service.dart';
+import '../../../../routes/app_pages.dart';
 import '../../../../utils/confirmation_dialog.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
-import '../../../pasien/login/views/pasien_login_view.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
 
@@ -200,12 +202,11 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
       type: ConfirmationType.danger,
       confirmText: 'Keluar',
       cancelText: 'Batal',
-      onConfirm: () {
+      onConfirm: () async {
+        final sessionService = Get.find<SessionService>();
+        await sessionService.clearSession();
         SnackbarHelper.showSuccess('Berhasil keluar dari akun');
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const PasienLoginView()),
-          (route) => false,
-        );
+        Get.offAllNamed(Routes.splash);
       },
     );
   }

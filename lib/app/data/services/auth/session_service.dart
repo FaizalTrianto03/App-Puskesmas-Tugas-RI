@@ -5,7 +5,7 @@ class SessionService {
   factory SessionService() => _instance;
   SessionService._internal();
 
-  final GetStorage _box = GetStorage();
+  final GetStorage _box = GetStorage('session_box'); // Named container untuk persistence
 
   // Session Management
   Future<void> saveUserSession({
@@ -14,19 +14,25 @@ class SessionService {
     required String email,
     required String role,
   }) async {
+    print('SessionService: Saving session...');
     await _box.write('isLoggedIn', true);
     await _box.write('userId', userId);
     await _box.write('namaLengkap', namaLengkap);
     await _box.write('email', email);
     await _box.write('role', role);
+    print('SessionService: Session saved - role=$role, userId=$userId');
   }
 
   bool isLoggedIn() {
-    return _box.read('isLoggedIn') ?? false;
+    final value = _box.read('isLoggedIn') ?? false;
+    print('SessionService: isLoggedIn() = $value');
+    return value;
   }
 
   String? getUserId() {
-    return _box.read('userId');
+    final value = _box.read('userId');
+    print('SessionService: getUserId() = $value');
+    return value;
   }
 
   String? getNamaLengkap() {
@@ -38,7 +44,9 @@ class SessionService {
   }
 
   String? getRole() {
-    return _box.read('role');
+    final value = _box.read('role');
+    print('SessionService: getRole() = $value');
+    return value;
   }
 
   Future<void> clearSession() async {

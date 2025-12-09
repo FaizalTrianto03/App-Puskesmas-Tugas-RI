@@ -208,7 +208,7 @@ class _FormPemeriksaanViewState extends State<FormPemeriksaanView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.pasienData['nama'],
+                  widget.pasienData['namaLengkap'] ?? widget.pasienData['nama'] ?? '-',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -217,7 +217,7 @@ class _FormPemeriksaanViewState extends State<FormPemeriksaanView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${widget.pasienData['umur']} • ${widget.pasienData['golDarah']} • ${widget.pasienData['antrian']}',
+                  'No. RM: ${widget.pasienData['noRekamMedis'] ?? '-'} • Antrian: ${widget.pasienData['queueNumber'] ?? '-'}',
                   style: const TextStyle(
                     fontSize: 13,
                     color: Colors.white,
