@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../settings/views/apoteker_settings_view.dart';
 import '../../peringatan_obat/views/peringatan_obat_view.dart';
+import '../../resep_obat/views/resep_obat_view.dart';
+import '../../resep_obat/bindings/resep_obat_binding.dart';
+import 'package:get/get.dart';
 
 class ApotekerDashboardView extends StatefulWidget {
   const ApotekerDashboardView({Key? key}) : super(key: key);
@@ -62,6 +65,8 @@ class _ApotekerDashboardViewState extends State<ApotekerDashboardView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildProfileCard(context),
+                      const SizedBox(height: 16),
+                      _buildMenuUtama(context),
                       const SizedBox(height: 16),
                       _buildAlertSection(context),
                       const SizedBox(height: 24),
@@ -154,6 +159,73 @@ class _ApotekerDashboardViewState extends State<ApotekerDashboardView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMenuUtama(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Menu Utama',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMenuCard(
+                context: context,
+                icon: Icons.medication,
+                title: 'Resep Obat',
+                subtitle: 'Kelola resep masuk',
+                color: const Color(0xFF02B1BA),
+                onTap: () {
+                  ResepObatBinding().dependencies();
+                  Get.to(
+                    () => const ResepObatView(),
+                    transition: Transition.rightToLeft,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMenuCard(
+                context: context,
+                icon: Icons.inventory_2,
+                title: 'Stok Obat',
+                subtitle: 'Manajemen persediaan',
+                color: const Color(0xFF4CAF50),
+                onTap: () {
+                  // TODO: Navigate to Stok Obat
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return _MenuCardWidget(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      color: color,
+      onTap: onTap,
     );
   }
 
@@ -518,6 +590,105 @@ class _ApotekerDashboardViewState extends State<ApotekerDashboardView> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuCardWidget extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _MenuCardWidget({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  State<_MenuCardWidget> createState() => _MenuCardWidgetState();
+}
+
+class _MenuCardWidgetState extends State<_MenuCardWidget> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedScale(
+          scale: _isPressed ? 0.95 : (_isHovered ? 1.03 : 1.0),
+          duration: const Duration(milliseconds: 150),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  widget.color,
+                  widget.color.withOpacity(0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.color.withOpacity(_isHovered ? 0.4 : 0.2),
+                  blurRadius: _isHovered ? 12 : 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    widget.icon,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
