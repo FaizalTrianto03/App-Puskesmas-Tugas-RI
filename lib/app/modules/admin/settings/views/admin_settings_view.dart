@@ -4,14 +4,17 @@ import '../../../../utils/confirmation_dialog.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../../pasien/login/views/staff_selector_view.dart';
+import '../controllers/admin_settings_controller.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
 
-class AdminSettingsView extends StatelessWidget {
+class AdminSettingsView extends GetView<AdminSettingsController> {
   const AdminSettingsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    Get.delete<AdminSettingsController>();
+    final controller = Get.put(AdminSettingsController());
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -76,28 +79,28 @@ class AdminSettingsView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
+                          Expanded(
+                            child: Obx(() => Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'dr. Trianto',
-                                  style: TextStyle(
+                                  controller.userName.value,
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Administrator',
-                                  style: TextStyle(
+                                  controller.userRole.value,
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.white,
                                   ),
                                 ),
                               ],
-                            ),
+                            )),
                           ),
                         ],
                       ),
@@ -152,8 +155,7 @@ class AdminSettingsView extends StatelessWidget {
       confirmText: 'Keluar',
       cancelText: 'Batal',
       onConfirm: () {
-        SnackbarHelper.showSuccess('Berhasil keluar dari akun');
-        Get.offAll(() => const StaffSelectorView());
+        controller.logout();
       },
     );
   }

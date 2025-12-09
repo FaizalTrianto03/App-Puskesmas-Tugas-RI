@@ -13,6 +13,8 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
 
   @override
   Widget build(BuildContext context) {
+    Get.delete<AdminDashboardController>();
+    final controller = Get.put(AdminDashboardController());
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
@@ -138,28 +140,28 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
+            Expanded(
+              child: Obx(() => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'dr. Trianto',
-                    style: TextStyle(
+                    controller.userName.value,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Administrator',
-                    style: TextStyle(
+                    controller.userRole.value,
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white,
                     ),
                   ),
                 ],
-              ),
+              )),
             ),
             Container(
               decoration: BoxDecoration(
