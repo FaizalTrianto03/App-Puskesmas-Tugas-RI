@@ -9,8 +9,7 @@ class PasienProfileView extends GetView<PasienProfileController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(PasienProfileController());
-    return Obx(() => Scaffold(
+    return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -74,27 +73,29 @@ class PasienProfileView extends GetView<PasienProfileController> {
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: Column(
+                            child: Obx(() => Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Anisa Ayu',
-                                  style: TextStyle(
+                                Text(
+                                  controller.userName.value.isEmpty 
+                                    ? 'Loading...' 
+                                    : controller.userName.value,
+                                  style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(
-                                  'NIK: 20221037031009',
-                                  style: TextStyle(
+                                Text(
+                                  'NIK: ${controller.userNIK.value}',
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     color: Colors.white,
                                   ),
                                 ),
                               ],
-                            ),
+                            )),
                           ),
                         ],
                       ),
@@ -173,17 +174,33 @@ class PasienProfileView extends GetView<PasienProfileController> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                    'Anisa Ayu',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
                                   const SizedBox(height: 8),
-                                  Row(
+                                  Obx(() => Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Pasien:',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        controller.userName.value.isEmpty 
+                                          ? 'Loading...' 
+                                          : controller.userName.value,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  )),
+                                  const SizedBox(height: 8),
+                                  Obx(() => Row(
                                     children: [
                                       const Text(
                                         'NIK: ',
@@ -193,18 +210,18 @@ class PasienProfileView extends GetView<PasienProfileController> {
                                           color: Colors.white70,
                                         ),
                                       ),
-                                      const Text(
-                                        '20221037031009',
-                                        style: TextStyle(
+                                      Text(
+                                        controller.userNIK.value,
+                                        style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
                                           color: Colors.white,
                                         ),
                                       ),
                                     ],
-                                  ),
+                                  )),
                                   const SizedBox(height: 6),
-                                  Row(
+                                  Obx(() => Row(
                                     children: [
                                       const Text(
                                         'No. Rekam Medis: ',
@@ -214,26 +231,26 @@ class PasienProfileView extends GetView<PasienProfileController> {
                                           color: Colors.white70,
                                         ),
                                       ),
-                                      const Text(
-                                        'RM-2025-001234',
-                                        style: TextStyle(
+                                      Text(
+                                        controller.userRekamMedis.value,
+                                        style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
                                           color: Colors.white,
                                         ),
                                       ),
                                     ],
-                                  ),
+                                  )),
                                   const Spacer(),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      const Column(
+                                      Obx(() => Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text(
+                                          const Text(
                                             'Berlaku hingga:',
                                             style: TextStyle(
                                               fontSize: 10,
@@ -241,15 +258,15 @@ class PasienProfileView extends GetView<PasienProfileController> {
                                             ),
                                           ),
                                           Text(
-                                            '31 Desember 2026',
-                                            style: TextStyle(
+                                            controller.cardValidUntil.value,
+                                            style: const TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
                                             ),
                                           ),
                                         ],
-                                      ),
+                                      )),
                                       Container(
                                         width: 50,
                                         height: 50,
@@ -322,6 +339,6 @@ class PasienProfileView extends GetView<PasienProfileController> {
           ),
         ],
       ),
-    ));
+    );
   }
 }

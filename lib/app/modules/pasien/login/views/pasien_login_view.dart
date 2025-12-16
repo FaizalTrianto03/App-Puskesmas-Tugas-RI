@@ -66,7 +66,7 @@ class PasienLoginView extends GetView<PasienLoginController> {
                       fontWeight: FontWeight.w600,
                     ),
                     children: const [
-                      TextSpan(text: 'Username atau NIK'),
+                      TextSpan(text: 'Email'),
                       TextSpan(
                         text: ' *',
                         style: TextStyle(color: AppColors.accent),
@@ -77,10 +77,10 @@ class PasienLoginView extends GetView<PasienLoginController> {
                 const SizedBox(height: 8),
                 Obx(() => CustomTextField(
                   controller: controller.usernameController,
-                  hintText: 'Masukkan username atau NIK',
-                  keyboardType: TextInputType.text,
+                  hintText: 'Masukkan email Gmail Anda',
+                  keyboardType: TextInputType.emailAddress,
                   prefixIcon: const Icon(
-                    Icons.person_outline,
+                    Icons.email_outlined,
                     color: Colors.grey,
                   ),
                   backgroundColor: AppColors.white,

@@ -8,7 +8,7 @@ abstract class Routes {
   static const splash = _Paths.splash;
   static const onboarding = _Paths.onboarding;
 
-  // Common (Shared across all roles)
+  // Common
   static const lupaKataSandi = _Paths.lupaKataSandi;
   static const lupaKataSandiReset = _Paths.lupaKataSandiReset;
 
@@ -25,8 +25,10 @@ abstract class Routes {
   // Perawat
   static const perawatLogin = _Paths.perawatLogin;
   static const perawatDashboard = _Paths.perawatDashboard;
-  static const perawatRiwayatPemeriksaan = _Paths.perawatRiwayatPemeriksaan;
-  static const perawatRiwayatPemeriksaanDetail = _Paths.perawatRiwayatPemeriksaanDetail;
+  static const perawatRiwayatPemeriksaan =
+      _Paths.perawatRiwayatPemeriksaan;
+  static const perawatRiwayatPemeriksaanDetail =
+      _Paths.perawatRiwayatPemeriksaanDetail;
   static const perawatSettings = _Paths.perawatSettings;
 
   // Apoteker
@@ -34,23 +36,26 @@ abstract class Routes {
   static const apotekerDashboard = _Paths.apotekerDashboard;
   static const apotekerSettings = _Paths.apotekerSettings;
 
-  // Pasien
+  // Pasien (JANGAN DISENTUH)
   static const pasienLogin = _Paths.pasienLogin;
   static const pasienRegister = _Paths.pasienRegister;
   static const pasienDashboard = _Paths.pasienDashboard;
   static const pasienPendaftaran = _Paths.pasienPendaftaran;
+  static const pasienProfile = _Paths.pasienProfile;
   static const pasienSettings = _Paths.pasienSettings;
+  static const pasienKelolaDataDiri = _Paths.pasienKelolaDataDiri;
+  static const pasienKelolaKataSandi = _Paths.pasienKelolaKataSandi;
   static const pasienRiwayat = _Paths.pasienRiwayat;
 }
 
 abstract class _Paths {
-  _Paths._();
+  _Paths._(); 
 
   // Splash & Onboarding
   static const splash = '/splash';
   static const onboarding = '/onboarding';
 
-  // Common (Shared across all roles)
+  // Common
   static const lupaKataSandi = '/lupa-kata-sandi';
   static const lupaKataSandiReset = '/lupa-kata-sandi/reset';
 
@@ -67,8 +72,10 @@ abstract class _Paths {
   // Perawat
   static const perawatLogin = '/perawat/login';
   static const perawatDashboard = '/perawat/dashboard';
-  static const perawatRiwayatPemeriksaan = '/perawat/riwayat-pemeriksaan';
-  static const perawatRiwayatPemeriksaanDetail = '/perawat/riwayat-pemeriksaan/detail';
+  static const perawatRiwayatPemeriksaan =
+      '/perawat/riwayat-pemeriksaan';
+  static const perawatRiwayatPemeriksaanDetail =
+      '/perawat/riwayat-pemeriksaan/detail';
   static const perawatSettings = '/perawat/settings';
 
   // Apoteker
@@ -76,11 +83,14 @@ abstract class _Paths {
   static const apotekerDashboard = '/apoteker/dashboard';
   static const apotekerSettings = '/apoteker/settings';
 
-  // Pasien
-  static const pasienLogin = '/pasien/login';
-  static const pasienRegister = '/pasien/register';
-  static const pasienDashboard = '/pasien/dashboard';
-  static const pasienPendaftaran = '/pasien/pendaftaran';
-  static const pasienSettings = '/pasien/settings';
-  static const pasienRiwayat = '/pasien/riwayat';
+  // Pasien 
+  static const pasienLogin = '/pasien-login';
+  static const pasienRegister = '/pasien-register';
+  static const pasienDashboard = '/pasien-dashboard';
+  static const pasienPendaftaran = '/pasien-pendaftaran';
+  static const pasienProfile = '/pasien-profile';
+  static const pasienSettings = '/pasien-settings';
+  static const pasienKelolaDataDiri = '/pasien-kelola-data-diri';
+  static const pasienKelolaKataSandi = '/pasien-kelola-kata-sandi';
+  static const pasienRiwayat = '/pasien-riwayat';
 }

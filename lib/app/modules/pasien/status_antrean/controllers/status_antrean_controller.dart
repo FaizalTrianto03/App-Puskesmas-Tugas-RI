@@ -3,100 +3,110 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../data/services/antrian/antrian_service.dart';
-import '../../../../data/services/auth/session_service.dart';
+import '../../../../data/models/antrian_model.dart';
+import '../../../../data/models/user_profile_model.dart';
+import '../../../../data/services/firestore/antrian_firestore_service.dart';
+import '../../../../data/services/firestore/user_profile_firestore_service.dart';
 import '../../../../routes/app_pages.dart';
 import '../../../../utils/snackbar_helper.dart';
 
 class StatusAntreanController extends GetxController {
-  final AntreanService _antreanService = Get.find<AntreanService>();
-  final SessionService _sessionService = Get.find<SessionService>();
+  final AntrianFirestoreService _antrianService = AntrianFirestoreService();
+  final UserProfileFirestoreService _profileService = UserProfileFirestoreService();
 
-  final antrianData = Rxn<Map<String, dynamic>>();
+  final antrianData = Rxn<AntrianModel>();
+  final userProfile = Rxn<UserProfileModel>();
   final queuePosition = 0.obs;
   final estimatedTime = ''.obs;
   final isLoading = false.obs;
   
-  Timer? _refreshTimer;
+  StreamSubscription? _antrianSubscription;
+  Timer? _positionTimer;
 
   @override
   void onInit() {
     super.onInit();
-    _loadAntrianData();
-    _startAutoRefresh();
+    _loadUserProfile();
+    _watchAntrianData();
+    _startPositionUpdate();
+  }
+  
+  Future<void> _loadUserProfile() async {
+    try {
+      final profile = await _profileService.getUserProfile();
+      userProfile.value = profile;
+    } catch (e) {
+      print('Error loading user profile: $e');
+    }
   }
 
   @override
   void onClose() {
-    _refreshTimer?.cancel();
+    _antrianSubscription?.cancel();
+    _positionTimer?.cancel();
     super.onClose();
   }
 
-  void _loadAntrianData() {
-    final pasienId = _sessionService.getUserId();
-    if (pasienId == null) {
-      SnackbarHelper.showError('Sesi tidak valid');
-      Get.offAllNamed(Routes.pasienLogin);
-      return;
-    }
+  void _watchAntrianData() {
+    // Real-time listener untuk antrian aktif
+    _antrianSubscription = _antrianService.watchActiveAntrian().listen(
+      (antrian) {
+        if (antrian == null) {
+          SnackbarHelper.showInfo('Tidak ada antrian aktif');
+          Get.offAllNamed(Routes.pasienDashboard);
+          return;
+        }
 
-    final activeAntrian = _antreanService.getActiveAntrianByPasienId(pasienId);
-    
-    if (activeAntrian == null) {
-      SnackbarHelper.showInfo('Tidak ada antrian aktif');
-      Get.offAllNamed(Routes.pasienDashboard);
-      return;
-    }
-
-    antrianData.value = activeAntrian;
-    _updateQueueInfo();
+        final oldStatus = antrianData.value?.status;
+        antrianData.value = antrian;
+        
+        // Update posisi antrian
+        _updateQueuePosition();
+        
+        // Show notification jika status berubah
+        if (oldStatus != null && oldStatus != antrian.status) {
+          _showStatusNotification(antrian.status);
+        }
+      },
+      onError: (error) {
+        print('Error watching antrian: $error');
+        SnackbarHelper.showError('Gagal memuat data antrian');
+      },
+    );
   }
 
-  void _updateQueueInfo() {
-    if (antrianData.value == null) return;
-
-    final antrianId = antrianData.value!['id'];
-    final position = _antreanService.getQueuePosition(antrianId);
-    queuePosition.value = position;
-
-    if (position > 0) {
-      final minutes = position * 15;
-      estimatedTime.value = '$minutes menit';
-    } else {
-      estimatedTime.value = 'Segera dipanggil';
-    }
-  }
-
-  void _startAutoRefresh() {
-    _refreshTimer = Timer.periodic(Duration(seconds: 10), (timer) {
-      refreshData();
+  void _startPositionUpdate() {
+    // Update posisi antrian setiap 30 detik
+    _positionTimer = Timer.periodic(Duration(seconds: 30), (timer) {
+      _updateQueuePosition();
     });
   }
 
+  Future<void> _updateQueuePosition() async {
+    if (antrianData.value == null) return;
+
+    try {
+      final position = await _antrianService.getQueuePosition(
+        antrianData.value!.queueNumber,
+        antrianData.value!.jenisLayanan,
+      );
+      
+      queuePosition.value = position;
+
+      if (position > 0) {
+        final minutes = position * 15;
+        estimatedTime.value = '$minutes menit';
+      } else {
+        estimatedTime.value = 'Segera dipanggil';
+      }
+    } catch (e) {
+      print('Error updating queue position: $e');
+    }
+  }
+
   Future<void> refreshData() async {
-    final pasienId = _sessionService.getUserId();
-    if (pasienId == null) return;
-
-    final latestData = _antreanService.getActiveAntrianByPasienId(pasienId);
-    
-    if (latestData == null) {
-      _refreshTimer?.cancel();
-      SnackbarHelper.showInfo('Antrian Anda sudah selesai');
-      Future.delayed(Duration(seconds: 1), () {
-        Get.offAllNamed(Routes.pasienDashboard);
-      });
-      return;
-    }
-
-    final oldStatus = antrianData.value?['status'];
-    final newStatus = latestData['status'];
-
-    antrianData.value = latestData;
-    _updateQueueInfo();
-
-    if (oldStatus != newStatus) {
-      _showStatusNotification(newStatus);
-    }
+    // Manual refresh
+    await _updateQueuePosition();
   }
 
   void _showStatusNotification(String status) {
@@ -117,13 +127,11 @@ class StatusAntreanController extends GetxController {
   }
 
   String getStatusText() {
-    final status = antrianData.value?['status'] ?? '';
+    final status = antrianData.value?.status ?? '';
     switch (status) {
-      case 'menunggu_verifikasi':
-        return 'Menunggu Verifikasi Perawat';
-      case 'menunggu_dokter':
-        return 'Menunggu Dipanggil Dokter';
-      case 'sedang_dilayani':
+      case 'menunggu':
+        return 'Menunggu Dipanggil';
+      case 'dipanggil':
         return 'Sedang Dilayani';
       case 'selesai':
         return 'Selesai';
@@ -135,14 +143,12 @@ class StatusAntreanController extends GetxController {
   }
 
   String getStatusColor() {
-    final status = antrianData.value?['status'] ?? '';
+    final status = antrianData.value?.status ?? '';
     switch (status) {
-      case 'menunggu_verifikasi':
+      case 'menunggu':
         return 'orange';
-      case 'menunggu_dokter':
+      case 'dipanggil':
         return 'blue';
-      case 'sedang_dilayani':
-        return 'green';
       case 'selesai':
         return 'gray';
       case 'dibatalkan':
@@ -176,22 +182,22 @@ class StatusAntreanController extends GetxController {
 
     isLoading.value = true;
 
-    final antrianId = antrianData.value!['id'];
-    final success = await _antreanService.batalkanAntrian(
-      antrianId,
-      'Dibatalkan oleh pasien',
-    );
-
-    isLoading.value = false;
-
-    if (success) {
-      SnackbarHelper.showSuccess('Antrian berhasil dibatalkan');
-      _refreshTimer?.cancel();
-      Future.delayed(Duration(milliseconds: 500), () {
-        Get.offAllNamed(Routes.pasienDashboard);
-      });
-    } else {
+    try {
+      final antrianId = antrianData.value!.id;
+      if (antrianId != null) {
+        await _antrianService.cancelAntrian(antrianId);
+        SnackbarHelper.showSuccess('Antrian berhasil dibatalkan');
+        Future.delayed(Duration(milliseconds: 500), () {
+          Get.offAllNamed(Routes.pasienDashboard);
+        });
+      } else {
+        SnackbarHelper.showError('ID antrian tidak ditemukan');
+      }
+    } catch (e) {
       SnackbarHelper.showError('Gagal membatalkan antrian');
+      print('Error canceling antrian: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 

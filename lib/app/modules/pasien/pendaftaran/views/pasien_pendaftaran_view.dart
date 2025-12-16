@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../data/services/antrian/antrian_service.dart';
-import '../../../../data/services/auth/session_service.dart';
+import '../../../../data/models/user_profile_model.dart';
+import '../../../../data/services/firestore/antrian_firestore_service.dart';
+import '../../../../data/services/firestore/user_profile_firestore_service.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../dashboard/controllers/pasien_dashboard_controller.dart';
@@ -25,6 +27,14 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
   final FocusNode _poliFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
+  
+  // Firestore services
+  final UserProfileFirestoreService _profileService = UserProfileFirestoreService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  
+  // User data from Firestore
+  UserProfileModel? _userProfile;
+  bool _isLoadingProfile = true;
   
   final _poliKey = GlobalKey();
   final _keluhanKey = GlobalKey();
@@ -80,6 +90,24 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
         _isPoliFocused = _poliFocusNode.hasFocus;
       });
     });
+    
+    // Load user profile from Firestore
+    _loadUserProfile();
+  }
+  
+  Future<void> _loadUserProfile() async {
+    try {
+      final profile = await _profileService.getUserProfile();
+      setState(() {
+        _userProfile = profile;
+        _isLoadingProfile = false;
+      });
+    } catch (e) {
+      print('Error loading profile: $e');
+      setState(() {
+        _isLoadingProfile = false;
+      });
+    }
   }
 
   @override
@@ -203,17 +231,17 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _buildDetailRow('Nama:', 'Anisa Ayu'),
+                    _buildDetailRow('Nama:', _isLoadingProfile ? 'Memuat...' : (_userProfile?.namaLengkap ?? '-')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('NIK:', '20221037031009'),
+                    _buildDetailRow('NIK:', _isLoadingProfile ? 'Memuat...' : (_userProfile?.nik ?? '-')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Tanggal Lahir:', '09/09/2003'),
+                    _buildDetailRow('Tanggal Lahir:', _isLoadingProfile ? 'Memuat...' : (_userProfile?.tanggalLahir ?? '-')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Jenis Kelamin:', 'Perempuan'),
+                    _buildDetailRow('Jenis Kelamin:', _isLoadingProfile ? 'Memuat...' : (_userProfile?.jenisKelamin == 'L' ? 'Laki-laki' : 'Perempuan')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('No. HP:', '081234567899'),
+                    _buildDetailRow('No. HP:', _isLoadingProfile ? 'Memuat...' : (_userProfile?.noHp ?? '-')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Alamat:', 'Jln. Tirto Mulyo, Dau, Malang'),
+                    _buildDetailRow('Alamat:', _isLoadingProfile ? 'Memuat...' : (_userProfile?.alamat ?? '-')),
                     if (selectedPoli != null) ...[
                       const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
                       _buildDetailRow('Poli Tujuan:', selectedPoli!),
@@ -727,23 +755,24 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                     });
                     
                     try {
-                      // Get services
-                      final sessionService = Get.find<SessionService>();
-                      final antreanService = Get.find<AntreanService>();
+                      // Get Firestore services
+                      final antrianService = AntrianFirestoreService();
+                      final profileService = UserProfileFirestoreService();
                       
-                      // Untuk sementara gunakan data dummy karena belum ada API/database
-                      final userId = sessionService.getUserId() ?? 'PASIEN001';
-                      print('Pendaftaran: userId = $userId');
+                      // Get user profile from Firestore
+                      final userProfile = await profileService.getUserProfile();
                       
-                      // Get user data atau gunakan dummy
-                      final userData = sessionService.getUserData(userId);
-                      final namaLengkap = userData?['namaLengkap'] ?? 'Anisa Ayu';
-                      final noRekamMedis = userData?['noRekamMedis'] ?? 'RM-2025-001234';
+                      if (userProfile == null) {
+                        throw Exception('Profile tidak ditemukan. Silakan lengkapi profile Anda terlebih dahulu.');
+                      }
+                      
+                      final namaLengkap = userProfile.namaLengkap;
+                      final noRekamMedis = userProfile.noRekamMedis ?? 'RM-${DateTime.now().millisecondsSinceEpoch}';
+                      
                       print('Pendaftaran: nama = $namaLengkap, RM = $noRekamMedis');
                       
-                      // Create antrean
-                      final result = await antreanService.createAntrian(
-                        pasienId: userId,
+                      // Create antrian to Firestore
+                      final antrian = await antrianService.createAntrian(
                         namaLengkap: namaLengkap,
                         noRekamMedis: noRekamMedis,
                         jenisLayanan: selectedPoli!,
@@ -751,7 +780,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                         nomorBPJS: selectedPembayaran == 'BPJS' ? '1234567890' : null,
                       );
                       
-                      final queueNumber = result['queueNumber'] as String;
+                      final queueNumber = antrian.queueNumber;
                       
                       setState(() {
                         _isLoading = false;
@@ -963,8 +992,8 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
@@ -973,6 +1002,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
               color: Color(0xFF64748B),
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             value,
             style: const TextStyle(

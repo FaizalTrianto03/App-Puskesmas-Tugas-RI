@@ -21,125 +21,38 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
     'Info Puskesmas',
   ];
 
-  final List<Map<String, dynamic>> allNotifications = [
-    {
-      'id': 1,
-      'type': 'Pengingat Obat',
-      'title': 'Waktunya Minum Obat',
-      'message': 'Saatnya minum obat Amoxicillin 500mg. Jangan lupa minum setelah makan.',
-      'time': '2 jam yang lalu',
-      'isRead': false,
-      'icon': Icons.medication,
-      'color': const Color(0xFFFF4242),
-    },
-    {
-      'id': 2,
-      'type': 'Jadwal Kontrol',
-      'title': 'Kontrol Kesehatan Besok',
-      'message': 'Anda memiliki jadwal kontrol besok, 20 Desember 2025 pukul 09:00 di Poli Umum dengan dr. Faizal Qadri.',
-      'time': '5 jam yang lalu',
-      'isRead': false,
-      'icon': Icons.event_note,
-      'color': const Color(0xFF4CAF50),
-    },
-    {
-      'id': 3,
-      'type': 'Info Puskesmas',
-      'title': 'Layanan Vaksinasi COVID-19',
-      'message': 'Puskesmas membuka layanan vaksinasi COVID-19 booster setiap hari Senin-Jumat pukul 08:00-12:00. Daftar segera!',
-      'time': '1 hari yang lalu',
-      'isRead': true,
-      'icon': Icons.info,
-      'color': const Color(0xFF02B1BA),
-    },
-    {
-      'id': 4,
-      'type': 'Pengingat Obat',
-      'title': 'Pengingat Obat Sore',
-      'message': 'Jangan lupa minum obat Paracetamol 500mg. Diminum 3x sehari setelah makan.',
-      'time': '1 hari yang lalu',
-      'isRead': true,
-      'icon': Icons.medication,
-      'color': const Color(0xFFFF4242),
-    },
-    {
-      'id': 5,
-      'type': 'Jadwal Kontrol',
-      'title': 'Reminder: Kontrol Rutin',
-      'message': 'Sudah waktunya kontrol rutin Anda. Silakan daftar untuk jadwal kontrol minggu ini.',
-      'time': '2 hari yang lalu',
-      'isRead': true,
-      'icon': Icons.event_note,
-      'color': const Color(0xFF4CAF50),
-    },
-    {
-      'id': 6,
-      'type': 'Info Puskesmas',
-      'title': 'Jam Operasional Libur Nasional',
-      'message': 'Puskesmas tutup pada tanggal 25 Desember 2025 (Hari Natal). Layanan akan buka kembali pada 26 Desember 2025.',
-      'time': '3 hari yang lalu',
-      'isRead': true,
-      'icon': Icons.info,
-      'color': const Color(0xFF02B1BA),
-    },
-    {
-      'id': 7,
-      'type': 'Pengingat Obat',
-      'title': 'Stok Obat Habis',
-      'message': 'Obat Amoxicillin Anda akan habis dalam 2 hari. Silakan datang ke farmasi untuk mengambil obat.',
-      'time': '3 hari yang lalu',
-      'isRead': true,
-      'icon': Icons.medication,
-      'color': const Color(0xFFFF4242),
-    },
-    {
-      'id': 8,
-      'type': 'Info Puskesmas',
-      'title': 'Program Senam Sehat',
-      'message': 'Ikuti program senam sehat gratis setiap Sabtu pukul 07:00 di halaman Puskesmas. Terbuka untuk umum!',
-      'time': '4 hari yang lalu',
-      'isRead': true,
-      'icon': Icons.info,
-      'color': const Color(0xFF02B1BA),
-    },
-    {
-      'id': 9,
-      'type': 'Jadwal Kontrol',
-      'title': 'Kontrol Gigi Anak',
-      'message': 'Jadwal kontrol gigi anak Anda jatuh pada minggu depan. Segera daftar untuk mendapat slot terbaik.',
-      'time': '5 hari yang lalu',
-      'isRead': true,
-      'icon': Icons.event_note,
-      'color': const Color(0xFF4CAF50),
-    },
-    {
-      'id': 10,
-      'type': 'Info Puskesmas',
-      'title': 'Layanan Konseling Kesehatan',
-      'message': 'Puskesmas menyediakan layanan konseling kesehatan gratis. Hubungi customer service untuk informasi lebih lanjut.',
-      'time': '1 minggu yang lalu',
-      'isRead': true,
-      'icon': Icons.info,
-      'color': const Color(0xFF02B1BA),
-    },
-  ];
-
-  List<Map<String, dynamic>> _getFilteredNotifications(String filter) {
-    if (filter == 'Semua') {
-      return allNotifications;
-    }
-    return allNotifications
-        .where((notif) => notif['type'] == filter)
-        .toList();
+  IconData _getIconForType(String type) {
+    if (type.contains('Obat')) return Icons.medication;
+    if (type.contains('Kontrol') || type.contains('Jadwal')) return Icons.event_note;
+    if (type.contains('Info')) return Icons.info;
+    return Icons.notifications;
   }
 
-  int _getUnreadCount() {
-    return allNotifications.where((notif) => !notif['isRead']).length;
+  Color _getColorForType(String type) {
+    if (type.contains('Obat')) return const Color(0xFFFF4242);
+    if (type.contains('Kontrol') || type.contains('Jadwal')) return const Color(0xFF4CAF50);
+    if (type.contains('Info')) return const Color(0xFF02B1BA);
+    return const Color(0xFF02B1BA);
+  }
+
+  String _getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} menit yang lalu';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} jam yang lalu';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} hari yang lalu';
+    } else {
+      return '${(difference.inDays / 7).floor()} minggu yang lalu';
+    }
   }
 
   Widget _buildScaffold(BuildContext context) {
     return Obx(() {
-      final notifList = _getFilteredNotifications(controller.selectedFilter.value);
+      final notifList = controller.filteredNotifikasi;
 
       return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -161,44 +74,49 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
           ),
         ),
         actions: [
-          if (_getUnreadCount() > 0)
-            Stack(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications,
-                    color: Colors.white,
-                    size: 28,
+          Obx(() {
+            final unreadCount = controller.unreadCount.value;
+            if (unreadCount > 0) {
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.notifications,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    onPressed: () {},
                   ),
-                  onPressed: () {},
-                ),
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFF4242),
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    child: Center(
-                      child: Text(
-                        _getUnreadCount().toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF4242),
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Center(
+                        child: Text(
+                          unreadCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          }),
           const SizedBox(width: 8),
         ],
       ),
@@ -296,7 +214,11 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
     });
   }
 
-  Widget _buildNotificationCard(Map<String, dynamic> notif, int index) {
+  Widget _buildNotificationCard(notif, int index) {
+    final icon = _getIconForType(notif.type);
+    final color = _getColorForType(notif.type);
+    final timeAgo = _getTimeAgo(notif.createdAt);
+    
     return Obx(() {
       final isHovered = controller.hoveredIndex.value == index;
       final isPressed = controller.pressedIndex.value == index;
@@ -320,7 +242,9 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
             controller.setPressedIndex(null);
           },
           onTap: () {
-            notif['isRead'] = true;
+            if (!notif.isRead) {
+              controller.markAsRead(notif.id!);
+            }
             Get.to(() => const DetailNotifikasiView(), arguments: notif);
           },
         child: Container(
@@ -328,17 +252,17 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isPressed
-                ? (notif['isRead'] ? const Color(0xFFF0F0F0) : const Color(0xFF84F3EE).withOpacity(0.4))
+                ? (notif.isRead ? const Color(0xFFF0F0F0) : const Color(0xFF84F3EE).withOpacity(0.4))
                 : (isHovered 
-                    ? (notif['isRead'] ? const Color(0xFFE0E0E0) : const Color(0xFF84F3EE).withOpacity(0.35))
-                    : (notif['isRead'] ? Colors.white : const Color(0xFF84F3EE).withOpacity(0.15))),
+                    ? (notif.isRead ? const Color(0xFFE0E0E0) : const Color(0xFF84F3EE).withOpacity(0.35))
+                    : (notif.isRead ? Colors.white : const Color(0xFF84F3EE).withOpacity(0.15))),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isPressed
-                  ? (notif['isRead'] ? Colors.grey.shade300 : const Color(0xFF02B1BA).withOpacity(0.7))
+                  ? (notif.isRead ? Colors.grey.shade300 : const Color(0xFF02B1BA).withOpacity(0.7))
                   : (isHovered
-                      ? (notif['isRead'] ? Colors.grey.shade300 : const Color(0xFF02B1BA).withOpacity(0.6))
-                      : (notif['isRead']
+                      ? (notif.isRead ? Colors.grey.shade300 : const Color(0xFF02B1BA).withOpacity(0.6))
+                      : (notif.isRead
                           ? const Color(0xFFE2E8F0)
                           : const Color(0xFF02B1BA).withOpacity(0.5))),
               width: (isPressed || isHovered) ? 2 : 1.5,
@@ -350,12 +274,12 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: (notif['color'] as Color).withOpacity(0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  notif['icon'],
-                  color: notif['color'],
+                  icon,
+                  color: color,
                   size: 24,
                 ),
               ),
@@ -368,17 +292,17 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
                       children: [
                         Expanded(
                           child: Text(
-                            notif['title'],
+                            notif.title,
                             style: TextStyle(
                               fontSize: 15,
-                              fontWeight: notif['isRead']
+                              fontWeight: notif.isRead
                                   ? FontWeight.w600
                                   : FontWeight.bold,
                               color: const Color(0xFF1E293B),
                             ),
                           ),
                         ),
-                        if (!notif['isRead'])
+                        if (!notif.isRead)
                           Container(
                             width: 8,
                             height: 8,
@@ -391,7 +315,7 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      notif['message'],
+                      notif.message,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -410,7 +334,7 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          notif['time'],
+                          timeAgo,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[500],
@@ -423,14 +347,14 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: (notif['color'] as Color).withOpacity(0.1),
+                            color: color.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            notif['type'],
+                            notif.type,
                             style: TextStyle(
                               fontSize: 11,
-                              color: notif['color'],
+                              color: color,
                               fontWeight: FontWeight.w600,
                             ),
                           ),

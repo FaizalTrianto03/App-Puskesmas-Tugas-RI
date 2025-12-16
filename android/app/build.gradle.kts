@@ -25,7 +25,7 @@ android {
         applicationId = "com.example.app_puskesmas_tugas_ri"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion  // Required for Firebase Auth
+        minSdk = 23  // Required for Firebase Auth 24.0.1
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
