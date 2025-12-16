@@ -639,10 +639,7 @@ class _MenuCardWidgetState extends State<_MenuCardWidget> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  widget.color,
-                  widget.color.withOpacity(0.8),
-                ],
+                colors: [widget.color, widget.color.withOpacity(0.8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -664,11 +661,7 @@ class _MenuCardWidgetState extends State<_MenuCardWidget> {
                     color: Colors.white.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    widget.icon,
-                    color: Colors.white,
-                    size: 32,
-                  ),
+                  child: Icon(widget.icon, color: Colors.white, size: 32),
                 ),
                 const SizedBox(height: 12),
                 Text(
