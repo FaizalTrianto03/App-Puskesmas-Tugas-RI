@@ -282,7 +282,7 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                               Text(
                                 controller.tanggalLahir.value == null
                                     ? 'Pilih tanggal lahir'
-                                    : DateFormat('dd MMMM yyyy', 'id_ID').format(controller.tanggalLahir.value!),
+                                    : DateFormat('dd/MM/yyyy').format(controller.tanggalLahir.value!),
                                 style: TextStyle(
                                   color: controller.tanggalLahir.value == null
                                       ? Colors.grey
