@@ -13,6 +13,7 @@ class DokterSettingsView extends GetView<DokterSettingsController> {
   Widget build(BuildContext context) {
     // Inject controller
     Get.lazyPut(() => DokterSettingsController());
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
