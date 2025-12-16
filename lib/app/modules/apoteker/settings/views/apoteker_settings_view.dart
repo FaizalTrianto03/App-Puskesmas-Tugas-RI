@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../utils/confirmation_dialog.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../../pasien/login/views/staff_selector_view.dart';
+import '../controllers/apoteker_settings_controller.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
 
-class ApotekerSettingsView extends StatelessWidget {
+class ApotekerSettingsView extends GetView<ApotekerSettingsController> {
   const ApotekerSettingsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Inject controller
+    Get.lazyPut(() => ApotekerSettingsController());
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(

@@ -5,11 +5,13 @@ import '../modules/admin/dashboard/views/admin_dashboard_view.dart';
 // Admin
 import '../modules/admin/login/bindings/admin_login_binding.dart';
 import '../modules/admin/login/views/admin_login_view.dart';
+import '../modules/admin/settings/views/admin_settings_view.dart';
 import '../modules/apoteker/dashboard/bindings/apoteker_dashboard_binding.dart';
 import '../modules/apoteker/dashboard/views/apoteker_dashboard_view.dart';
 // Apoteker
 import '../modules/apoteker/login/bindings/apoteker_login_binding.dart';
 import '../modules/apoteker/login/views/apoteker_login_view.dart';
+import '../modules/apoteker/settings/views/apoteker_settings_view.dart';
 // Common (Shared across all roles)
 import '../modules/common/views/lupa_kata_sandi_email_view.dart';
 import '../modules/common/views/lupa_kata_sandi_reset_view.dart';
@@ -18,6 +20,7 @@ import '../modules/dokter/dashboard/views/dokter_dashboard_view.dart';
 // Dokter
 import '../modules/dokter/login/bindings/dokter_login_binding.dart';
 import '../modules/dokter/login/views/dokter_login_view.dart';
+import '../modules/dokter/settings/views/dokter_settings_view.dart';
 import '../modules/pasien/dashboard/bindings/pasien_dashboard_binding.dart';
 import '../modules/pasien/dashboard/views/pasien_dashboard_view.dart';
 // Pasien
@@ -36,6 +39,7 @@ import '../modules/perawat/login/views/perawat_login_view.dart';
 import '../modules/perawat/riwayat_pemeriksaan/bindings/riwayat_pemeriksaan_binding.dart';
 import '../modules/perawat/riwayat_pemeriksaan/views/detail_riwayat_view.dart';
 import '../modules/perawat/riwayat_pemeriksaan/views/riwayat_pemeriksaan_view.dart';
+import '../modules/perawat/settings/views/perawat_settings_view.dart';
 // Splash
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
@@ -76,6 +80,10 @@ class AppPages {
       page: () => const AdminDashboardView(),
       binding: AdminDashboardBinding(),
     ),
+    GetPage(
+      name: _Paths.adminSettings,
+      page: () => const AdminSettingsView(),
+    ),
 
     // Dokter Routes
     GetPage(
@@ -87,6 +95,10 @@ class AppPages {
       name: _Paths.dokterDashboard,
       page: () => const DokterDashboardView(),
       binding: DokterDashboardBinding(),
+    ),
+    GetPage(
+      name: _Paths.dokterSettings,
+      page: () => const DokterSettingsView(),
     ),
 
     // Perawat Routes
@@ -110,6 +122,10 @@ class AppPages {
       page: () => const DetailRiwayatView(),
       binding: RiwayatPemeriksaanBinding(),
     ),
+    GetPage(
+      name: _Paths.perawatSettings,
+      page: () => const PerawatSettingsView(),
+    ),
 
     // Apoteker Routes
     GetPage(
@@ -121,6 +137,10 @@ class AppPages {
       name: _Paths.apotekerDashboard,
       page: () => const ApotekerDashboardView(),
       binding: ApotekerDashboardBinding(),
+    ),
+    GetPage(
+      name: _Paths.apotekerSettings,
+      page: () => const ApotekerSettingsView(),
     ),
 
     // Pasien Routes

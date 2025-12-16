@@ -12,6 +12,9 @@ class AdminSettingsView extends GetView<AdminSettingsController> {
 
   @override
   Widget build(BuildContext context) {
+    // Inject controller
+    Get.lazyPut(() => AdminSettingsController());
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
