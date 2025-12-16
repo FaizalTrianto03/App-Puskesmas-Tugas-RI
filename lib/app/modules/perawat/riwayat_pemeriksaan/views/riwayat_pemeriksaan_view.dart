@@ -11,28 +11,31 @@ class RiwayatPemeriksaanView extends GetView<RiwayatPemeriksaanController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0B4D3B),
-        elevation: 0,
+        backgroundColor: Colors.white,
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.08),
+        scrolledUnderElevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
           onPressed: () => Get.back(),
         ),
         title: const Text(
           'Riwayat Pemeriksaan',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFF02B1BA),
             fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.download, color: Colors.white),
+            icon: const Icon(Icons.download, color: Color(0xFF02B1BA)),
             onPressed: () => controller.exportSummary(),
             tooltip: 'Export PDF',
           ),
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: Color(0xFF02B1BA)),
             onPressed: () => controller.refreshData(),
             tooltip: 'Refresh',
           ),
@@ -42,13 +45,13 @@ class RiwayatPemeriksaanView extends GetView<RiwayatPemeriksaanController> {
         if (controller.isLoading.value) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFF0B4D3B),
+              color: Color(0xFF02B1BA),
             ),
           );
         }
 
         return RefreshIndicator(
-          color: const Color(0xFF0B4D3B),
+          color: const Color(0xFF02B1BA),
           onRefresh: () => controller.refreshData(),
           child: Column(
             children: [
@@ -71,7 +74,7 @@ class RiwayatPemeriksaanView extends GetView<RiwayatPemeriksaanController> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF0B4D3B), Color(0xFF0D6B4F)],
+          colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -157,7 +160,7 @@ class RiwayatPemeriksaanView extends GetView<RiwayatPemeriksaanController> {
           SearchBar(
             controller: TextEditingController(text: controller.searchQuery.value),
             hintText: 'Cari pasien, No. RM, keluhan...',
-            leading: const Icon(Icons.search, color: Color(0xFF0B4D3B)),
+            leading: const Icon(Icons.search, color: Color(0xFF02B1BA)),
             backgroundColor: MaterialStateProperty.all(Colors.grey[100]),
             elevation: MaterialStateProperty.all(0),
             padding: MaterialStateProperty.all(
@@ -236,7 +239,7 @@ class RiwayatPemeriksaanView extends GetView<RiwayatPemeriksaanController> {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? Colors.white : const Color(0xFF0B4D3B),
+              color: isSelected ? Colors.white : const Color(0xFF02B1BA),
             ),
             const SizedBox(width: 4),
             Text(label),
@@ -247,9 +250,9 @@ class RiwayatPemeriksaanView extends GetView<RiwayatPemeriksaanController> {
           controller.selectedFilter.value = value;
         },
         backgroundColor: Colors.grey[100],
-        selectedColor: const Color(0xFF0B4D3B),
+        selectedColor: const Color(0xFF02B1BA),
         labelStyle: TextStyle(
-          color: isSelected ? Colors.white : const Color(0xFF0B4D3B),
+          color: isSelected ? Colors.white : const Color(0xFF02B1BA),
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         ),
         checkmarkColor: Colors.white,
@@ -317,7 +320,7 @@ class RiwayatPemeriksaanView extends GetView<RiwayatPemeriksaanController> {
                     icon: const Icon(Icons.clear_all),
                     label: const Text('Reset Pencarian'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0B4D3B),
+                      backgroundColor: const Color(0xFF02B1BA),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,

@@ -248,34 +248,11 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildMenuCard(
-                  icon: Icons.medical_services,
-                  label: 'Rekam\nMedis',
-                  color: const Color(0xFF02B1BA),
-                  onTap: () {
-                    Get.snackbar(
-                      'Info',
-                      'Silakan pilih pasien dari daftar antrean',
-                      backgroundColor: Colors.blue,
-                      colorText: Colors.white,
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildMenuCard(
                   icon: Icons.assessment,
                   label: 'Laporan\nKinerja',
                   color: const Color(0xFFFF9800),
                   onTap: () {
-                    Get.snackbar(
-                      'Info',
-                      'Fitur laporan kinerja akan segera tersedia',
-                      backgroundColor: Colors.orange,
-                      colorText: Colors.white,
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
+                    Get.toNamed('/perawat/laporan-kinerja');
                   },
                 ),
               ),

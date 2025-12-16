@@ -108,7 +108,7 @@ class TimelineItemWidget extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0B4D3B),
+                        color: Color(0xFF02B1BA),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -203,7 +203,7 @@ class TimelineItemWidget extends StatelessWidget {
               icon: const Icon(Icons.arrow_forward, size: 16),
               label: const Text('Lihat Detail'),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF0B4D3B),
+                foregroundColor: const Color(0xFF02B1BA),
                 textStyle: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -247,7 +247,7 @@ class TimelineItemWidget extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF0B4D3B)),
+        Icon(icon, size: 16, color: const Color(0xFF02B1BA)),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
@@ -320,7 +320,7 @@ class TimelineItemWidget extends StatelessWidget {
   }) {
     return Column(
       children: [
-        Icon(icon, size: 18, color: const Color(0xFF0B4D3B)),
+        Icon(icon, size: 18, color: const Color(0xFF02B1BA)),
         const SizedBox(height: 4),
         Text(
           label,
@@ -338,7 +338,7 @@ class TimelineItemWidget extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF0B4D3B),
+                  color: Color(0xFF02B1BA),
                 ),
               ),
               TextSpan(
