@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/custom_text_field.dart';
@@ -21,8 +20,6 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
   bool _obscurePasswordLama = true;
   bool _obscurePasswordBaru = true;
   bool _obscureKonfirmasi = true;
-  bool _isLoading = false;
-  AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   @override
   void dispose() {
@@ -46,7 +43,7 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Kelola Kata Sandi',
@@ -79,7 +76,6 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                 padding: const EdgeInsets.all(24),
                 child: Form(
                   key: _formKey,
-                  autovalidateMode: _autovalidateMode,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -273,47 +269,29 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                       
                       const SizedBox(height: 32),
                       
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : () async {
-                            setState(() {
-                              _autovalidateMode = AutovalidateMode.always;
-                            });
-                            
-                            if (_formKey.currentState!.validate()) {
-                              setState(() => _isLoading = true);
-                              await Future.delayed(const Duration(seconds: 2));
-                              setState(() => _isLoading = false);
-                              SnackbarHelper.showSuccess('Kata sandi berhasil diubah');
-                              Get.back();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF02B1BA),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            Navigator.pop(context);
+                            await Future.delayed(const Duration(milliseconds: 100));
+                            SnackbarHelper.showSuccess('Kata sandi berhasil diubah');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF02B1BA),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 3,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
-                                )
-                              : const Text(
-                                  'SIMPAN PERUBAHAN',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Simpan Perubahan',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 16),

@@ -2,20 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/riwayat_kunjungan_controller.dart';
 import 'detail_riwayat_view.dart';
 
-class RiwayatKunjunganView extends StatefulWidget {
+class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
   const RiwayatKunjunganView({Key? key}) : super(key: key);
 
-  @override
-  State<RiwayatKunjunganView> createState() => _RiwayatKunjunganViewState();
-}
-
-class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
-  String selectedBulan = 'Semua';
-  String selectedPoli = 'Semua';
-
-  final List<String> bulanOptions = [
+  final List<String> bulanOptions = const [
     'Semua',
     'Desember 2025',
     'November 2025',
@@ -24,14 +17,14 @@ class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
     'Agustus 2025',
   ];
 
-  final List<String> poliOptions = [
+  final List<String> poliOptions = const [
     'Semua',
     'Poli Umum',
     'Poli Gigi',
     'Poli KIA',
   ];
 
-  final List<Map<String, dynamic>> allRiwayatList = [
+  final List<Map<String, dynamic>> allRiwayatList = const [
     {
       'poli': 'Poli Umum',
       'tanggal': '15 Desember 2025, 09:15 WIB',
@@ -229,19 +222,25 @@ class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
     },
   ];
 
-  List<Map<String, dynamic>> get filteredRiwayatList {
+  List<Map<String, dynamic>> _getFilteredRiwayatList(String bulan, String poli) {
     return allRiwayatList.where((data) {
-      bool matchesBulan = selectedBulan == 'Semua' ||
-          data['tanggal'].toString().contains(selectedBulan.split(' ')[0]);
-      bool matchesPoli = selectedPoli == 'Semua' ||
-          data['poli'] == selectedPoli;
+      bool matchesBulan = bulan == 'Semua' ||
+          data['tanggal'].toString().contains(bulan.split(' ')[0]);
+      bool matchesPoli = poli == 'Semua' ||
+          data['poli'] == poli;
       return matchesBulan && matchesPoli;
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final riwayatList = filteredRiwayatList;
+    Get.put(RiwayatKunjunganController());
+    
+    return Obx(() {
+      final riwayatList = _getFilteredRiwayatList(
+        controller.selectedBulan.value,
+        controller.selectedPoli.value,
+      );
     
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -331,16 +330,14 @@ class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: bulanOptions.map((bulan) {
-                    final isSelected = selectedBulan == bulan;
+                    final isSelected = controller.selectedBulan.value == bulan;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: FilterChip(
                         label: Text(bulan),
                         selected: isSelected,
                         onSelected: (selected) {
-                          setState(() {
-                            selectedBulan = bulan;
-                          });
+                          controller.setSelectedBulan(bulan);
                         },
                         backgroundColor: Colors.white,
                         selectedColor: const Color(0xFF02B1BA).withOpacity(0.2),
@@ -376,16 +373,14 @@ class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: poliOptions.map((poli) {
-                    final isSelected = selectedPoli == poli;
+                    final isSelected = controller.selectedPoli.value == poli;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: FilterChip(
                         label: Text(poli),
                         selected: isSelected,
                         onSelected: (selected) {
-                          setState(() {
-                            selectedPoli = poli;
-                          });
+                          controller.setSelectedPoli(poli);
                         },
                         backgroundColor: Colors.white,
                         selectedColor: const Color(0xFF02B1BA).withOpacity(0.2),
@@ -432,7 +427,7 @@ class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
                     _buildSummaryItem(
                       icon: Icons.calendar_month,
                       label: 'Periode',
-                      value: selectedBulan == 'Semua' ? '6 Bulan' : '1 Bulan',
+                      value: controller.selectedBulan.value == 'Semua' ? '6 Bulan' : '1 Bulan',
                       color: const Color(0xFF4CAF50),
                     ),
                   ],
@@ -483,6 +478,7 @@ class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
         ),
       ),
     );
+    });
   }
 
   Widget _buildSummaryItem({
@@ -681,7 +677,7 @@ class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
             children: [
               TextButton.icon(
                 onPressed: () {
-                  Get.to(() => DetailRiwayatView(data: data));
+                  Get.to(() => const DetailRiwayatView(), arguments: data);
                 },
                 icon: const Icon(
                   Icons.arrow_forward,

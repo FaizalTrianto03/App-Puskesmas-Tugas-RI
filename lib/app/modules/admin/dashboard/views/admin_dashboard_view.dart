@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../../widgets/quarter_circle_background.dart';
-import '../../settings/views/admin_settings_view.dart';
-import '../../kelola_pengguna/views/kelola_pengguna_list_view.dart';
 import '../../kelola_pengguna/bindings/kelola_pengguna_binding.dart';
+import '../../kelola_pengguna/views/kelola_pengguna_list_view.dart';
 import '../../laporan_statistik/views/laporan_statistik_view.dart';
 import '../../notifikasi/views/admin_notifikasi_list_view.dart';
+import '../../settings/views/admin_settings_view.dart';
 import '../controllers/admin_dashboard_controller.dart';
 
 class AdminDashboardView extends GetView<AdminDashboardController> {
@@ -14,7 +15,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
   @override
   Widget build(BuildContext context) {
     Get.delete<AdminDashboardController>();
-    final controller = Get.put(AdminDashboardController());
+    Get.put(AdminDashboardController());
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(

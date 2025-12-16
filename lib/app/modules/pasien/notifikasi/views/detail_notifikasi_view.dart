@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/detail_notifikasi_controller.dart';
 
-class DetailNotifikasiView extends StatelessWidget {
-  final Map<String, dynamic> notification;
-
-  const DetailNotifikasiView({Key? key, required this.notification})
-      : super(key: key);
+class DetailNotifikasiView extends GetView<DetailNotifikasiController> {
+  const DetailNotifikasiView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    Get.put(DetailNotifikasiController());
+    return Obx(() => Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
@@ -42,8 +41,8 @@ class DetailNotifikasiView extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      notification['color'] as Color,
-                      (notification['color'] as Color).withOpacity(0.7),
+                      controller.notification['color'] as Color,
+                      (controller.notification['color'] as Color).withOpacity(0.7),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -51,7 +50,7 @@ class DetailNotifikasiView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: (notification['color'] as Color).withOpacity(0.3),
+                      color: (controller.notification['color'] as Color).withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -66,7 +65,7 @@ class DetailNotifikasiView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
-                        notification['icon'],
+                        controller.notification['icon'],
                         color: Colors.white,
                         size: 32,
                       ),
@@ -77,7 +76,7 @@ class DetailNotifikasiView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            notification['type'],
+                            controller.notification['type'],
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -86,7 +85,7 @@ class DetailNotifikasiView extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            notification['title'],
+                            controller.notification['title'],
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -103,7 +102,7 @@ class DetailNotifikasiView extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                notification['time'],
+                                controller.notification['time'],
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.white,
@@ -139,7 +138,7 @@ class DetailNotifikasiView extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      notification['message'],
+                      controller.notification['message'],
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF64748B),
@@ -151,17 +150,17 @@ class DetailNotifikasiView extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              if (notification['type'] == 'Pengingat Obat')
+              if (controller.notification['type'] == 'Pengingat Obat')
                 _buildPengingatObatSection(),
-              if (notification['type'] == 'Jadwal Kontrol')
+              if (controller.notification['type'] == 'Jadwal Kontrol')
                 _buildJadwalKontrolSection(),
-              if (notification['type'] == 'Info Puskesmas')
+              if (controller.notification['type'] == 'Info Puskesmas')
                 _buildInfoPuskesmasSection(),
             ],
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildPengingatObatSection() {
@@ -179,7 +178,7 @@ class DetailNotifikasiView extends StatelessWidget {
             children: [
               Icon(
                 Icons.medical_information,
-                color: notification['color'],
+                color: controller.notification['color'],
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -218,7 +217,7 @@ class DetailNotifikasiView extends StatelessWidget {
             children: [
               Icon(
                 Icons.event_available,
-                color: notification['color'],
+                color: controller.notification['color'],
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -257,7 +256,7 @@ class DetailNotifikasiView extends StatelessWidget {
             children: [
               Icon(
                 Icons.info_outline,
-                color: notification['color'],
+                color: controller.notification['color'],
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -292,7 +291,7 @@ class DetailNotifikasiView extends StatelessWidget {
             width: 6,
             height: 6,
             decoration: BoxDecoration(
-              color: notification['color'],
+              color: controller.notification['color'],
               shape: BoxShape.circle,
             ),
           ),

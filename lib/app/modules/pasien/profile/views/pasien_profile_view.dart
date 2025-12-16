@@ -2,19 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
-import '../../../pasien/settings/views/pasien_settings_view.dart';
+import '../controllers/pasien_profile_controller.dart';
 
-class PasienProfileView extends StatefulWidget {
+class PasienProfileView extends GetView<PasienProfileController> {
   const PasienProfileView({Key? key}) : super(key: key);
 
   @override
-  State<PasienProfileView> createState() => _PasienProfileViewState();
-}
-
-class _PasienProfileViewState extends State<PasienProfileView> {
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    Get.put(PasienProfileController());
+    return Obx(() => Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -65,9 +61,9 @@ class _PasienProfileViewState extends State<PasienProfileView> {
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          CircleAvatar(
+                          const CircleAvatar(
                             radius: 35,
                             backgroundColor: Colors.white,
                             child: Icon(
@@ -76,12 +72,12 @@ class _PasienProfileViewState extends State<PasienProfileView> {
                               color: Color(0xFF02B1BA),
                             ),
                           ),
-                          SizedBox(width: 16),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                const Text(
                                   'Anisa Ayu',
                                   style: TextStyle(
                                     fontSize: 20,
@@ -89,8 +85,8 @@ class _PasienProfileViewState extends State<PasienProfileView> {
                                     color: Colors.white,
                                   ),
                                 ),
-                                SizedBox(height: 4),
-                                Text(
+                                const SizedBox(height: 4),
+                                const Text(
                                   'NIK: 20221037031009',
                                   style: TextStyle(
                                     fontSize: 13,
@@ -292,9 +288,7 @@ class _PasienProfileViewState extends State<PasienProfileView> {
                         ],
                       ),
                       child: ListTile(
-                        onTap: () {
-                          Get.to(() => const PasienSettingsView());
-                        },
+                        onTap: controller.navigateToSettings,
                         leading: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -328,6 +322,6 @@ class _PasienProfileViewState extends State<PasienProfileView> {
           ),
         ],
       ),
-    );
+    ));
   }
 }
