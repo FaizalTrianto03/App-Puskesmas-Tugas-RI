@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../../data/services/auth/session_service.dart';
+import '../../../../data/services/antrian/antrian_service.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../settings/views/kelola_data_diri_view.dart';
@@ -98,7 +101,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: const Text(
@@ -168,12 +171,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const KelolaDataDiriView(),
-                              ),
-                            );
+                            Get.to(() => const KelolaDataDiriView());
                           },
                           child: Row(
                             children: [
@@ -684,7 +682,14 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: _isLoading ? null : () async {
+                    // Reset errors
+                    setState(() {
+                      poliError = null;
+                      keluhanError = null;
+                      pembayaranError = null;
+                    });
+                    
                     bool isValid = true;
                     
                     // Validasi Poli Tujuan
@@ -715,9 +720,51 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       return;
                     }
                     
-                    SnackbarHelper.showSuccess('Pendaftaran berhasil! Nomor antrean Anda telah dibuat.');
+                    // Set loading
+                    setState(() {
+                      _isLoading = true;
+                    });
                     
-                    Navigator.of(context).pop(true);
+                    try {
+                      // Get services
+                      final sessionService = Get.find<SessionService>();
+                      final antreanService = Get.find<AntreanService>();
+                      
+                      final userId = sessionService.getUserId();
+                      if (userId == null) {
+                        throw Exception('User ID tidak ditemukan');
+                      }
+                      
+                      // Get user data
+                      final userData = sessionService.getUserData(userId);
+                      final namaLengkap = userData?['namaLengkap'] ?? 'Pasien';
+                      final noRekamMedis = userData?['noRekamMedis'] ?? '-';
+                      
+                      // Create antrean
+                      final result = await antreanService.createAntrian(
+                        pasienId: userId,
+                        namaLengkap: namaLengkap,
+                        noRekamMedis: noRekamMedis,
+                        jenisLayanan: selectedPoli!,
+                        keluhan: _keluhanController.text.trim(),
+                        nomorBPJS: selectedPembayaran == 'BPJS' ? '1234567890' : null,
+                      );
+                      
+                      final queueNumber = result['queueNumber'] as String;
+                      
+                      setState(() {
+                        _isLoading = false;
+                      });
+                      
+                      SnackbarHelper.showSuccess('Pendaftaran berhasil! Nomor antrean: $queueNumber');
+                      
+                      Get.back(result: true);
+                    } catch (e) {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                      SnackbarHelper.showError('Gagal mendaftar: ${e.toString()}');
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF02B1BA),
@@ -848,13 +895,8 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const StatusAntreanView(hasActiveQueue: true),
-                        ),
-                      );
+                      Get.back();
+                      Get.to(() => const StatusAntreanView(hasActiveQueue: true));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFB547),

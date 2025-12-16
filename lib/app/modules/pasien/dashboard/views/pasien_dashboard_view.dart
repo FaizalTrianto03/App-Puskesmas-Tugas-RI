@@ -11,56 +11,8 @@ import '../../status_antrean/views/status_antrean_view.dart';
 import '../controllers/pasien_dashboard_controller.dart';
 
 class PasienDashboardView extends GetView<PasienDashboardController> {
-  final bool initialHasActiveQueue;
-  const PasienDashboardView({super.key, this.initialHasActiveQueue = false});
+  const PasienDashboardView({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return _PasienDashboardViewContent(initialHasActiveQueue: initialHasActiveQueue);
-  }
-}
-
-class _PasienDashboardViewContent extends StatefulWidget {
-  final bool initialHasActiveQueue;
-  const _PasienDashboardViewContent({this.initialHasActiveQueue = false});
-
-  @override
-  State<_PasienDashboardViewContent> createState() => _PasienDashboardViewContentState();
-}
-
-class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent> {
-  late final PasienDashboardController controller;
-  late bool hasActiveQueue;
-  bool _isHoverDaftarBaru = false;
-  bool _isHoverStatusAntrean = false;
-  bool _isHoverRiwayat = false;
-  bool _isHoverLayananLain = false;
-  bool _isHoverProfileCard = false;
-  bool _isPressedProfileCard = false;
-  bool _isPressedDaftarBaru = false;
-  bool _isPressedStatusAntrean = false;
-  bool _isPressedRiwayat = false;
-  bool _isPressedLayananLain = false;
-  
-  @override
-  void initState() {
-    super.initState();
-    // Initialize controller
-    controller = Get.put(PasienDashboardController());
-    hasActiveQueue = widget.initialHasActiveQueue;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    if (args != null && args.containsKey('hasActiveQueue')) {
-      setState(() {
-        hasActiveQueue = args['hasActiveQueue'] as bool;
-      });
-    }
-  }
-  
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -92,14 +44,7 @@ class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent
                     color: Color(0xFF02B1BA),
                     size: 28,
                   ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const NotifikasiListView(),
-                      ),
-                    );
-                  },
+                  onPressed: () => Get.to(() => const NotifikasiListView()),
                 ),
                 Positioned(
                   right: 8,
@@ -154,116 +99,101 @@ class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent
                     children: [
                       _buildProfileCard(context),
                       const SizedBox(height: 16),
-                      hasActiveQueue 
-                        ? _buildActiveQueueCard(context)
-                        : _buildNoActiveQueueCard(context),
+                      Obx(
+                        () =>
+                            controller.hasActiveQueue.value
+                                ? _buildActiveQueueCard(context)
+                                : _buildNoActiveQueueCard(context),
+                      ),
                       const SizedBox(height: 16),
-                      _buildMenuButton(
-                        context,
-                        icon: Icons.add_circle_outline,
-                        title: 'Daftar Baru',
-                        isHover: _isHoverDaftarBaru,
-                        isPressed: _isPressedDaftarBaru,
-                        onHoverChange: (hover) {
-                          setState(() {
-                            _isHoverDaftarBaru = hover;
-                          });
-                        },
-                        onPressedChange: (pressed) {
-                          setState(() {
-                            _isPressedDaftarBaru = pressed;
-                          });
-                        },
-                        onTap: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => PasienPendaftaranView(hasActiveQueue: hasActiveQueue)),
-                          );
-                          if (result == true) {
-                            setState(() {
-                              hasActiveQueue = true;
-                            });
-                          }
-                        },
+                      Obx(
+                        () => _buildMenuButton(
+                          context,
+                          icon: Icons.add_circle_outline,
+                          title: 'Daftar Baru',
+                          isHover: controller.isHoverDaftarBaru.value,
+                          isPressed: controller.isPressedDaftarBaru.value,
+                          onHoverChange:
+                              (hover) =>
+                                  controller.isHoverDaftarBaru.value = hover,
+                          onPressedChange:
+                              (pressed) =>
+                                  controller.isPressedDaftarBaru.value =
+                                      pressed,
+                          onTap: () async {
+                            final result = await Get.to(
+                              () => PasienPendaftaranView(
+                                hasActiveQueue: controller.hasActiveQueue.value,
+                              ),
+                            );
+                            if (result == true) {
+                              controller.checkActiveQueue();
+                            }
+                          },
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      _buildMenuButton(
-                        context,
-                        icon: Icons.receipt_long,
-                        title: 'Status Antrean',
-                        isHover: _isHoverStatusAntrean,
-                        isPressed: _isPressedStatusAntrean,
-                        onHoverChange: (hover) {
-                          setState(() {
-                            _isHoverStatusAntrean = hover;
-                          });
-                        },
-                        onPressedChange: (pressed) {
-                          setState(() {
-                            _isPressedStatusAntrean = pressed;
-                          });
-                        },
-                        onTap: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => StatusAntreanView(hasActiveQueue: hasActiveQueue)),
-                          );
-                          if (result == true) {
-                            setState(() {
-                              hasActiveQueue = true;
-                            });
-                          }
-                        },
+                      Obx(
+                        () => _buildMenuButton(
+                          context,
+                          icon: Icons.receipt_long,
+                          title: 'Status Antrean',
+                          isHover: controller.isHoverStatusAntrean.value,
+                          isPressed: controller.isPressedStatusAntrean.value,
+                          onHoverChange:
+                              (hover) =>
+                                  controller.isHoverStatusAntrean.value = hover,
+                          onPressedChange:
+                              (pressed) =>
+                                  controller.isPressedStatusAntrean.value =
+                                      pressed,
+                          onTap: () async {
+                            final result = await Get.to(
+                              () => StatusAntreanView(
+                                hasActiveQueue: controller.hasActiveQueue.value,
+                              ),
+                            );
+                            if (result == true) {
+                              controller.checkActiveQueue();
+                            }
+                          },
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      _buildMenuButton(
-                        context,
-                        icon: Icons.history,
-                        title: 'Riwayat Kunjungan',
-                        isHover: _isHoverRiwayat,
-                        isPressed: _isPressedRiwayat,
-                        onHoverChange: (hover) {
-                          setState(() {
-                            _isHoverRiwayat = hover;
-                          });
-                        },
-                        onPressedChange: (pressed) {
-                          setState(() {
-                            _isPressedRiwayat = pressed;
-                          });
-                        },
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const RiwayatKunjunganView()),
-                          );
-                        },
+                      Obx(
+                        () => _buildMenuButton(
+                          context,
+                          icon: Icons.history,
+                          title: 'Riwayat Kunjungan',
+                          isHover: controller.isHoverRiwayat.value,
+                          isPressed: controller.isPressedRiwayat.value,
+                          onHoverChange:
+                              (hover) =>
+                                  controller.isHoverRiwayat.value = hover,
+                          onPressedChange:
+                              (pressed) =>
+                                  controller.isPressedRiwayat.value = pressed,
+                          onTap:
+                              () => Get.to(() => const RiwayatKunjunganView()),
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      _buildMenuButton(
-                        context,
-                        icon: Icons.apps,
-                        title: 'Layanan Lainnya',
-                        isHover: _isHoverLayananLain,
-                        isPressed: _isPressedLayananLain,
-                        onHoverChange: (hover) {
-                          setState(() {
-                            _isHoverLayananLain = hover;
-                          });
-                        },
-                        onPressedChange: (pressed) {
-                          setState(() {
-                            _isPressedLayananLain = pressed;
-                          });
-                        },
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LayananLainnyaView(hasActiveQueue: hasActiveQueue),
-                            ),
-                          );
-                        },
+                      Obx(
+                        () => _buildMenuButton(
+                          context,
+                          icon: Icons.apps,
+                          title: 'Layanan Lainnya',
+                          isHover: controller.isHoverLayananLain.value,
+                          isPressed: controller.isPressedLayananLain.value,
+                          onHoverChange:
+                              (hover) =>
+                                  controller.isHoverLayananLain.value = hover,
+                          onPressedChange:
+                              (pressed) =>
+                                  controller.isPressedLayananLain.value =
+                                      pressed,
+                          onTap: () => Get.to(() => const LayananLainnyaView()),
+                        ),
                       ),
                     ],
                   ),
@@ -277,117 +207,99 @@ class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent
   }
 
   Widget _buildProfileCard(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) {
-        setState(() {
-          _isHoverProfileCard = true;
-        });
-      },
-      onExit: (_) {
-        setState(() {
-          _isHoverProfileCard = false;
-        });
-      },
-      child: GestureDetector(
-        onTapDown: (_) {
-          setState(() {
-            _isPressedProfileCard = true;
-          });
-        },
-        onTapUp: (_) {
-          setState(() {
-            _isPressedProfileCard = false;
-          });
-        },
-        onTapCancel: () {
-          setState(() {
-            _isPressedProfileCard = false;
-          });
-        },
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const PasienProfileView()),
-          );
-        },
-        child: Transform.scale(
-          scale: _isPressedProfileCard ? 0.95 : (_isHoverProfileCard ? 1.02 : 1.0),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: _isHoverProfileCard
-                    ? [const Color(0xFF007880), const Color(0xFF00A09A)]
-                    : [const Color(0xFF02B1BA), const Color(0xFF84F3EE)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: _isHoverProfileCard
-                      ? const Color(0xFF02B1BA).withOpacity(0.6)
-                      : Colors.black.withOpacity(0.1),
-                  blurRadius: _isHoverProfileCard ? 16 : 4,
-                  offset: Offset(0, _isHoverProfileCard ? 6 : 2),
+    return Obx(
+      () => MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => controller.isHoverProfileCard.value = true,
+        onExit: (_) => controller.isHoverProfileCard.value = false,
+        child: GestureDetector(
+          onTapDown: (_) => controller.isPressedProfileCard.value = true,
+          onTapUp: (_) => controller.isPressedProfileCard.value = false,
+          onTapCancel: () => controller.isPressedProfileCard.value = false,
+          onTap: () => Get.to(() => const PasienProfileView()),
+          child: Transform.scale(
+            scale:
+                controller.isPressedProfileCard.value
+                    ? 0.95
+                    : (controller.isHoverProfileCard.value ? 1.02 : 1.0),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors:
+                      controller.isHoverProfileCard.value
+                          ? [const Color(0xFF007880), const Color(0xFF00A09A)]
+                          : [const Color(0xFF02B1BA), const Color(0xFF84F3EE)],
                 ),
-              ],
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        controller.isHoverProfileCard.value
+                            ? const Color(0xFF02B1BA).withOpacity(0.6)
+                            : Colors.black.withOpacity(0.1),
+                    blurRadius: controller.isHoverProfileCard.value ? 16 : 4,
+                    offset: Offset(
+                      0,
+                      controller.isHoverProfileCard.value ? 6 : 2,
+                    ),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.person,
+                      size: 35,
+                      color: Color(0xFF02B1BA),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Selamat Datang,',
+                          style: TextStyle(fontSize: 14, color: Colors.white),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Anisa Ayu',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.chevron_right,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: Row(
-            children: [
-              const CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.white,
-                child: Icon(
-                  Icons.person,
-                  size: 35,
-                  color: Color(0xFF02B1BA),
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Selamat Datang,',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Anisa Ayu',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.chevron_right,
-                  color: Colors.white,
-                  size: 32,
-                ),
-              ),
-            ],
           ),
         ),
-      ),
       ),
     );
   }
@@ -422,28 +334,35 @@ class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Expanded(
-                  child: Text(
-                    'G - 009',
-                    style: TextStyle(
-                      fontSize: 44,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFFF4242),
-                      letterSpacing: 4,
-                      height: 1,
+                Expanded(
+                  child: Obx(
+                    () => Text(
+                      controller.queueNumber.value.isEmpty 
+                          ? 'G - 009' 
+                          : controller.queueNumber.value,
+                      style: const TextStyle(
+                        fontSize: 44,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFFF4242),
+                        letterSpacing: 4,
+                        height: 1,
+                      ),
                     ),
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => StatusAntreanView(hasActiveQueue: hasActiveQueue)),
-                    );
-                  },
+                  onPressed:
+                      () => Get.to(
+                        () => StatusAntreanView(
+                          hasActiveQueue: controller.hasActiveQueue.value,
+                        ),
+                      ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFB547),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -461,17 +380,11 @@ class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent
               ],
             ),
             const SizedBox(height: 12),
-            Container(
-              height: 1,
-              color: Colors.white.withOpacity(0.5),
-            ),
+            Container(height: 1, color: Colors.white.withOpacity(0.5)),
             const SizedBox(height: 12),
             const Text(
               'Poli Gigi - Estimasi: 15 menit',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 13, color: Colors.white),
             ),
           ],
         ),
@@ -485,10 +398,7 @@ class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent
       decoration: BoxDecoration(
         color: const Color(0xFF84F3EE).withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF02B1BA),
-          width: 2,
-        ),
+        border: Border.all(color: const Color(0xFF02B1BA), width: 2),
       ),
       child: Column(
         children: [
@@ -506,14 +416,13 @@ class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => PasienPendaftaranView(hasActiveQueue: hasActiveQueue)),
+                final result = await Get.to(
+                  () => PasienPendaftaranView(
+                    hasActiveQueue: controller.hasActiveQueue.value,
+                  ),
                 );
                 if (result == true) {
-                  setState(() {
-                    hasActiveQueue = true;
-                  });
+                  controller.checkActiveQueue();
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -564,51 +473,49 @@ class _PasienDashboardViewContentState extends State<_PasienDashboardViewContent
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isHover 
-                    ? [const Color(0xFF007880), const Color(0xFF00A09A)]
-                    : [const Color(0xFF02B1BA), const Color(0xFF84F3EE)],
+                colors:
+                    isHover
+                        ? [const Color(0xFF007880), const Color(0xFF00A09A)]
+                        : [const Color(0xFF02B1BA), const Color(0xFF84F3EE)],
               ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: isHover 
-                      ? const Color(0xFF02B1BA).withOpacity(0.6)
-                      : Colors.black.withOpacity(0.1),
+                  color:
+                      isHover
+                          ? const Color(0xFF02B1BA).withOpacity(0.6)
+                          : Colors.black.withOpacity(0.1),
                   blurRadius: isHover ? 16 : 4,
                   offset: Offset(0, isHover ? 6 : 2),
                 ),
               ],
             ),
             child: Row(
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(isHover ? 0.5 : 0.3),
-                  borderRadius: BorderRadius.circular(8),
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(isHover ? 0.5 : 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 28),
                 ),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }
