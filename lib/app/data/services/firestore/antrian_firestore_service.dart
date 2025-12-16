@@ -187,4 +187,126 @@ class AntrianFirestoreService {
       return 0;
     }
   }
+
+  // ========== METHODS FOR PERAWAT ==========
+
+  // Get all antrian hari ini (untuk dashboard perawat)
+  Future<List<Map<String, dynamic>>> getAllAntrianToday() async {
+    try {
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+
+      final querySnapshot = await _antrianCollection
+          .where('createdAt', isGreaterThanOrEqualTo: startOfDay)
+          .orderBy('createdAt', descending: false)
+          .get();
+
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'id': doc.id,
+          'pasienId': data['pasienId'] ?? '',
+          'namaLengkap': data['namaLengkap'] ?? '',
+          'noRekamMedis': data['noRekamMedis'] ?? '',
+          'jenisLayanan': data['jenisLayanan'] ?? '',
+          'keluhan': data['keluhan'] ?? '',
+          'nomorBPJS': data['nomorBPJS'],
+          'queueNumber': data['queueNumber'] ?? '',
+          'status': data['status'] ?? 'menunggu',
+          'tanggalDaftar': data['createdAt'] is Timestamp
+              ? (data['createdAt'] as Timestamp).toDate().toIso8601String()
+              : DateTime.now().toIso8601String(),
+          'verifiedBy': data['verifiedBy'],
+          'verifiedByName': data['verifiedByName'],
+          'verifiedAt': data['verifiedAt'] is Timestamp
+              ? (data['verifiedAt'] as Timestamp).toDate().toIso8601String()
+              : null,
+          'catatanPerawat': data['catatanPerawat'],
+          'dokterNama': data['dokterNama'],
+          'diagnosis': data['diagnosis'],
+          'tindakan': data['tindakan'],
+        };
+      }).toList();
+    } catch (e) {
+      print('Error getting all antrian today: $e');
+      return [];
+    }
+  }
+
+  // Stream untuk real-time update semua antrian (untuk perawat dashboard)
+  Stream<List<Map<String, dynamic>>> watchAllAntrianToday() {
+    final today = DateTime.now();
+    final startOfDay = DateTime(today.year, today.month, today.day);
+
+    return _antrianCollection
+        .where('createdAt', isGreaterThanOrEqualTo: startOfDay)
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return {
+              'id': doc.id,
+              'pasienId': data['pasienId'] ?? '',
+              'namaLengkap': data['namaLengkap'] ?? '',
+              'noRekamMedis': data['noRekamMedis'] ?? '',
+              'jenisLayanan': data['jenisLayanan'] ?? '',
+              'keluhan': data['keluhan'] ?? '',
+              'nomorBPJS': data['nomorBPJS'],
+              'queueNumber': data['queueNumber'] ?? '',
+              'status': data['status'] ?? 'menunggu',
+              'tanggalDaftar': data['createdAt'] is Timestamp
+                  ? (data['createdAt'] as Timestamp).toDate().toIso8601String()
+                  : DateTime.now().toIso8601String(),
+              'verifiedBy': data['verifiedBy'],
+              'verifiedByName': data['verifiedByName'],
+              'verifiedAt': data['verifiedAt'] is Timestamp
+                  ? (data['verifiedAt'] as Timestamp).toDate().toIso8601String()
+                  : null,
+              'catatanPerawat': data['catatanPerawat'],
+              'dokterNama': data['dokterNama'],
+              'diagnosis': data['diagnosis'],
+              'tindakan': data['tindakan'],
+            };
+          }).toList();
+        });
+  }
+
+  // Verifikasi antrian (untuk perawat)
+  Future<bool> verifikasiAntrian({
+    required String antrianId,
+    required String perawatId,
+    required String perawatName,
+    String? catatan,
+  }) async {
+    try {
+      await _antrianCollection.doc(antrianId).update({
+        'status': 'menunggu_dokter',
+        'verifiedBy': perawatId,
+        'verifiedByName': perawatName,
+        'verifiedAt': FieldValue.serverTimestamp(),
+        'catatanPerawat': catatan,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      print('Error verifikasi antrian: $e');
+      return false;
+    }
+  }
+
+  // Batalkan antrian (untuk perawat)
+  Future<bool> batalkanAntrian(String antrianId, String alasan) async {
+    try {
+      await _antrianCollection.doc(antrianId).update({
+        'status': 'dibatalkan',
+        'alasanBatal': alasan,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      print('Error batalkan antrian: $e');
+      return false;
+    }
+  }
 }

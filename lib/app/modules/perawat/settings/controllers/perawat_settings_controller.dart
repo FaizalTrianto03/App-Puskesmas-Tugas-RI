@@ -15,12 +15,25 @@ class PerawatSettingsController extends GetxController {
   }
 
   Future<void> loadUserData() async {
+    print('=== PERAWAT SETTINGS DEBUG ===');
+    print('Loading user data...');
+    
     final userData = await AuthHelper.currentUserData;
+    print('UserData from Firestore: $userData');
+    
     if (userData != null) {
       userName.value = userData['namaLengkap'] ?? '';
       userRole.value = _formatRole(userData['role'] ?? '');
       userEmail.value = userData['email'] ?? '';
+      
+      print('Loaded:');
+      print('  - Name: ${userName.value}');
+      print('  - Role: ${userRole.value}');
+      print('  - Email: ${userEmail.value}');
+    } else {
+      print('ERROR: userData is NULL!');
     }
+    print('=== END PERAWAT SETTINGS DEBUG ===');
   }
 
   String _formatRole(String role) {

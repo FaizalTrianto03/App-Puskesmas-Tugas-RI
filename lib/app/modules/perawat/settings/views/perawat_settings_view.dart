@@ -77,27 +77,33 @@ class PerawatSettingsView extends GetView<PerawatSettingsController> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Ns. Mukarram Luthfi, S.Kep',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                          Expanded(
+                            child: Obx(
+                              () => Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    controller.userName.value.isEmpty 
+                                      ? 'Loading...' 
+                                      : controller.userName.value,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  'Perawat',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    controller.userRole.value.isEmpty 
+                                      ? 'Loading...' 
+                                      : controller.userRole.value,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],

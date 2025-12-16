@@ -15,18 +15,24 @@ void main() async {
   // Load environment variables
   await dotenv.load(fileName: ".env");
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Initialize Firebase (hanya jika belum diinisialisasi)
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (_) {
+    // Firebase kemungkinan sudah terinisialisasi di level platform
+  }
 
   // Initialize GetStorage
   await StorageService.init();
 
   // Register Services to GetX DI
-  final sessionService = Get.put(SessionService());
+  Get.put(SessionService());
   Get.put(await AntreanService().init());
-  
+
   runApp(
     GetMaterialApp(
       title: "Aplikasi Puskesmas",

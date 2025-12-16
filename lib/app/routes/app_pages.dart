@@ -45,6 +45,7 @@ import '../modules/perawat/login/views/perawat_login_view.dart';
 import '../modules/perawat/riwayat_pemeriksaan/bindings/riwayat_pemeriksaan_binding.dart';
 import '../modules/perawat/riwayat_pemeriksaan/views/detail_riwayat_view.dart';
 import '../modules/perawat/riwayat_pemeriksaan/views/riwayat_pemeriksaan_view.dart';
+import '../modules/perawat/settings/bindings/perawat_settings_binding.dart';
 import '../modules/perawat/settings/views/perawat_settings_view.dart';
 // Splash
 import '../modules/splash/bindings/splash_binding.dart';
@@ -131,6 +132,7 @@ class AppPages {
     GetPage(
       name: _Paths.perawatSettings,
       page: () => const PerawatSettingsView(),
+      binding: PerawatSettingsBinding(),
     ),
 
     // Apoteker

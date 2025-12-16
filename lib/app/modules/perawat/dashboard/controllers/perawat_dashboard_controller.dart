@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
-import '../../../../data/services/antrian/antrian_service.dart';
+import '../../../../data/services/firestore/antrian_firestore_service.dart';
 import '../../../../data/services/auth/session_service.dart';
 import '../../../../utils/auth_helper.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../rekam_medis/views/form_rekam_medis_view.dart';
 
 class PerawatDashboardController extends GetxController {
-  final AntreanService _antreanService = Get.find<AntreanService>();
+  final AntrianFirestoreService _antrianService = AntrianFirestoreService();
   final SessionService _sessionService = Get.find<SessionService>();
+  
+  StreamSubscription? _antrianSubscription;
 
   final userName = ''.obs;
   final userRole = ''.obs;
@@ -23,6 +27,8 @@ class PerawatDashboardController extends GetxController {
     super.onInit();
     loadUserData();
     loadAntrian();
+    // Start listening to real-time updates
+    _startAntrianListener();
   }
 
   @override
@@ -32,12 +38,30 @@ class PerawatDashboardController extends GetxController {
     loadAntrian();
   }
 
+  @override
+  void onClose() {
+    _antrianSubscription?.cancel();
+    super.onClose();
+  }
+
   Future<void> loadUserData() async {
+    print('=== PERAWAT DASHBOARD DEBUG ===');
+    print('Loading user data for dashboard...');
+    
     final userData = await AuthHelper.currentUserData;
+    print('UserData from Firestore: $userData');
+    
     if (userData != null) {
       userName.value = userData['namaLengkap'] ?? '';
       userRole.value = _formatRole(userData['role'] ?? '');
+      
+      print('Dashboard loaded:');
+      print('  - Name: ${userName.value}');
+      print('  - Role: ${userRole.value}');
+    } else {
+      print('ERROR: userData is NULL!');
     }
+    print('=== END PERAWAT DASHBOARD DEBUG ===');
   }
 
   String _formatRole(String role) {
@@ -49,17 +73,29 @@ class PerawatDashboardController extends GetxController {
     }
   }
 
-  void loadAntrian() {
+  void _startAntrianListener() {
+    _antrianSubscription = _antrianService.watchAllAntrianToday().listen(
+      (antrianData) {
+        antrianList.value = antrianData;
+      },
+      onError: (error) {
+        print('Error listening to antrian: $error');
+      },
+    );
+  }
+
+  Future<void> loadAntrian() async {
     isLoading.value = true;
     
-    antrianList.value = _antreanService.getAllAntrian()
-      ..sort((a, b) {
-        final dateA = DateTime.parse(a['tanggalDaftar']);
-        final dateB = DateTime.parse(b['tanggalDaftar']);
-        return dateA.compareTo(dateB);
-      });
-    
-    isLoading.value = false;
+    try {
+      final data = await _antrianService.getAllAntrianToday();
+      antrianList.value = data;
+    } catch (e) {
+      print('Error loading antrian: $e');
+      SnackbarHelper.showError('Gagal memuat data antrian');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   List<Map<String, dynamic>> get antrianMenungguVerifikasi {
@@ -142,7 +178,7 @@ class PerawatDashboardController extends GetxController {
 
     isLoading.value = true;
 
-    final success = await _antreanService.verifikasiAntrian(
+    final success = await _antrianService.verifikasiAntrian(
       antrianId: antrian['id'],
       perawatId: perawatId,
       perawatName: perawatName,
@@ -193,7 +229,7 @@ class PerawatDashboardController extends GetxController {
     switch (newStatus) {
       case 'menunggu_dokter':
         // Verifikasi & kirim ke dokter
-        success = await _antreanService.verifikasiAntrian(
+        success = await _antrianService.verifikasiAntrian(
           antrianId: antrianId,
           perawatId: perawatId,
           perawatName: perawatName,
@@ -206,7 +242,7 @@ class PerawatDashboardController extends GetxController {
 
       case 'dibatalkan':
         // Batalkan antrian
-        success = await _antreanService.batalkanAntrian(
+        success = await _antrianService.batalkanAntrian(
           antrianId,
           'Dibatalkan oleh perawat',
         );
