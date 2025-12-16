@@ -12,7 +12,7 @@ import '../modules/apoteker/dashboard/views/apoteker_dashboard_view.dart';
 import '../modules/apoteker/login/bindings/apoteker_login_binding.dart';
 import '../modules/apoteker/login/views/apoteker_login_view.dart';
 import '../modules/apoteker/settings/views/apoteker_settings_view.dart';
-// Common (Shared across all roles)
+// Common
 import '../modules/common/views/lupa_kata_sandi_email_view.dart';
 import '../modules/common/views/lupa_kata_sandi_reset_view.dart';
 import '../modules/dokter/dashboard/bindings/dokter_dashboard_binding.dart';
@@ -58,14 +58,14 @@ class AppPages {
   static const initial = Routes.splash;
 
   static final routes = [
-    // Splash Route
+    // Splash
     GetPage(
       name: _Paths.splash,
       page: () => const SplashView(),
       binding: SplashBinding(),
     ),
 
-    // Common Routes (Shared across all roles)
+    // Common
     GetPage(
       name: _Paths.lupaKataSandi,
       page: () => const LupaKataSandiEmailView(),
@@ -75,7 +75,7 @@ class AppPages {
       page: () => const LupaKataSandiResetView(),
     ),
 
-    // Admin Routes
+    // Admin
     GetPage(
       name: _Paths.adminLogin,
       page: () => const AdminLoginView(),
@@ -91,7 +91,7 @@ class AppPages {
       page: () => const AdminSettingsView(),
     ),
 
-    // Dokter Routes
+    // Dokter
     GetPage(
       name: _Paths.dokterLogin,
       page: () => const DokterLoginView(),
@@ -107,7 +107,7 @@ class AppPages {
       page: () => const DokterSettingsView(),
     ),
 
-    // Perawat Routes
+    // Perawat
     GetPage(
       name: _Paths.perawatLogin,
       page: () => const PerawatLoginView(),
@@ -133,7 +133,7 @@ class AppPages {
       page: () => const PerawatSettingsView(),
     ),
 
-    // Apoteker Routes
+    // Apoteker
     GetPage(
       name: _Paths.apotekerLogin,
       page: () => const ApotekerLoginView(),
@@ -149,7 +149,7 @@ class AppPages {
       page: () => const ApotekerSettingsView(),
     ),
 
-    // Pasien Routes
+    // Pasien
     GetPage(
       name: _Paths.pasienLogin,
       page: () => const PasienLoginView(),
