@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
 import 'detail_notifikasi_view.dart';
@@ -151,7 +152,7 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: const Text(
@@ -337,12 +338,7 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
           setState(() {
             notif['isRead'] = true;
           });
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailNotifikasiView(notification: notif),
-            ),
-          );
+          Get.to(() => DetailNotifikasiView(notification: notif));
         },
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),

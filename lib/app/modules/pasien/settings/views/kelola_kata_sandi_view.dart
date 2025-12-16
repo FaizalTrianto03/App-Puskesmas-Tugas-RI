@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/custom_text_field.dart';
@@ -45,7 +46,7 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Kelola Kata Sandi',
@@ -285,7 +286,7 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                               await Future.delayed(const Duration(seconds: 2));
                               setState(() => _isLoading = false);
                               SnackbarHelper.showSuccess('Kata sandi berhasil diubah');
-                              Navigator.pop(context);
+                              Get.back();
                             }
                           },
                           style: ElevatedButton.styleFrom(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
 import 'detail_riwayat_view.dart';
@@ -250,7 +251,7 @@ class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: const Text(
@@ -680,12 +681,7 @@ class _RiwayatKunjunganViewState extends State<RiwayatKunjunganView> {
             children: [
               TextButton.icon(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DetailRiwayatView(data: data),
-                    ),
-                  );
+                  Get.to(() => DetailRiwayatView(data: data));
                 },
                 icon: const Icon(
                   Icons.arrow_forward,

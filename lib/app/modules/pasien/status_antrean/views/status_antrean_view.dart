@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
@@ -18,7 +19,7 @@ class StatusAntreanView extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: const Text(
@@ -79,12 +80,9 @@ class StatusAntreanView extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => PasienPendaftaranView(hasActiveQueue: hasActiveQueue)),
-                    );
+                    final result = await Get.to(() => PasienPendaftaranView(hasActiveQueue: hasActiveQueue));
                     if (result == true && context.mounted) {
-                      Navigator.of(context).pop(true);
+                      Get.back(result: true);
                     }
                   },
                   style: ElevatedButton.styleFrom(

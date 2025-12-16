@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../../widgets/quarter_circle_background.dart';
-import '../../settings/views/dokter_settings_view.dart';
-import '../../rekam_medis/views/rekam_medis_detail_view.dart';
 import '../../notifikasi/views/dokter_notifikasi_list_view.dart';
+import '../../rekam_medis/views/rekam_medis_detail_view.dart';
+import '../../settings/views/dokter_settings_view.dart';
 import '../controllers/dokter_dashboard_controller.dart';
 
 class DokterDashboardView extends GetView<DokterDashboardController> {

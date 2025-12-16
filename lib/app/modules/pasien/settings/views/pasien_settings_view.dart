@@ -37,7 +37,7 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Pengaturan',
@@ -134,12 +134,7 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
                         });
                       },
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const KelolaDataDiriView(),
-                          ),
-                        );
+                        Get.to(() => const KelolaDataDiriView());
                       },
                     ),
                     _buildMenuItem(
@@ -158,12 +153,7 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
                         });
                       },
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const KelolaKataSandiView(),
-                          ),
-                        );
+                        Get.to(() => const KelolaKataSandiView());
                       },
                     ),
                     const SizedBox(height: 24),
