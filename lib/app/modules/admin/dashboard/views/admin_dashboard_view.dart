@@ -14,8 +14,6 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.delete<AdminDashboardController>();
-    Get.put(AdminDashboardController());
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../admin/login/views/admin_login_view.dart';
-import '../../../apoteker/login/views/apoteker_login_view.dart';
-import '../../../dokter/login/views/dokter_login_view.dart';
-import '../../../perawat/login/views/perawat_login_view.dart';
+import '../../../../routes/app_pages.dart';
 import '../controllers/staff_selector_controller.dart';
 import 'pasien_login_view.dart';
 
@@ -89,7 +86,7 @@ class StaffSelectorView extends GetView<StaffSelectorController> {
                   icon: Icons.medical_services,
                   title: 'Dokter',
                   description: 'Riwayat Pasien Terintegrasi',
-                  onTap: () => Get.to(() => const DokterLoginView()),
+                  onTap: () => Get.toNamed(Routes.dokterLogin),
                 )),
                 const SizedBox(height: 16),
                 Obx(() => _buildStaffCard(
@@ -98,7 +95,7 @@ class StaffSelectorView extends GetView<StaffSelectorController> {
                   icon: Icons.healing,
                   title: 'Perawat',
                   description: 'Rekam Medis Digital',
-                  onTap: () => Get.to(() => const PerawatLoginView()),
+                  onTap: () => Get.toNamed(Routes.perawatLogin),
                 )),
                 const SizedBox(height: 16),
                 Obx(() => _buildStaffCard(
@@ -107,7 +104,7 @@ class StaffSelectorView extends GetView<StaffSelectorController> {
                   icon: Icons.medication,
                   title: 'Apoteker',
                   description: 'Manajemen Stok Obat',
-                  onTap: () => Get.to(() => const ApotekerLoginView()),
+                  onTap: () => Get.toNamed(Routes.apotekerLogin),
                 )),
                 const SizedBox(height: 16),
                 Obx(() => _buildStaffCard(
@@ -116,7 +113,7 @@ class StaffSelectorView extends GetView<StaffSelectorController> {
                   icon: Icons.admin_panel_settings,
                   title: 'Admin',
                   description: 'Kelola Sistem Puskesmas',
-                  onTap: () => Get.to(() => const AdminLoginView()),
+                  onTap: () => Get.toNamed(Routes.adminLogin),
                 )),
                 const SizedBox(height: 32),
                 // Masuk sebagai Pasien
@@ -133,7 +130,7 @@ class StaffSelectorView extends GetView<StaffSelectorController> {
                       ),
                       WidgetSpan(
                         child: GestureDetector(
-                          onTap: () => Get.to(() => const PasienLoginView()),
+                          onTap: () => Get.toNamed(Routes.pasienLogin),
                           child: const Text(
                             'Klik di sini',
                             style: TextStyle(

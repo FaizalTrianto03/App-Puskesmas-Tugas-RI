@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../../data/services/storage_service.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../utils/confirmation_dialog.dart';
+import '../../../../utils/validation_helper.dart';
 
 class KelolaPenggunaController extends GetxController {
   final StorageService _storage = StorageService();
@@ -65,7 +66,7 @@ class KelolaPenggunaController extends GetxController {
   Future<void> loadUsers() async {
     isLoading.value = true;
     try {
-      final users = _storage.getAllUsers();
+      final users = await _storage.getAllUsers();
       userList.value = users;
       applyFilters();
     } catch (e) {
@@ -110,88 +111,48 @@ class KelolaPenggunaController extends GetxController {
 
   // Validation methods
   String? validateNama(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Nama lengkap tidak boleh kosong';
-    }
-    if (value.length < 3) {
-      return 'Nama minimal 3 karakter';
-    }
-    return null;
+    return ValidationHelper.validateName(value);
   }
 
   String? validateNIK(String? value, {String? excludeId}) {
-    if (value == null || value.isEmpty) {
-      return 'NIK tidak boleh kosong';
-    }
-    if (value.length != 16) {
-      return 'NIK harus 16 digit';
-    }
-    if (!GetUtils.isNumericOnly(value)) {
-      return 'NIK harus berupa angka';
-    }
-    if (_storage.isNIKExists(value, excludeId: excludeId)) {
-      return 'NIK sudah terdaftar';
-    }
-    return null;
+    // Basic validation only - will check existence before submit
+    return ValidationHelper.validateNIK(value);
   }
 
   String? validateEmail(String? value, {String? excludeId}) {
-    if (value == null || value.isEmpty) {
-      return 'Email tidak boleh kosong';
-    }
-    if (!GetUtils.isEmail(value)) {
-      return 'Format email tidak valid';
-    }
-    if (_storage.isEmailExists(value, excludeId: excludeId)) {
-      return 'Email sudah terdaftar';
-    }
-    return null;
+    // Basic validation only - will check existence before submit
+    return ValidationHelper.validateEmail(value);
   }
 
   String? validateNoHp(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Nomor HP tidak boleh kosong';
-    }
-    if (!GetUtils.isNumericOnly(value)) {
-      return 'Nomor HP harus berupa angka';
-    }
-    if (value.length < 10 || value.length > 13) {
-      return 'Nomor HP tidak valid (10-13 digit)';
-    }
-    return null;
+    return ValidationHelper.validatePhoneNumber(value);
   }
 
   String? validateAlamat(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Alamat tidak boleh kosong';
-    }
-    if (value.length < 10) {
-      return 'Alamat minimal 10 karakter';
-    }
-    return null;
+    return ValidationHelper.validateAddress(value);
   }
 
   String? validatePassword(String? value, {bool isRequired = true}) {
     if (!isRequired && (value == null || value.isEmpty)) {
       return null;
     }
-    if (isRequired && (value == null || value.isEmpty)) {
-      return 'Password tidak boleh kosong';
-    }
-    if (value != null && value.isNotEmpty && value.length < 6) {
-      return 'Password minimal 6 karakter';
-    }
-    return null;
+    return ValidationHelper.validatePassword(value);
   }
 
   String? validateConfirmPassword(String? value, {bool isRequired = true}) {
     if (!isRequired && (value == null || value.isEmpty) && passwordController.text.isEmpty) {
       return null;
     }
-    if (value != passwordController.text) {
-      return 'Password tidak sama';
-    }
-    return null;
+    return ValidationHelper.validatePasswordConfirmation(value, passwordController.text);
+  }
+
+  // Async validation for email and NIK existence
+  Future<bool> validateEmailExists(String email, {String? excludeId}) async {
+    return await _storage.isEmailExists(email, excludeId: excludeId);
+  }
+
+  Future<bool> validateNIKExists(String nik, {String? excludeId}) async {
+    return await _storage.isNIKExists(nik, excludeId: excludeId);
   }
 
   // CRUD Operations
@@ -203,33 +164,49 @@ class KelolaPenggunaController extends GetxController {
     isLoading.value = true;
 
     try {
-      final userId = _storage.generateUserId(selectedRole.value);
-      final newUser = {
-        'id': userId,
-        'namaLengkap': namaController.text.trim(),
-        'nik': nikController.text.trim(),
-        'email': emailController.text.trim().toLowerCase(),
-        'noHp': noHpController.text.trim(),
-        'jenisKelamin': selectedJenisKelamin.value,
-        'tanggalLahir': tanggalLahir.value?.toIso8601String().split('T')[0] ?? '',
-        'alamat': alamatController.text.trim(),
-        'password': passwordController.text,
-        'role': selectedRole.value,
-        'createdAt': DateTime.now().toIso8601String(),
-      };
+      // Check email exists
+      final emailExists = await validateEmailExists(emailController.text.trim().toLowerCase());
+      if (emailExists) {
+        SnackbarHelper.showError('Email sudah terdaftar');
+        isLoading.value = false;
+        return;
+      }
 
-      await _storage.addUser(newUser);
-      await loadUsers();
+      // Check NIK exists
+      final nikExists = await validateNIKExists(nikController.text.trim());
+      if (nikExists) {
+        SnackbarHelper.showError('NIK sudah terdaftar');
+        isLoading.value = false;
+        return;
+      }
 
-      SnackbarHelper.showSuccess('Pengguna berhasil ditambahkan');
-      
-      // Delay sebentar agar snackbar terlihat
-      await Future.delayed(const Duration(milliseconds: 600));
+      // Register user using AuthService (creates Firebase Auth + Firestore)
+      final userData = await _storage.auth.registerUser(
+        email: emailController.text.trim().toLowerCase(),
+        password: passwordController.text,
+        namaLengkap: namaController.text.trim(),
+        role: selectedRole.value,
+        nik: nikController.text.trim(),
+        noHp: noHpController.text.trim(),
+        jenisKelamin: selectedJenisKelamin.value,
+        tanggalLahir: tanggalLahir.value?.toIso8601String().split('T')[0] ?? '',
+        alamat: alamatController.text.trim(),
+      );
 
-      Get.back();
-      clearForm();
+      if (userData != null) {
+        await loadUsers();
+        SnackbarHelper.showSuccess('Pengguna berhasil ditambahkan');
+        
+        // Delay sebentar agar snackbar terlihat
+        await Future.delayed(const Duration(milliseconds: 600));
+
+        Get.back();
+        clearForm();
+      } else {
+        SnackbarHelper.showError('Gagal menambahkan pengguna');
+      }
     } catch (e) {
-      SnackbarHelper.showError('Gagal menambahkan pengguna: ${e.toString()}');
+      SnackbarHelper.showError(e.toString().replaceAll('Exception: ', ''));
     } finally {
       isLoading.value = false;
     }
@@ -243,6 +220,28 @@ class KelolaPenggunaController extends GetxController {
     isLoading.value = true;
 
     try {
+      // Check email exists (excluding current user)
+      final emailExists = await validateEmailExists(
+        emailController.text.trim().toLowerCase(),
+        excludeId: userId,
+      );
+      if (emailExists) {
+        SnackbarHelper.showError('Email sudah terdaftar');
+        isLoading.value = false;
+        return;
+      }
+
+      // Check NIK exists (excluding current user)
+      final nikExists = await validateNIKExists(
+        nikController.text.trim(),
+        excludeId: userId,
+      );
+      if (nikExists) {
+        SnackbarHelper.showError('NIK sudah terdaftar');
+        isLoading.value = false;
+        return;
+      }
+
       final updates = {
         'namaLengkap': namaController.text.trim(),
         'nik': nikController.text.trim(),
@@ -254,10 +253,9 @@ class KelolaPenggunaController extends GetxController {
         'role': selectedRole.value,
       };
 
-      // Update password only if filled
-      if (passwordController.text.isNotEmpty) {
-        updates['password'] = passwordController.text;
-      }
+      // Note: Password update for existing users should be done via Firebase Auth
+      // and requires re-authentication. For now, we skip password updates in edit.
+      // Admin should use "Reset Password" feature for existing users.
 
       final success = await _storage.updateUser(userId, updates);
 

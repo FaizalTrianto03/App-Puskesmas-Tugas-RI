@@ -14,8 +14,6 @@ class PasienLoginView extends GetView<PasienLoginController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(PasienLoginController());
-    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(

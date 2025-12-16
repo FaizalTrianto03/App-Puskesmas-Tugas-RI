@@ -1,30 +1,46 @@
 import 'package:get/get.dart';
-import '../../../../data/services/auth/session_service.dart';
+import '../../../../utils/auth_helper.dart';
 import '../../../../routes/app_pages.dart';
+import '../../../../utils/snackbar_helper.dart';
 
 class PerawatSettingsController extends GetxController {
-  final SessionService _sessionService = Get.find<SessionService>();
-  final isLoading = false.obs;
+  final userName = ''.obs;
+  final userRole = ''.obs;
+  final userEmail = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
+    loadUserData();
   }
 
-  @override
-  void onReady() {
-    super.onReady();
+  Future<void> loadUserData() async {
+    final userData = await AuthHelper.currentUserData;
+    if (userData != null) {
+      userName.value = userData['namaLengkap'] ?? '';
+      userRole.value = _formatRole(userData['role'] ?? '');
+      userEmail.value = userData['email'] ?? '';
+    }
   }
 
-  @override
-  void onClose() {
-    super.onClose();
+  String _formatRole(String role) {
+    switch (role.toLowerCase()) {
+      case 'perawat':
+        return 'Perawat';
+      case 'admin':
+        return 'Admin';
+      case 'dokter':
+        return 'Dokter';
+      case 'apoteker':
+        return 'Apoteker';
+      default:
+        return 'Pasien';
+    }
   }
 
   Future<void> logout() async {
-    isLoading.value = true;
-    await _sessionService.clearSession();
-    isLoading.value = false;
+    await AuthHelper.logout();
     Get.offAllNamed(Routes.splash);
+    SnackbarHelper.showSuccess('Berhasil keluar dari akun');
   }
 }

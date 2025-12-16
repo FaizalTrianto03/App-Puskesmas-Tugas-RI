@@ -13,8 +13,6 @@ class AdminLoginView extends GetView<AdminLoginController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.delete<AdminLoginController>();
-    final controller = Get.put(AdminLoginController());
     return Scaffold(
       body: Container(
         width: double.infinity,

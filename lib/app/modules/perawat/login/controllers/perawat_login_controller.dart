@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/services/storage_service.dart';
 import '../../../../utils/snackbar_helper.dart';
+import '../../../../utils/validation_helper.dart';
 import '../../../../routes/app_pages.dart';
 
 class PerawatLoginController extends GetxController {
@@ -12,13 +13,14 @@ class PerawatLoginController extends GetxController {
   
   final RxBool isPasswordVisible = false.obs;
   final RxBool isLoading = false.obs;
+  final RxBool rememberMe = false.obs;
   
   final formKey = GlobalKey<FormState>();
 
   @override
   void onInit() {
     super.onInit();
-    _initDummyData();
+    _checkAutoLogin();
   }
 
   @override
@@ -28,30 +30,35 @@ class PerawatLoginController extends GetxController {
     super.onClose();
   }
 
-  Future<void> _initDummyData() async {
-    await _storage.initDummyUsers();
+  Future<void> _checkAutoLogin() async {
+    try {
+      final savedCredentials = await _storage.auth.getSavedCredentials();
+      if (savedCredentials != null && savedCredentials['role'] == 'perawat') {
+        emailController.text = savedCredentials['email']!;
+        passwordController.text = savedCredentials['password']!;
+        rememberMe.value = true;
+        await login();
+      }
+    } catch (e) {
+      print('Auto-login error: $e');
+    }
   }
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
 
+  void toggleRememberMe() {
+    rememberMe.value = !rememberMe.value;
+  }
+
   String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email harus diisi';
-    }
-    if (!GetUtils.isEmail(value)) {
-      return 'Format email tidak valid';
-    }
-    return null;
+    return ValidationHelper.validateEmail(value);
   }
 
   String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Kata sandi harus diisi';
-    }
-    if (value.length < 6) {
-      return 'Kata sandi minimal 6 karakter';
     }
     return null;
   }
@@ -64,52 +71,26 @@ class PerawatLoginController extends GetxController {
     isLoading.value = true;
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
-
       final email = emailController.text.trim();
       final password = passwordController.text;
 
-      // Find user by email
-      final user = _storage.findUserByEmail(email);
-
-      if (user == null) {
-        SnackbarHelper.showError('Akun tidak ditemukan. Hubungi admin untuk mendaftarkan akun baru.');
-        isLoading.value = false;
-        return;
-      }
-
-      // Check if role matches
-      if (user['role'] != 'perawat') {
-        SnackbarHelper.showError('Role tidak sesuai. Anda terdaftar sebagai ${user['role']}');
-        isLoading.value = false;
-        return;
-      }
-
-      // Validate password
-      if (user['password'] != password) {
-        SnackbarHelper.showError('Password salah');
-        isLoading.value = false;
-        return;
-      }
-
-      // Save session
-      await _storage.saveUserSession(
-        userId: user['id'],
-        namaLengkap: user['namaLengkap'],
-        email: user['email'],
-        role: user['role'],
+      final userData = await _storage.auth.login(
+        email: email,
+        password: password,
+        role: 'perawat',
+        rememberMe: rememberMe.value,
       );
 
-      SnackbarHelper.showSuccess('Selamat datang, ${user['namaLengkap']}!');
-
-      // Clear fields
-      emailController.clear();
-      passwordController.clear();
-
-      await Future.delayed(const Duration(milliseconds: 500));
-      Get.offAllNamed(Routes.perawatDashboard);
+      if (userData != null) {
+        SnackbarHelper.showSuccess('Selamat datang, ${userData['namaLengkap']}!');
+        emailController.clear();
+        passwordController.clear();
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.offAllNamed(Routes.perawatDashboard);
+      }
     } catch (e) {
-      SnackbarHelper.showError('Terjadi kesalahan: ${e.toString()}');
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      SnackbarHelper.showError(errorMessage);
     } finally {
       isLoading.value = false;
     }

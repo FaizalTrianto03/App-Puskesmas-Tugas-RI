@@ -10,8 +10,6 @@ class SplashView extends GetView<SplashController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(SplashController());
-    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(

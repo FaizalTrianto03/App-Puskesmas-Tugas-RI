@@ -22,8 +22,8 @@ class KelolaDataDiriController extends GetxController {
     loadUserData();
   }
 
-  void loadUserData() {
-    final userData = AuthHelper.currentUserData;
+  Future<void> loadUserData() async {
+    final userData = await AuthHelper.currentUserData;
     if (userData != null) {
       namaController.text = userData['namaLengkap'] ?? '';
       nikController.text = userData['nik'] ?? '';

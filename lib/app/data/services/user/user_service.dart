@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get_storage/get_storage.dart';
 
 class UserService {
@@ -5,247 +6,235 @@ class UserService {
   factory UserService() => _instance;
   UserService._internal();
 
-  final GetStorage _box = GetStorage();
-
-  // Initialize Dummy Users
-  Future<void> initDummyUsers() async {
-    final users = _box.read('users') as List<dynamic>?;
-    if (users == null || users.isEmpty) {
-      await _box.write('users', [
-        // Admin
-        {
-          'id': 'ADM001',
-          'namaLengkap': 'Faizal Qadri Trianto',
-          'email': 'admin@puskesmasdau.com',
-          'password': 'admin123',
-          'role': 'admin',
-          'nik': '3507011234567890',
-          'noHp': '081234567800',
-          'jenisKelamin': 'Laki-laki',
-          'tanggalLahir': '1990-03-15',
-          'alamat': 'Jl. Admin Puskesmas No. 1',
-          'createdAt': DateTime.now().toIso8601String(),
-        },
-        // Dokter
-        {
-          'id': 'DOK001',
-          'namaLengkap': 'dr. Ahmad Hidayat, Sp.PD',
-          'email': 'dokter@puskesmasdau.com',
-          'password': 'dokter123',
-          'role': 'dokter',
-          'nik': '3507011234567891',
-          'noHp': '081234567801',
-          'jenisKelamin': 'Laki-laki',
-          'tanggalLahir': '1985-07-20',
-          'alamat': 'Jl. Dokter Sejahtera No. 2',
-          'spesialisasi': 'Penyakit Dalam',
-          'createdAt': DateTime.now().toIso8601String(),
-        },
-        // Perawat
-        {
-          'id': 'PER001',
-          'namaLengkap': 'Mukarram Luthfi Al Manfaluti',
-          'email': 'perawat@puskesmasdau.com',
-          'password': 'perawat123',
-          'role': 'perawat',
-          'nik': '3507011234567892',
-          'noHp': '081234567802',
-          'jenisKelamin': 'Laki-laki',
-          'tanggalLahir': '1993-05-10',
-          'alamat': 'Jl. Perawat Peduli No. 3',
-          'createdAt': DateTime.now().toIso8601String(),
-        },
-        // Apoteker
-        {
-          'id': 'APO001',
-          'namaLengkap': 'Dias Aditama',
-          'email': 'apoteker@puskesmasdau.com',
-          'password': 'apoteker123',
-          'role': 'apoteker',
-          'nik': '3507011234567893',
-          'noHp': '081234567803',
-          'jenisKelamin': 'Laki-laki',
-          'tanggalLahir': '1992-09-25',
-          'alamat': 'Jl. Apoteker Sehat No. 4',
-          'createdAt': DateTime.now().toIso8601String(),
-        },
-        // Pasien
-        {
-          'id': 'P001',
-          'namaLengkap': 'Anisa Ayu Nabila',
-          'email': 'anisa@gmail.com',
-          'password': 'password123',
-          'role': 'pasien',
-          'nik': '3507012345678901',
-          'noHp': '081234567890',
-          'jenisKelamin': 'Perempuan',
-          'tanggalLahir': '2001-01-15',
-          'alamat': 'Jl. Raya Malang No. 123',
-          'noRekamMedis': 'RM001',
-          'createdAt': DateTime.now().toIso8601String(),
-        },
-        {
-          'id': 'P002',
-          'namaLengkap': 'Budi Santoso',
-          'email': 'budi@gmail.com',
-          'password': 'password123',
-          'role': 'pasien',
-          'nik': '3507012345678902',
-          'noHp': '081234567891',
-          'jenisKelamin': 'Laki-laki',
-          'tanggalLahir': '1995-05-20',
-          'alamat': 'Jl. Raya Surabaya No. 456',
-          'noRekamMedis': 'RM002',
-          'createdAt': DateTime.now().toIso8601String(),
-        },
-      ]);
-    }
-  }
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // READ Operations
-  List<Map<String, dynamic>> getAllUsers() {
-    final users = _box.read('users') as List<dynamic>?;
-    if (users == null) return [];
-    return users.map((e) => Map<String, dynamic>.from(e)).toList();
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    try {
+      final snapshot = await _firestore.collection('users').get();
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      print('Error getting all users: $e');
+      return [];
+    }
   }
 
-  Map<String, dynamic>? findUserByEmail(String email) {
-    final users = getAllUsers();
+  Future<Map<String, dynamic>?> findUserByEmail(String email) async {
     try {
-      return users.firstWhere((user) => user['email'] == email);
+      final snapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      
+      if (snapshot.docs.isEmpty) return null;
+      
+      final data = snapshot.docs.first.data();
+      data['id'] = snapshot.docs.first.id;
+      return data;
     } catch (e) {
+      print('Error finding user by email: $e');
       return null;
     }
   }
 
-  Map<String, dynamic>? findUserById(String id) {
-    final users = getAllUsers();
+  Future<Map<String, dynamic>?> findUserById(String id) async {
     try {
-      return users.firstWhere((user) => user['id'] == id);
+      final doc = await _firestore.collection('users').doc(id).get();
+      if (!doc.exists) return null;
+      
+      final data = doc.data()!;
+      data['id'] = doc.id;
+      return data;
     } catch (e) {
+      print('Error finding user by id: $e');
       return null;
     }
   }
 
-  List<Map<String, dynamic>> getUsersByRole(String role) {
-    final users = getAllUsers();
-    return users.where((user) => user['role'] == role).toList();
+  Future<List<Map<String, dynamic>>> getUsersByRole(String role) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: role)
+          .get();
+      
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      print('Error getting users by role: $e');
+      return [];
+    }
   }
 
   // Validation
-  bool isEmailExists(String email, {String? excludeId}) {
-    final users = getAllUsers();
-    return users.any((user) => 
-      user['email'] == email && (excludeId == null || user['id'] != excludeId)
-    );
+  Future<bool> isEmailExists(String email, {String? excludeId}) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .get();
+      
+      if (excludeId != null) {
+        return snapshot.docs.any((doc) => doc.id != excludeId);
+      }
+      
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking email exists: $e');
+      return false;
+    }
   }
 
-  bool isNIKExists(String nik, {String? excludeId}) {
-    final users = getAllUsers();
-    return users.any((user) => 
-      user['nik'] == nik && (excludeId == null || user['id'] != excludeId)
-    );
+  Future<bool> isNIKExists(String nik, {String? excludeId}) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .where('nik', isEqualTo: nik)
+          .get();
+      
+      if (excludeId != null) {
+        return snapshot.docs.any((doc) => doc.id != excludeId);
+      }
+      
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      print('Error checking NIK exists: $e');
+      return false;
+    }
   }
 
   // CREATE
-  Future<void> addUser(Map<String, dynamic> newUser) async {
-    final users = getAllUsers();
-    users.add(newUser);
-    await _box.write('users', users);
+  Future<String?> addUser(Map<String, dynamic> newUser) async {
+    try {
+      // Remove id if exists (Firestore will generate)
+      newUser.remove('id');
+      
+      // Add timestamp
+      newUser['createdAt'] = FieldValue.serverTimestamp();
+      
+      final docRef = await _firestore.collection('users').add(newUser);
+      return docRef.id;
+    } catch (e) {
+      print('Error adding user: $e');
+      return null;
+    }
   }
 
   // UPDATE
   Future<bool> updateUser(String userId, Map<String, dynamic> updates) async {
-    final users = getAllUsers();
-    final index = users.indexWhere((user) => user['id'] == userId);
-    
-    if (index == -1) return false;
-    
-    users[index] = {...users[index], ...updates};
-    await _box.write('users', users);
-    
-    // Update session if logged in user is being edited
-    final sessionUserId = _box.read('userId');
-    if (sessionUserId == userId) {
-      // Update semua field yang berubah di session
-      if (updates.containsKey('namaLengkap')) {
-        await _box.write('namaLengkap', updates['namaLengkap']);
+    try {
+      // Remove id from updates if exists
+      updates.remove('id');
+      
+      // Add update timestamp
+      updates['updatedAt'] = FieldValue.serverTimestamp();
+      
+      await _firestore.collection('users').doc(userId).update(updates);
+      
+      // Update session if logged in user is being edited
+      final sessionBox = GetStorage('session_box');
+      final sessionUserId = sessionBox.read('userId');
+      if (sessionUserId == userId) {
+        // Update relevant session fields
+        if (updates.containsKey('namaLengkap')) {
+          await sessionBox.write('namaLengkap', updates['namaLengkap']);
+        }
+        if (updates.containsKey('email')) {
+          await sessionBox.write('email', updates['email']);
+        }
+        if (updates.containsKey('role')) {
+          await sessionBox.write('role', updates['role']);
+        }
       }
-      if (updates.containsKey('email')) {
-        await _box.write('email', updates['email']);
-      }
-      if (updates.containsKey('role')) {
-        await _box.write('role', updates['role']);
-      }
+      
+      return true;
+    } catch (e) {
+      print('Error updating user: $e');
+      return false;
     }
-    
-    return true;
   }
 
   // DELETE
   Future<bool> deleteUser(String userId) async {
-    final users = getAllUsers();
-    final initialLength = users.length;
-    users.removeWhere((user) => user['id'] == userId);
-    
-    if (users.length < initialLength) {
-      await _box.write('users', users);
+    try {
+      await _firestore.collection('users').doc(userId).delete();
       return true;
+    } catch (e) {
+      print('Error deleting user: $e');
+      return false;
     }
-    return false;
   }
 
   // Helper
-  String generateUserId(String role) {
-    final users = getAllUsers();
-    final roleUsers = users.where((user) => user['role'] == role).toList();
-    
-    String prefix;
-    switch (role) {
-      case 'admin':
-        prefix = 'ADM';
-        break;
-      case 'dokter':
-        prefix = 'DOK';
-        break;
-      case 'perawat':
-        prefix = 'PER';
-        break;
-      case 'apoteker':
-        prefix = 'APO';
-        break;
-      case 'pasien':
-        prefix = 'P';
-        break;
-      default:
-        prefix = 'USR';
+  Future<String> generateUserId(String role) async {
+    try {
+      final users = await getUsersByRole(role);
+      
+      String prefix;
+      switch (role) {
+        case 'admin':
+          prefix = 'ADM';
+          break;
+        case 'dokter':
+          prefix = 'DOK';
+          break;
+        case 'perawat':
+          prefix = 'PER';
+          break;
+        case 'apoteker':
+          prefix = 'APO';
+          break;
+        case 'pasien':
+          prefix = 'P';
+          break;
+        default:
+          prefix = 'USR';
+      }
+      
+      final nextNumber = users.length + 1;
+      return '$prefix${nextNumber.toString().padLeft(3, '0')}';
+    } catch (e) {
+      print('Error generating user ID: $e');
+      return 'USR001';
     }
-    
-    final nextNumber = roleUsers.length + 1;
-    return '$prefix${nextNumber.toString().padLeft(3, '0')}';
   }
 
   // Get Current Logged In User Data
-  Map<String, dynamic>? getCurrentUserData() {
-    // Ambil userId dari session_box (bukan dari default box)
-    final sessionBox = GetStorage('session_box');
-    final userId = sessionBox.read('userId');
-    if (userId == null) return null;
-    return findUserById(userId);
+  Future<Map<String, dynamic>?> getCurrentUserData() async {
+    try {
+      final sessionBox = GetStorage('session_box');
+      final userId = sessionBox.read('userId');
+      if (userId == null) return null;
+      return await findUserById(userId);
+    } catch (e) {
+      print('Error getting current user data: $e');
+      return null;
+    }
   }
 
   // Sync session with latest user data
   Future<void> syncSessionWithUserData() async {
-    // Ambil userId dari session_box (bukan dari default box)
-    final sessionBox = GetStorage('session_box');
-    final userId = sessionBox.read('userId');
-    if (userId == null) return;
-    
-    final user = findUserById(userId);
-    if (user != null) {
-      await sessionBox.write('namaLengkap', user['namaLengkap']);
-      await sessionBox.write('email', user['email']);
-      await sessionBox.write('role', user['role']);
+    try {
+      final sessionBox = GetStorage('session_box');
+      final userId = sessionBox.read('userId');
+      if (userId == null) return;
+      
+      final user = await findUserById(userId);
+      if (user != null) {
+        await sessionBox.write('namaLengkap', user['namaLengkap']);
+        await sessionBox.write('email', user['email']);
+        await sessionBox.write('role', user['role']);
+      }
+    } catch (e) {
+      print('Error syncing session: $e');
     }
   }
 }
