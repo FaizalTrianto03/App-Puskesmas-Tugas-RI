@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/lokasi_puskesmas_controller.dart';
 
-class LokasiPuskesmasView extends StatelessWidget {
+class LokasiPuskesmasView extends GetView<LokasiPuskesmasController> {
   const LokasiPuskesmasView({Key? key}) : super(key: key);
 
   @override
@@ -15,7 +17,7 @@ class LokasiPuskesmasView extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: const Text(

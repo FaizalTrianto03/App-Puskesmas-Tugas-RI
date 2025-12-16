@@ -1,24 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../admin/login/views/admin_login_view.dart';
 import '../../../apoteker/login/views/apoteker_login_view.dart';
 import '../../../dokter/login/views/dokter_login_view.dart';
 import '../../../perawat/login/views/perawat_login_view.dart';
+import '../controllers/staff_selector_controller.dart';
 import 'pasien_login_view.dart';
 
-class StaffSelectorView extends StatefulWidget {
+class StaffSelectorView extends GetView<StaffSelectorController> {
   const StaffSelectorView({Key? key}) : super(key: key);
 
   @override
-  State<StaffSelectorView> createState() => _StaffSelectorViewState();
-}
-
-class _StaffSelectorViewState extends State<StaffSelectorView> {
-  int? _hoveredIndex;
-  int? _pressedIndex;
-
-  @override
   Widget build(BuildContext context) {
+    Get.put(StaffSelectorController());
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -88,57 +83,41 @@ class _StaffSelectorViewState extends State<StaffSelectorView> {
                 ),
                 const SizedBox(height: 32),
                 // Staff Cards
-                _buildStaffCard(
+                Obx(() => _buildStaffCard(
                   context: context,
                   index: 0,
                   icon: Icons.medical_services,
                   title: 'Dokter',
                   description: 'Riwayat Pasien Terintegrasi',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const DokterLoginView()),
-                    );
-                  },
-                ),
+                  onTap: () => Get.to(() => const DokterLoginView()),
+                )),
                 const SizedBox(height: 16),
-                _buildStaffCard(
+                Obx(() => _buildStaffCard(
                   context: context,
                   index: 1,
                   icon: Icons.healing,
                   title: 'Perawat',
                   description: 'Rekam Medis Digital',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const PerawatLoginView()),
-                    );
-                  },
-                ),
+                  onTap: () => Get.to(() => const PerawatLoginView()),
+                )),
                 const SizedBox(height: 16),
-                _buildStaffCard(
+                Obx(() => _buildStaffCard(
                   context: context,
                   index: 2,
                   icon: Icons.medication,
                   title: 'Apoteker',
                   description: 'Manajemen Stok Obat',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ApotekerLoginView()),
-                    );
-                  },
-                ),
+                  onTap: () => Get.to(() => const ApotekerLoginView()),
+                )),
                 const SizedBox(height: 16),
-                _buildStaffCard(
+                Obx(() => _buildStaffCard(
                   context: context,
                   index: 3,
                   icon: Icons.admin_panel_settings,
                   title: 'Admin',
                   description: 'Kelola Sistem Puskesmas',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const AdminLoginView()),
-                    );
-                  },
-                ),
+                  onTap: () => Get.to(() => const AdminLoginView()),
+                )),
                 const SizedBox(height: 32),
                 // Masuk sebagai Pasien
                 RichText(
@@ -154,11 +133,7 @@ class _StaffSelectorViewState extends State<StaffSelectorView> {
                       ),
                       WidgetSpan(
                         child: GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const PasienLoginView()),
-                            );
-                          },
+                          onTap: () => Get.to(() => const PasienLoginView()),
                           child: const Text(
                             'Klik di sini',
                             style: TextStyle(
@@ -191,38 +166,20 @@ class _StaffSelectorViewState extends State<StaffSelectorView> {
     required String description,
     required VoidCallback onTap,
   }) {
-    final isHovered = _hoveredIndex == index;
-    final isPressed = _pressedIndex == index;
+    final isHovered = controller.hoveredIndex.value == index;
+    final isPressed = controller.pressedIndex.value == index;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      onEnter: (_) {
-        setState(() {
-          _hoveredIndex = index;
-        });
-      },
-      onExit: (_) {
-        setState(() {
-          _hoveredIndex = null;
-        });
-      },
+      onEnter: (_) => controller.setHoveredIndex(index),
+      onExit: (_) => controller.setHoveredIndex(null),
       child: GestureDetector(
-        onTapDown: (_) {
-          setState(() {
-            _pressedIndex = index;
-          });
-        },
+        onTapDown: (_) => controller.setPressedIndex(index),
         onTapUp: (_) {
-          setState(() {
-            _pressedIndex = null;
-          });
+          controller.setPressedIndex(null);
           onTap();
         },
-        onTapCancel: () {
-          setState(() {
-            _pressedIndex = null;
-          });
-        },
+        onTapCancel: () => controller.setPressedIndex(null),
         child: Transform.scale(
           scale: isPressed ? 0.95 : (isHovered ? 1.02 : 1.0),
           child: Container(

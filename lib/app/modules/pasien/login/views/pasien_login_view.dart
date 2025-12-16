@@ -414,11 +414,7 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                 const SizedBox(height: 24),
                 Center(
                   child: TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const StaffSelectorView()),
-                      );
-                    },
+                    onPressed: () => Get.to(() => const StaffSelectorView()),
                     child: RichText(
                       text: TextSpan(
                         style: AppTextStyles.bodyMedium.copyWith(

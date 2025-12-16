@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/info_bpjs_controller.dart';
 
-class CaraKlaimView extends StatelessWidget {
+class CaraKlaimView extends GetView<InfoBpjsController> {
   const CaraKlaimView({Key? key}) : super(key: key);
 
   @override
@@ -17,7 +19,7 @@ class CaraKlaimView extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Cara Klaim BPJS',

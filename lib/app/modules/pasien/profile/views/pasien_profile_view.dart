@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../../pasien/settings/views/pasien_settings_view.dart';
@@ -24,7 +25,7 @@ class _PasienProfileViewState extends State<PasienProfileView> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Profile',
@@ -292,12 +293,7 @@ class _PasienProfileViewState extends State<PasienProfileView> {
                       ),
                       child: ListTile(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PasienSettingsView(),
-                            ),
-                          );
+                          Get.to(() => const PasienSettingsView());
                         },
                         leading: Container(
                           padding: const EdgeInsets.all(8),

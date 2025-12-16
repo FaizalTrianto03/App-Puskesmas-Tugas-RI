@@ -16,6 +16,18 @@ class PasienDashboardController extends GetxController {
   final queueNumber = ''.obs;
   final isLoading = false.obs;
   
+  // UI State for hover and press effects
+  final isHoverDaftarBaru = false.obs;
+  final isHoverStatusAntrean = false.obs;
+  final isHoverRiwayat = false.obs;
+  final isHoverLayananLain = false.obs;
+  final isHoverProfileCard = false.obs;
+  final isPressedProfileCard = false.obs;
+  final isPressedDaftarBaru = false.obs;
+  final isPressedStatusAntrean = false.obs;
+  final isPressedRiwayat = false.obs;
+  final isPressedLayananLain = false.obs;
+  
   @override
   void onInit() {
     super.onInit();

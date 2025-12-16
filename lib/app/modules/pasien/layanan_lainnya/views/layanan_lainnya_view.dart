@@ -1,22 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../bpjs/views/info_bpjs_view.dart';
 import '../../lokasi/views/lokasi_puskesmas_view.dart';
+import '../controllers/layanan_lainnya_controller.dart';
 
-class LayananLainnyaView extends StatefulWidget {
-  final bool hasActiveQueue;
-  const LayananLainnyaView({super.key, this.hasActiveQueue = false});
-
-  @override
-  State<LayananLainnyaView> createState() => _LayananLainnyaViewState();
-}
-
-class _LayananLainnyaViewState extends State<LayananLainnyaView> {
-  bool _isHoverLokasi = false;
-  bool _isHoverBPJS = false;
-  bool _isPressedLokasi = false;
-  bool _isPressedBPJS = false;
+class LayananLainnyaView extends GetView<LayananLainnyaController> {
+  const LayananLainnyaView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +21,7 @@ class _LayananLainnyaViewState extends State<LayananLainnyaView> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: const Text(
@@ -48,57 +39,27 @@ class _LayananLainnyaViewState extends State<LayananLainnyaView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildMenuButton(
+              Obx(() => _buildMenuButton(
                 context,
                 icon: Icons.location_on,
                 title: 'Lokasi Puskesmas',
-                isHover: _isHoverLokasi,
-                isPressed: _isPressedLokasi,
-                onHoverChange: (hover) {
-                  setState(() {
-                    _isHoverLokasi = hover;
-                  });
-                },
-                onPressedChange: (pressed) {
-                  setState(() {
-                    _isPressedLokasi = pressed;
-                  });
-                },
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LokasiPuskesmasView(),
-                    ),
-                  );
-                },
-              ),
+                isHover: controller.isHoverLokasi.value,
+                isPressed: controller.isPressedLokasi.value,
+                onHoverChange: controller.setHoverLokasi,
+                onPressedChange: controller.setPressedLokasi,
+                onTap: () => Get.to(() => const LokasiPuskesmasView()),
+              )),
               const SizedBox(height: 12),
-              _buildMenuButton(
+              Obx(() => _buildMenuButton(
                 context,
                 icon: Icons.shield,
                 title: 'Info BPJS',
-                isHover: _isHoverBPJS,
-                isPressed: _isPressedBPJS,
-                onHoverChange: (hover) {
-                  setState(() {
-                    _isHoverBPJS = hover;
-                  });
-                },
-                onPressedChange: (pressed) {
-                  setState(() {
-                    _isPressedBPJS = pressed;
-                  });
-                },
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const InfoBpjsView(),
-                    ),
-                  );
-                },
-              ),
+                isHover: controller.isHoverBPJS.value,
+                isPressed: controller.isPressedBPJS.value,
+                onHoverChange: controller.setHoverBPJS,
+                onPressedChange: controller.setPressedBPJS,
+                onTap: () => Get.to(() => const InfoBpjsView()),
+              )),
             ],
           ),
         ),
