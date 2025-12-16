@@ -29,6 +29,7 @@ abstract class Routes {
       _Paths.perawatRiwayatPemeriksaan;
   static const perawatRiwayatPemeriksaanDetail =
       _Paths.perawatRiwayatPemeriksaanDetail;
+  static const perawatLaporanKinerja = _Paths.perawatLaporanKinerja;
   static const perawatSettings = _Paths.perawatSettings;
 
   // Apoteker
@@ -76,6 +77,7 @@ abstract class _Paths {
       '/perawat/riwayat-pemeriksaan';
   static const perawatRiwayatPemeriksaanDetail =
       '/perawat/riwayat-pemeriksaan/detail';
+  static const perawatLaporanKinerja = '/perawat/laporan-kinerja';
   static const perawatSettings = '/perawat/settings';
 
   // Apoteker

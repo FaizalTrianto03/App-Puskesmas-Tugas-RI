@@ -42,6 +42,8 @@ import '../modules/perawat/dashboard/views/perawat_dashboard_view.dart';
 // Perawat
 import '../modules/perawat/login/bindings/perawat_login_binding.dart';
 import '../modules/perawat/login/views/perawat_login_view.dart';
+import '../modules/perawat/laporan_kinerja/bindings/laporan_kinerja_binding.dart';
+import '../modules/perawat/laporan_kinerja/views/laporan_kinerja_view.dart';
 import '../modules/perawat/riwayat_pemeriksaan/bindings/riwayat_pemeriksaan_binding.dart';
 import '../modules/perawat/riwayat_pemeriksaan/views/detail_riwayat_view.dart';
 import '../modules/perawat/riwayat_pemeriksaan/views/riwayat_pemeriksaan_view.dart';
@@ -128,6 +130,11 @@ class AppPages {
       name: _Paths.perawatRiwayatPemeriksaanDetail,
       page: () => const DetailRiwayatView(),
       binding: RiwayatPemeriksaanBinding(),
+    ),
+    GetPage(
+      name: _Paths.perawatLaporanKinerja,
+      page: () => const LaporanKinerjaView(),
+      binding: LaporanKinerjaBinding(),
     ),
     GetPage(
       name: _Paths.perawatSettings,
