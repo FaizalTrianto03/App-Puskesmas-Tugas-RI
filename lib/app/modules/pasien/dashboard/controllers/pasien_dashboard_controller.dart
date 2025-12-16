@@ -1,12 +1,14 @@
+import 'dart:async';
+
 import 'package:get/get.dart';
 
-import '../../../../data/services/auth/session_service.dart';
-import '../../../../data/services/antrian/antrian_service.dart';
+import '../../../../data/services/firestore/antrian_firestore_service.dart';
+import '../../../../data/services/firestore/user_profile_firestore_service.dart';
 import '../../../../routes/app_pages.dart';
 
 class PasienDashboardController extends GetxController {
-  late final SessionService _sessionService;
-  late final AntreanService _antreanService;
+  final AntrianFirestoreService _antrianService = AntrianFirestoreService();
+  final UserProfileFirestoreService _profileService = UserProfileFirestoreService();
   
   // Observable states
   final userName = ''.obs;
@@ -15,6 +17,9 @@ class PasienDashboardController extends GetxController {
   final hasActiveQueue = false.obs;
   final queueNumber = ''.obs;
   final isLoading = false.obs;
+  
+  StreamSubscription? _antrianSubscription;
+  StreamSubscription? _profileSubscription;
   
   // UI State for hover and press effects
   final isHoverDaftarBaru = false.obs;
@@ -32,65 +37,97 @@ class PasienDashboardController extends GetxController {
   void onInit() {
     super.onInit();
     print('PasienDashboardController: onInit()');
-    
-    // Pastikan services tersedia
-    try {
-      _sessionService = Get.find<SessionService>();
-      _antreanService = Get.find<AntreanService>();
-      print('PasienDashboardController: Services found');
-    } catch (e) {
-      print('PasienDashboardController: Error finding services - $e');
-      rethrow;
-    }
-    
-    loadUserData();
-    checkActiveQueue();
+    watchUserProfile();
+    watchActiveQueue();
   }
 
   @override
-  void onReady() {
-    super.onReady();
-    // Refresh antrian setiap kali view siap ditampilkan
-    checkActiveQueue();
+  void onClose() {
+    _antrianSubscription?.cancel();
+    _profileSubscription?.cancel();
+    super.onClose();
   }
   
-  void loadUserData() {
-    print('PasienDashboardController: loadUserData()');
-    final isLoggedIn = _sessionService.isLoggedIn();
-    print('PasienDashboardController: Is logged in = $isLoggedIn');
+  void watchUserProfile() {
+    print('PasienDashboardController: watchUserProfile()');
     
-    if (isLoggedIn) {
-      userName.value = _sessionService.getNamaLengkap() ?? 'Pasien';
-      userEmail.value = _sessionService.getEmail() ?? '';
-      print('PasienDashboardController: Loaded user - ${userName.value}');
-      
-      final userId = _sessionService.getUserId();
-      if (userId != null) {
-        final userData = _sessionService.getUserData(userId);
-        if (userData != null) {
-          noRekamMedis.value = userData['noRekamMedis'] ?? '-';
-        }
+    // Add timeout to prevent infinite loading
+    Future.delayed(const Duration(seconds: 5), () {
+      if (userName.value.isEmpty) {
+        print('PasienDashboardController: Timeout - falling back to direct fetch');
+        loadUserData();
       }
+    });
+    
+    _profileSubscription = _profileService.watchUserProfile().listen(
+      (profile) {
+        if (profile != null) {
+          userName.value = profile.namaLengkap;
+          userEmail.value = profile.email;
+          noRekamMedis.value = profile.noRekamMedis ?? '-';
+          print('PasienDashboardController: Loaded user - ${userName.value}');
+        } else {
+          print('PasienDashboardController: Profile is null - trying direct fetch');
+          loadUserData();
+        }
+      },
+      onError: (error) {
+        print('PasienDashboardController: Error watching profile - $error');
+        loadUserData(); // Fallback to direct fetch on error
+      },
+    );
+  }
+  
+  Future<void> loadUserData() async {
+    print('PasienDashboardController: loadUserData()');
+    try {
+      final profile = await _profileService.getUserProfile();
+      if (profile != null) {
+        userName.value = profile.namaLengkap;
+        userEmail.value = profile.email;
+        noRekamMedis.value = profile.noRekamMedis ?? '-';
+        print('PasienDashboardController: Loaded user - ${userName.value}');
+      }
+    } catch (e) {
+      print('PasienDashboardController: Error loading user data - $e');
     }
   }
   
-  void checkActiveQueue() {
-    final userId = _sessionService.getUserId();
-    if (userId == null) {
-      hasActiveQueue.value = false;
-      queueNumber.value = '';
-      return;
-    }
-    
-    // Cek antrian aktif dari AntreanService
-    final activeAntrian = _antreanService.getActiveAntrianByPasienId(userId);
-    
-    if (activeAntrian != null) {
-      hasActiveQueue.value = true;
-      queueNumber.value = activeAntrian['queueNumber'] ?? '';
-    } else {
-      hasActiveQueue.value = false;
-      queueNumber.value = '';
+  void watchActiveQueue() {
+    // Listen to real-time antrian updates from Firestore
+    _antrianSubscription = _antrianService.watchActiveAntrian().listen(
+      (antrian) {
+        if (antrian != null) {
+          hasActiveQueue.value = true;
+          queueNumber.value = antrian.queueNumber;
+          print('Active antrian: ${antrian.queueNumber}');
+        } else {
+          hasActiveQueue.value = false;
+          queueNumber.value = '';
+          print('No active antrian');
+        }
+      },
+      onError: (error) {
+        print('Error watching active antrian: $error');
+        hasActiveQueue.value = false;
+        queueNumber.value = '';
+      },
+    );
+  }
+  
+  Future<void> checkActiveQueue() async {
+    // Refresh active queue manually
+    try {
+      final antrian = await _antrianService.getActiveAntrian();
+      if (antrian != null) {
+        hasActiveQueue.value = true;
+        queueNumber.value = antrian.queueNumber;
+      } else {
+        hasActiveQueue.value = false;
+        queueNumber.value = '';
+      }
+    } catch (e) {
+      print('Error checking active queue: $e');
     }
   }
   
@@ -125,7 +162,8 @@ class PasienDashboardController extends GetxController {
   
   Future<void> logout() async {
     isLoading.value = true;
-    await _sessionService.clearSession();
+    // TODO: Add Firebase Auth sign out
+    // await FirebaseAuth.instance.signOut();
     isLoading.value = false;
     Get.offAllNamed(Routes.splash);
   }

@@ -22,6 +22,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   late final PasienRegisterController controller;
   final _namaLengkapController = TextEditingController();
   final _nikController = TextEditingController();
+  final _emailController = TextEditingController();
   final _alamatController = TextEditingController();
   final _noHpController = TextEditingController();
   final _tanggalLahirController = TextEditingController();
@@ -30,6 +31,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   
   final _namaLengkapFocus = FocusNode();
   final _nikFocus = FocusNode();
+  final _emailFocus = FocusNode();
   final _alamatFocus = FocusNode();
   final _noHpFocus = FocusNode();
   final _tanggalLahirFocus = FocusNode();
@@ -38,6 +40,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   
   final _namaLengkapKey = GlobalKey();
   final _nikKey = GlobalKey();
+  final _emailKey = GlobalKey();
   final _alamatKey = GlobalKey();
   final _noHpKey = GlobalKey();
   final _tanggalLahirKey = GlobalKey();
@@ -53,6 +56,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
 
   bool _isNamaLengkapFocused = false;
   bool _isNikFocused = false;
+  bool _isEmailFocused = false;
   bool _isAlamatFocused = false;
   bool _isNoHpFocused = false;
   bool _isTanggalLahirFocused = false;
@@ -61,6 +65,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   
   String? namaError;
   String? nikError;
+  String? emailError;
   String? alamatError;
   String? noHpError;
   String? tanggalLahirError;
@@ -77,6 +82,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
     
     _namaLengkapController.clear();
     _nikController.clear();
+    _emailController.clear();
     _alamatController.clear();
     _noHpController.clear();
     _tanggalLahirController.clear();
@@ -88,6 +94,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
 
     namaError = null;
     nikError = null;
+    emailError = null;
     alamatError = null;
     noHpError = null;
     tanggalLahirError = null;
@@ -100,6 +107,9 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
     });
     _nikFocus.addListener(() {
       setState(() => _isNikFocused = _nikFocus.hasFocus);
+    });
+    _emailFocus.addListener(() {
+      setState(() => _isEmailFocused = _emailFocus.hasFocus);
     });
     _alamatFocus.addListener(() {
       setState(() => _isAlamatFocused = _alamatFocus.hasFocus);
@@ -122,6 +132,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   void dispose() {
     _namaLengkapController.dispose();
     _nikController.dispose();
+    _emailController.dispose();
     _alamatController.dispose();
     _noHpController.dispose();
     _tanggalLahirController.dispose();
@@ -131,6 +142,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
     _scrollController.dispose();
     _namaLengkapFocus.dispose();
     _nikFocus.dispose();
+    _emailFocus.dispose();
     _alamatFocus.dispose();
     _noHpFocus.dispose();
     _tanggalLahirFocus.dispose();
@@ -239,6 +251,24 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
                 onChanged: (value) {
                   if (nikError != null && value.isNotEmpty) {
                     setState(() => nikError = null);
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              _buildLabel('Email'),
+              const SizedBox(height: 8),
+              _buildTextField(
+                _emailController, 
+                'Masukkan email Gmail Anda...', 
+                keyboardType: TextInputType.emailAddress,
+                errorText: emailError,
+                focusNode: _emailFocus,
+                isFocused: _isEmailFocused,
+                fieldKey: _emailKey,
+                onChanged: (value) {
+                  if (emailError != null && value.isNotEmpty) {
+                    setState(() => emailError = null);
                   }
                 },
               ),
@@ -395,6 +425,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
                     // Set values to controller
                     controller.namaLengkapController.text = _namaLengkapController.text;
                     controller.nikController.text = _nikController.text;
+                    controller.emailController.text = _emailController.text;
                     controller.alamatController.text = _alamatController.text;
                     controller.noHpController.text = _noHpController.text;
                     controller.tanggalLahirController.text = _tanggalLahirController.text;
@@ -403,86 +434,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
                     controller.selectedJenisKelamin.value = _jenisKelamin.isNotEmpty ? _jenisKelamin : null;
                     
                     // Set dummy values for fields not in current view
-                    // Generate unique email using timestamp to avoid duplicates
-                    final timestamp = DateTime.now().millisecondsSinceEpoch;
-                    controller.emailController.text = 'pasien$timestamp@gmail.com';
                     controller.tempatLahirController.text = 'Malang';
-                    
-                    bool isValid = true;
-                    
-                    if (_namaLengkapController.text.trim().isEmpty) {
-                      setState(() => namaError = 'Nama lengkap harus diisi');
-                      isValid = false;
-                    }
-                    
-                    if (_nikController.text.trim().isEmpty) {
-                      setState(() => nikError = 'NIK harus diisi');
-                      isValid = false;
-                    } else if (_nikController.text.trim().length != 16) {
-                      setState(() => nikError = 'NIK harus 16 digit');
-                      isValid = false;
-                    }
-                    
-                    if (_alamatController.text.trim().isEmpty) {
-                      setState(() => alamatError = 'Alamat harus diisi');
-                      isValid = false;
-                    } else if (_alamatController.text.trim().length < 10) {
-                      setState(() => alamatError = 'Alamat minimal 10 karakter');
-                      isValid = false;
-                    }
-                    
-                    if (_noHpController.text.trim().isEmpty) {
-                      setState(() => noHpError = 'Nomor HP harus diisi');
-                      isValid = false;
-                    } else if (_noHpController.text.trim().length < 10 || _noHpController.text.trim().length > 13) {
-                      setState(() => noHpError = 'Nomor HP tidak valid (10-13 digit)');
-                      isValid = false;
-                    } else if (!RegExp(r'^\d+$').hasMatch(_noHpController.text.trim())) {
-                      setState(() => noHpError = 'Nomor HP hanya boleh angka');
-                      isValid = false;
-                    }
-                    
-                    if (_tanggalLahirController.text.trim().isEmpty) {
-                      setState(() => tanggalLahirError = 'Tanggal lahir harus diisi');
-                      isValid = false;
-                    }
-                    
-                    if (_jenisKelamin.isEmpty) {
-                      setState(() => jenisKelaminError = 'Pilih jenis kelamin');
-                      isValid = false;
-                    }
-                    
-                    if (_kataSandiController.text.trim().isEmpty) {
-                      setState(() => kataSandiError = 'Kata sandi harus diisi');
-                      isValid = false;
-                    } else if (_kataSandiController.text.length < 8) {
-                      setState(() => kataSandiError = 'Kata sandi minimal 8 karakter');
-                      isValid = false;
-                    }
-                    
-                    if (_konfirmasiKataSandiController.text.trim().isEmpty) {
-                      setState(() => konfirmasiKataSandiError = 'Konfirmasi kata sandi harus diisi');
-                      isValid = false;
-                    } else if (_konfirmasiKataSandiController.text != _kataSandiController.text) {
-                      setState(() => konfirmasiKataSandiError = 'Kata sandi tidak cocok');
-                      isValid = false;
-                    }
-                    
-                    if (!isValid) {
-                      // Show general error message
-                      Get.snackbar(
-                        'Validasi Gagal',
-                        'Silakan isi semua field sesuai ketentuan',
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,
-                        icon: const Icon(Icons.error_outline, color: Colors.white),
-                        snackPosition: SnackPosition.TOP,
-                        margin: const EdgeInsets.all(16),
-                        borderRadius: 8,
-                        duration: const Duration(seconds: 3),
-                      );
-                      return;
-                    }
                     
                     setState(() => _isLoading = true);
                     

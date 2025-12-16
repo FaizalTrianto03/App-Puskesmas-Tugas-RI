@@ -23,10 +23,16 @@ import '../modules/pasien/dashboard/views/pasien_dashboard_view.dart';
 // Pasien
 import '../modules/pasien/login/bindings/pasien_login_binding.dart';
 import '../modules/pasien/login/views/pasien_login_view.dart';
+import '../modules/pasien/pendaftaran/bindings/pendaftaran_binding.dart';
 import '../modules/pasien/pendaftaran/views/pasien_pendaftaran_view.dart';
+import '../modules/pasien/profile/bindings/pasien_profile_binding.dart';
+import '../modules/pasien/profile/views/pasien_profile_view.dart';
 import '../modules/pasien/register/bindings/pasien_register_binding.dart';
 import '../modules/pasien/register/views/pasien_register_view.dart';
 import '../modules/pasien/riwayat/views/riwayat_kunjungan_view.dart';
+import '../modules/pasien/settings/bindings/pasien_settings_binding.dart';
+import '../modules/pasien/settings/views/kelola_data_diri_view.dart';
+import '../modules/pasien/settings/views/kelola_kata_sandi_view.dart';
 import '../modules/pasien/settings/views/pasien_settings_view.dart';
 import '../modules/perawat/dashboard/bindings/perawat_dashboard_binding.dart';
 import '../modules/perawat/dashboard/views/perawat_dashboard_view.dart';
@@ -142,10 +148,27 @@ class AppPages {
     GetPage(
       name: _Paths.pasienPendaftaran,
       page: () => const PasienPendaftaranView(),
+      binding: PendaftaranBinding(),
+    ),
+    GetPage(
+      name: _Paths.pasienProfile,
+      page: () => const PasienProfileView(),
+      binding: PasienProfileBinding(),
     ),
     GetPage(
       name: _Paths.pasienSettings,
       page: () => const PasienSettingsView(),
+      binding: PasienSettingsBinding(),
+    ),
+    GetPage(
+      name: _Paths.pasienKelolaDataDiri,
+      page: () => const KelolaDataDiriView(),
+      binding: PasienSettingsBinding(),
+    ),
+    GetPage(
+      name: _Paths.pasienKelolaKataSandi,
+      page: () => const KelolaKataSandiView(),
+      binding: PasienSettingsBinding(),
     ),
     GetPage(
       name: _Paths.pasienRiwayat,

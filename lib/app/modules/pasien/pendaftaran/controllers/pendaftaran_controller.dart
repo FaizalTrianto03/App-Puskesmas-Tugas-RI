@@ -1,15 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../data/services/antrian/antrian_service.dart';
-import '../../../../data/services/auth/session_service.dart';
+import '../../../../data/services/firestore/antrian_firestore_service.dart';
+import '../../../../data/services/firestore/user_profile_firestore_service.dart';
 import '../../../../routes/app_pages.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../dashboard/controllers/pasien_dashboard_controller.dart';
 
 class PendaftaranController extends GetxController {
-  final AntreanService _antreanService = Get.find<AntreanService>();
-  final SessionService _sessionService = Get.find<SessionService>();
+  final AntrianFirestoreService _antrianService = AntrianFirestoreService();
+  final UserProfileFirestoreService _profileService = UserProfileFirestoreService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final formKey = GlobalKey<FormState>();
   
@@ -43,18 +45,24 @@ class PendaftaranController extends GetxController {
     super.onClose();
   }
 
-  void _checkActiveQueue() {
-    final pasienId = _sessionService.getUserId();
-    if (pasienId == null) return;
+  void _checkActiveQueue() async {
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) return;
     
-    final activeQueue = _antreanService.getActiveAntrianByPasienId(pasienId);
-    if (activeQueue != null) {
-      SnackbarHelper.showWarning(
-        'Anda masih memiliki antrian aktif (${activeQueue['queueNumber']})',
-      );
-      Future.delayed(Duration(seconds: 2), () {
-        Get.offAllNamed(Routes.pasienDashboard);
-      });
+    try {
+      // Check if user has active queue using getActiveAntrian
+      final activeAntrian = await _antrianService.getActiveAntrian();
+      
+      if (activeAntrian != null) {
+        SnackbarHelper.showWarning(
+          'Anda masih memiliki antrian aktif (${activeAntrian.queueNumber})',
+        );
+        Future.delayed(Duration(seconds: 2), () {
+          Get.offAllNamed(Routes.pasienDashboard);
+        });
+      }
+    } catch (e) {
+      print('Error checking active queue: $e');
     }
   }
 
@@ -108,32 +116,37 @@ class PendaftaranController extends GetxController {
       return;
     }
 
-    final pasienId = _sessionService.getUserId();
-    final namaLengkap = _sessionService.getNamaLengkap();
-    
-    if (pasienId == null || namaLengkap == null) {
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) {
       SnackbarHelper.showError('Sesi tidak valid, silakan login kembali');
       Get.offAllNamed(Routes.pasienLogin);
-      return;
-    }
-
-    final activeQueue = _antreanService.getActiveAntrianByPasienId(pasienId);
-    if (activeQueue != null) {
-      SnackbarHelper.showWarning(
-        'Anda masih memiliki antrian aktif (${activeQueue['queueNumber']})',
-      );
       return;
     }
 
     isLoading.value = true;
 
     try {
-      final noRekamMedis = 'RM${pasienId.substring(1)}';
+      // Get user profile
+      final profile = await _profileService.getUserProfile();
+      if (profile == null) {
+        throw Exception('Profile tidak ditemukan');
+      }
+
+      // Check active queue
+      final activeAntrian = await _antrianService.getActiveAntrian();
       
-      final antrian = await _antreanService.createAntrian(
-        pasienId: pasienId,
-        namaLengkap: namaLengkap,
-        noRekamMedis: noRekamMedis,
+      if (activeAntrian != null) {
+        isLoading.value = false;
+        SnackbarHelper.showWarning(
+          'Anda masih memiliki antrian aktif (${activeAntrian.queueNumber})'
+        );
+        return;
+      }
+
+      // Create antrian
+      await _antrianService.createAntrian(
+        namaLengkap: profile.namaLengkap,
+        noRekamMedis: profile.noRekamMedis ?? 'RM-${userId.substring(0, 8)}',
         jenisLayanan: selectedLayanan.value,
         keluhan: keluhanController.text.trim(),
         nomorBPJS: useBPJS.value ? nomorBPJSController.text.trim() : null,
@@ -141,14 +154,11 @@ class PendaftaranController extends GetxController {
 
       isLoading.value = false;
 
-      SnackbarHelper.showSuccess(
-        'Pendaftaran Berhasil! Nomor antrian: ${antrian['queueNumber']}',
-      );
+      SnackbarHelper.showSuccess('Pendaftaran Berhasil!');
 
       await Future.delayed(Duration(milliseconds: 500));
       
       Get.delete<PasienDashboardController>();
-      
       Get.offAllNamed(Routes.pasienDashboard);
       
     } catch (e) {

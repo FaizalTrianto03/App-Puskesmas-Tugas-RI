@@ -3,8 +3,9 @@ import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
+import '../controllers/status_antrean_controller.dart';
 
-class StatusAntreanView extends StatelessWidget {
+class StatusAntreanView extends GetView<StatusAntreanController> {
   final bool hasActiveQueue;
   
   const StatusAntreanView({Key? key, this.hasActiveQueue = false}) : super(key: key);
@@ -297,25 +298,25 @@ class StatusAntreanView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildDetailRow('Nama:', 'Anisa Ayu'),
+                    Obx(() => _buildDetailRow('Nama:', controller.userProfile.value?.namaLengkap ?? 'Memuat...')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('NIK:', '20221037031009'),
+                    Obx(() => _buildDetailRow('NIK:', controller.userProfile.value?.nik ?? 'Memuat...')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Tanggal Lahir:', '09/09/2003'),
+                    Obx(() => _buildDetailRow('Tanggal Lahir:', controller.userProfile.value?.tanggalLahir ?? 'Memuat...')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Jenis Kelamin:', 'Perempuan'),
+                    Obx(() => _buildDetailRow('Jenis Kelamin:', controller.userProfile.value?.jenisKelamin == 'L' ? 'Laki-laki' : 'Perempuan')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('No. HP:', '081234567899'),
+                    Obx(() => _buildDetailRow('No. HP:', controller.userProfile.value?.noHp ?? 'Memuat...')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Alamat:', 'Jln. Tirto Mulyo, Dau, Malang'),
+                    Obx(() => _buildDetailRow('Alamat:', controller.userProfile.value?.alamat ?? 'Memuat...')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Poli Tujuan:', 'Poli Gigi'),
+                    Obx(() => _buildDetailRow('Poli Tujuan:', controller.antrianData.value?.jenisLayanan ?? 'Memuat...')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Dokter:', 'dr. Nisa Ayu'),
+                    Obx(() => _buildDetailRow('Dokter:', _getDokterByPoli(controller.antrianData.value?.jenisLayanan ?? ''))),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Tanggal:', '24 November 2025'),
+                    Obx(() => _buildDetailRow('Tanggal:', controller.antrianData.value != null ? _formatDate(controller.antrianData.value!.createdAt) : 'Memuat...')),
                     const Divider(height: 16, thickness: 0.5, color: Color(0xFFE2E8F0)),
-                    _buildDetailRow('Waktu Daftar:', '08:30 WIB'),
+                    Obx(() => _buildDetailRow('Waktu Daftar:', controller.antrianData.value != null ? _formatTime(controller.antrianData.value!.createdAt) : 'Memuat...')),
                   ],
                 ),
               ),
@@ -382,16 +383,38 @@ class StatusAntreanView extends StatelessWidget {
               color: Color(0xFF64748B),
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF1E293B),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1E293B),
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+  
+  String _getDokterByPoli(String poli) {
+    if (poli.contains('Umum')) return 'dr. Faizal Qadri';
+    if (poli.contains('Gigi')) return 'drg. Nisa Ayu';
+    if (poli.contains('KIA') || poli.contains('KB')) return 'dr. Siti Nurhaliza';
+    if (poli.contains('Lansia')) return 'dr. Ahmad Dahlan';
+    if (poli.contains('Imunisasi')) return 'dr. Kartini Wijaya';
+    return '-';
+  }
+  
+  String _formatDate(DateTime date) {
+    final months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+  
+  String _formatTime(DateTime date) {
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} WIB';
   }
 }

@@ -132,12 +132,19 @@ class PasienRegisterController extends GetxController {
     final konfirmasiPasswordError = validateKonfirmasiPassword(konfirmasiPasswordController.text);
     final jenisKelaminValid = validateJenisKelaminField();
     
-    // Cek jika ada error
+    // Cek jika ada error dan tampilkan error spesifik
     if (namaError != null || nikError != null || tempatLahirError != null || 
         tanggalLahirError != null || !jenisKelaminValid || alamatError != null || 
         noHpError != null || emailError != null || passwordError != null || 
         konfirmasiPasswordError != null) {
-      SnackbarHelper.showError('Silakan isi semua field sesuai ketentuan');
+      
+      // Tampilkan error pertama yang ditemukan
+      String errorMessage = namaError ?? nikError ?? tempatLahirError ?? 
+                           tanggalLahirError ?? alamatError ?? noHpError ?? 
+                           emailError ?? passwordError ?? konfirmasiPasswordError ?? 
+                           jenisKelaminError.value ?? 'Silakan isi semua field sesuai ketentuan';
+      
+      SnackbarHelper.showError(errorMessage);
       return;
     }
     

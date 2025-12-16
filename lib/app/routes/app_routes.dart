@@ -35,7 +35,10 @@ abstract class Routes {
   static const pasienRegister = _Paths.pasienRegister;
   static const pasienDashboard = _Paths.pasienDashboard;
   static const pasienPendaftaran = _Paths.pasienPendaftaran;
+  static const pasienProfile = _Paths.pasienProfile;
   static const pasienSettings = _Paths.pasienSettings;
+  static const pasienKelolaDataDiri = _Paths.pasienKelolaDataDiri;
+  static const pasienKelolaKataSandi = _Paths.pasienKelolaKataSandi;
   static const pasienRiwayat = _Paths.pasienRiwayat;
 }
 
@@ -69,10 +72,13 @@ abstract class _Paths {
   static const apotekerDashboard = '/apoteker/dashboard';
 
   // Pasien
-  static const pasienLogin = '/pasien/login';
-  static const pasienRegister = '/pasien/register';
-  static const pasienDashboard = '/pasien/dashboard';
-  static const pasienPendaftaran = '/pasien/pendaftaran';
-  static const pasienSettings = '/pasien/settings';
-  static const pasienRiwayat = '/pasien/riwayat';
+  static const pasienLogin = '/pasien-login';
+  static const pasienRegister = '/pasien-register';
+  static const pasienDashboard = '/pasien-dashboard';
+  static const pasienPendaftaran = '/pasien-pendaftaran';
+  static const pasienProfile = '/pasien-profile';
+  static const pasienSettings = '/pasien-settings';
+  static const pasienKelolaDataDiri = '/pasien-kelola-data-diri';
+  static const pasienKelolaKataSandi = '/pasien-kelola-kata-sandi';
+  static const pasienRiwayat = '/pasien-riwayat';
 }

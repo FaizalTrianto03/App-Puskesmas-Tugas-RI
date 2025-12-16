@@ -4,16 +4,12 @@ import 'package:get/get.dart';
 import '../../../../utils/confirmation_dialog.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../controllers/pasien_settings_controller.dart';
-import 'kelola_data_diri_view.dart';
-import 'kelola_kata_sandi_view.dart';
 
 class PasienSettingsView extends GetView<PasienSettingsController> {
   const PasienSettingsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Inject controller
-    Get.lazyPut(() => PasienSettingsController());
     
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -78,20 +74,22 @@ class PasienSettingsView extends GetView<PasienSettingsController> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
+                          Expanded(
+                            child: Obx(() => Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Anisa Ayu',
-                                  style: TextStyle(
+                                  controller.userName.value.isEmpty
+                                    ? 'Memuat...'
+                                    : controller.userName.value,
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
                                 ),
-                                SizedBox(height: 4),
-                                Text(
+                                const SizedBox(height: 4),
+                                const Text(
                                   'Pasien',
                                   style: TextStyle(
                                     fontSize: 14,
@@ -99,7 +97,7 @@ class PasienSettingsView extends GetView<PasienSettingsController> {
                                   ),
                                 ),
                               ],
-                            ),
+                            )),
                           ),
                         ],
                       ),
@@ -119,26 +117,12 @@ class PasienSettingsView extends GetView<PasienSettingsController> {
                     _buildMenuItem(
                       icon: Icons.person_outline,
                       title: 'Kelola Data Diri',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const KelolaDataDiriView(),
-                          ),
-                        );
-                      },
+                      onTap: () => Get.toNamed('/pasien-kelola-data-diri'),
                     ),
                     _buildMenuItem(
                       icon: Icons.vpn_key_outlined,
                       title: 'Kelola Kata Sandi',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const KelolaKataSandiView(),
-                          ),
-                        );
-                      },
+                      onTap: () => Get.toNamed('/pasien-kelola-kata-sandi'),
                     ),
                     const SizedBox(height: 24),
                     _buildMenuItem(

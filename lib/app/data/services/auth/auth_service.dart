@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_storage/get_storage.dart';
+
 import '../user/user_service.dart';
 import 'session_service.dart';
 
@@ -118,6 +119,7 @@ class AuthService {
       }
 
       // Sign in with Firebase Auth
+      print('AuthService: Attempting Firebase Auth signIn for email: $email');
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -127,6 +129,18 @@ class AuthService {
         throw Exception('Login gagal');
       }
 
+      print('AuthService: Firebase Auth successful');
+      print('AuthService: Firebase UID: ${userCredential.user!.uid}');
+      print('AuthService: Firestore document ID: ${userData['id']}');
+      
+      // IMPORTANT: Check if Firebase UID matches Firestore document ID
+      if (userCredential.user!.uid != userData['id']) {
+        print('WARNING: Firebase UID does not match Firestore document ID!');
+        print('  Firebase UID: ${userCredential.user!.uid}');
+        print('  Firestore ID: ${userData['id']}');
+        // This will cause getUserProfile() to fail!
+      }
+
       // Save session
       await _sessionService.saveUserSession(
         userId: userData['id'],
@@ -134,6 +148,8 @@ class AuthService {
         email: userData['email'],
         role: userData['role'],
       );
+      
+      print('AuthService: Session saved successfully');
 
       // Save credentials if remember me is enabled
       if (rememberMe) {
@@ -416,9 +432,16 @@ class AuthService {
         });
       }
 
-      // Save to Firestore
-      final docRef = await _firestore.collection('users').add(userData);
-      userData['id'] = docRef.id;
+      // Save to Firestore using Firebase UID as document ID
+      final userId = userCredential.user!.uid;
+      await _firestore.collection('users').doc(userId).set(userData);
+      userData['id'] = userId;
+      
+      print('AuthService: User registered successfully');
+      print('  Firebase UID: $userId');
+      print('  Firestore Document ID: $userId');
+      print('  Email: $email');
+      print('  Role: $role');
 
       // Sign out the newly created user
       await _auth.signOut();

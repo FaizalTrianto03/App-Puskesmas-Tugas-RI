@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../routes/app_pages.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../layanan_lainnya/views/layanan_lainnya_view.dart';
 import '../../notifikasi/views/notifikasi_list_view.dart';
 import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
-import '../../profile/views/pasien_profile_view.dart';
 import '../../riwayat/views/riwayat_kunjungan_view.dart';
 import '../../status_antrean/views/status_antrean_view.dart';
 import '../controllers/pasien_dashboard_controller.dart';
@@ -216,7 +216,7 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
           onTapDown: (_) => controller.isPressedProfileCard.value = true,
           onTapUp: (_) => controller.isPressedProfileCard.value = false,
           onTapCancel: () => controller.isPressedProfileCard.value = false,
-          onTap: () => Get.to(() => const PasienProfileView()),
+          onTap: () => Get.toNamed(Routes.pasienProfile),
           child: Transform.scale(
             scale:
                 controller.isPressedProfileCard.value
@@ -258,25 +258,27 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
+                  Expanded(
+                    child: Obx(() => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Selamat Datang,',
                           style: TextStyle(fontSize: 14, color: Colors.white),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          'Anisa Ayu',
-                          style: TextStyle(
+                          controller.userName.value.isEmpty 
+                            ? 'Memuat...' 
+                            : controller.userName.value,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
                       ],
-                    ),
+                    )),
                   ),
                   Container(
                     decoration: BoxDecoration(
