@@ -14,25 +14,19 @@ class SessionService {
     required String email,
     required String role,
   }) async {
-    print('SessionService: Saving session...');
     await _box.write('isLoggedIn', true);
     await _box.write('userId', userId);
     await _box.write('namaLengkap', namaLengkap);
     await _box.write('email', email);
     await _box.write('role', role);
-    print('SessionService: Session saved - role=$role, userId=$userId');
   }
 
   bool isLoggedIn() {
-    final value = _box.read('isLoggedIn') ?? false;
-    print('SessionService: isLoggedIn() = $value');
-    return value;
+    return _box.read('isLoggedIn') ?? false;
   }
 
   String? getUserId() {
-    final value = _box.read('userId');
-    print('SessionService: getUserId() = $value');
-    return value;
+    return _box.read('userId');
   }
 
   String? getNamaLengkap() {
@@ -44,9 +38,7 @@ class SessionService {
   }
 
   String? getRole() {
-    final value = _box.read('role');
-    print('SessionService: getRole() = $value');
-    return value;
+    return _box.read('role');
   }
 
   Future<void> clearSession() async {

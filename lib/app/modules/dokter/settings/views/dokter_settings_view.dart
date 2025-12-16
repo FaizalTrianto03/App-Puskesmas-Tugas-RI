@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
-import '../../../../utils/snackbar_helper.dart';
 import '../../../../utils/confirmation_dialog.dart';
-import '../../../../utils/auth_helper.dart';
 import '../controllers/dokter_settings_controller.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
-import '../../../pasien/login/views/staff_selector_view.dart';
 
 class DokterSettingsView extends GetView<DokterSettingsController> {
   const DokterSettingsView({Key? key}) : super(key: key);

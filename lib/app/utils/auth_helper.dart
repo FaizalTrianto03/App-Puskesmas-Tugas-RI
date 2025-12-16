@@ -16,7 +16,7 @@ class AuthHelper {
   static Map<String, dynamic>? get currentSession =>
       _storage.session.getCurrentSession();
 
-  static Map<String, dynamic>? get currentUserData =>
+  static Future<Map<String, dynamic>?> get currentUserData =>
       _storage.user.getCurrentUserData();
 
   static Future<void> syncSession() async {
@@ -24,7 +24,7 @@ class AuthHelper {
   }
 
   static Future<void> logout() async {
-    await _storage.session.clearSession();
+    await _storage.auth.logout();
   }
 
   static Future<bool> updateProfile(Map<String, dynamic> updates) async {
@@ -40,15 +40,13 @@ class AuthHelper {
 
   static Future<bool> changePassword(String oldPassword, String newPassword) async {
     try {
-      final currentUser = currentUserData;
-      if (currentUser == null) return false;
-
-      if (currentUser['password'] != oldPassword) {
-        return false;
-      }
-
-      return await updateProfile({'password': newPassword});
+      await _storage.auth.changePassword(
+        currentPassword: oldPassword,
+        newPassword: newPassword,
+      );
+      return true;
     } catch (e) {
+      print('Change password error: $e');
       return false;
     }
   }

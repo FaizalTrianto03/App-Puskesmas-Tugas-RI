@@ -9,8 +9,6 @@ class KelolaPenggunaListView extends GetView<KelolaPenggunaController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.delete<KelolaPenggunaController>();
-    final controller = Get.put(KelolaPenggunaController());
     return Scaffold(
       backgroundColor: const Color(0xFFF1F9FF),
       appBar: AppBar(

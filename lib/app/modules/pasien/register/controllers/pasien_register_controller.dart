@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../data/services/auth/session_service.dart';
 import '../../../../data/services/storage_service.dart';
 import '../../../../routes/app_pages.dart';
 import '../../../../utils/snackbar_helper.dart';
+import '../../../../utils/validation_helper.dart';
 
 class PasienRegisterController extends GetxController {
-  final StorageService _storageService = StorageService();
-  final SessionService _sessionService = Get.find<SessionService>();
+  final StorageService _storage = StorageService();
   
   // Form controllers
   final namaLengkapController = TextEditingController();
@@ -57,85 +56,42 @@ class PasienRegisterController extends GetxController {
   
   // Validasi Nama Lengkap
   String? validateNamaLengkap(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Nama lengkap harus diisi';
-    }
-    if (value.length < 3) {
-      return 'Nama lengkap minimal 3 karakter';
-    }
-    return null;
+    return ValidationHelper.validateName(value);
   }
   
   // Validasi NIK
   String? validateNIK(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'NIK harus diisi';
-    }
-    if (value.length != 16) {
-      return 'NIK harus 16 digit';
-    }
-    if (!RegExp(r'^\d+$').hasMatch(value)) {
-      return 'NIK hanya boleh angka';
-    }
-    return null;
+    return ValidationHelper.validateNIK(value);
   }
   
   // Validasi Tanggal Lahir
   String? validateTanggalLahir(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Tanggal lahir harus diisi';
-    }
-    return null;
+    return ValidationHelper.validateRequired(value, 'Tanggal lahir');
   }
   
   // Validasi Tempat Lahir
   String? validateTempatLahir(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Tempat lahir harus diisi';
-    }
-    return null;
+    return ValidationHelper.validateRequired(value, 'Tempat lahir');
   }
   
   // Validasi Alamat
   String? validateAlamat(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Alamat harus diisi';
-    }
-    if (value.length < 10) {
-      return 'Alamat minimal 10 karakter';
-    }
-    return null;
+    return ValidationHelper.validateAddress(value);
   }
   
   // Validasi No HP
   String? validateNoHp(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Nomor HP harus diisi';
-    }
-    if (value.length < 10 || value.length > 13) {
-      return 'Nomor HP tidak valid (10-13 digit)';
-    }
-    if (!RegExp(r'^\d+$').hasMatch(value)) {
-      return 'Nomor HP hanya boleh angka';
-    }
-    return null;
+    return ValidationHelper.validatePhoneNumber(value);
   }
   
   // Validasi Email
   String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email harus diisi';
-    }
+    // Basic email validation
+    final basicError = ValidationHelper.validateEmail(value);
+    if (basicError != null) return basicError;
     
-    // Validasi format email
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) {
-      return 'Format email tidak valid';
-    }
-    
-    // Validasi Gmail untuk pasien
-    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
-    if (!gmailRegex.hasMatch(value)) {
+    // Additional validation: must be Gmail for patients
+    if (value != null && !value.toLowerCase().endsWith('@gmail.com')) {
       return 'Email harus menggunakan Gmail (@gmail.com)';
     }
     
@@ -144,24 +100,12 @@ class PasienRegisterController extends GetxController {
   
   // Validasi Password
   String? validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Kata sandi harus diisi';
-    }
-    if (value.length < 8) {
-      return 'Kata sandi minimal 8 karakter';
-    }
-    return null;
+    return ValidationHelper.validatePassword(value);
   }
   
   // Validasi Konfirmasi Password
   String? validateKonfirmasiPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Konfirmasi kata sandi harus diisi';
-    }
-    if (value != passwordController.text) {
-      return 'Kata sandi tidak cocok';
-    }
-    return null;
+    return ValidationHelper.validatePasswordConfirmation(value, passwordController.text);
   }
   
   // Validasi Jenis Kelamin
@@ -188,83 +132,62 @@ class PasienRegisterController extends GetxController {
     final konfirmasiPasswordError = validateKonfirmasiPassword(konfirmasiPasswordController.text);
     final jenisKelaminValid = validateJenisKelaminField();
     
-    // Cek jika ada error - error sudah ditampilkan di field
+    // Cek jika ada error
     if (namaError != null || nikError != null || tempatLahirError != null || 
         tanggalLahirError != null || !jenisKelaminValid || alamatError != null || 
         noHpError != null || emailError != null || passwordError != null || 
         konfirmasiPasswordError != null) {
-      // Show general error message for clarity
       SnackbarHelper.showError('Silakan isi semua field sesuai ketentuan');
-      return; // Validasi gagal, error sudah muncul di field
+      return;
     }
     
     try {
       isLoading.value = true;
       
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Cek apakah email sudah terdaftar
-      final existingUser = _storageService.findUserByEmail(emailController.text.trim());
-      if (existingUser != null) {
-        SnackbarHelper.showError('Email sudah terdaftar');
-        isLoading.value = false;
-        return;
-      }
-      
-      // Generate user ID
-      final allUsers = _storageService.getAllUsers();
-      final newId = 'P${(allUsers.length + 1).toString().padLeft(3, '0')}';
-      
-      // Generate No Rekam Medis
-      final noRekamMedis = 'RM${(allUsers.length + 1).toString().padLeft(3, '0')}';
-      
-      // Buat user baru
-      final newUser = {
-        'id': newId,
-        'namaLengkap': namaLengkapController.text.trim(),
-        'nik': nikController.text.trim(),
-        'tempatLahir': tempatLahirController.text.trim(),
-        'tanggalLahir': tanggalLahirController.text.trim(),
-        'jenisKelamin': selectedJenisKelamin.value,
-        'alamat': alamatController.text.trim(),
-        'noHp': noHpController.text.trim(),
-        'email': emailController.text.trim(),
-        'password': passwordController.text,
-        'role': 'pasien',
-        'noRekamMedis': noRekamMedis,
-        'createdAt': DateTime.now().toIso8601String(),
-      };
-      
-      // Simpan ke database
-      await _storageService.addUser(newUser);
-      
-      // Simpan session langsung
-      await _sessionService.saveUserSession(
-        userId: newId,
-        namaLengkap: namaLengkapController.text.trim(),
+      // Register user using AuthService with self-registration
+      final userData = await _storage.auth.registerUser(
         email: emailController.text.trim(),
+        password: passwordController.text,
+        namaLengkap: namaLengkapController.text.trim(),
         role: 'pasien',
+        nik: nikController.text.trim(),
+        noHp: noHpController.text.trim(),
+        jenisKelamin: selectedJenisKelamin.value!,
+        tanggalLahir: tanggalLahirController.text.trim(),
+        alamat: alamatController.text.trim(),
+        additionalData: {
+          'tempatLahir': tempatLahirController.text.trim(),
+          'noRekamMedis': 'RM${DateTime.now().millisecondsSinceEpoch}', // Generate unique RM number
+        },
       );
       
-      // Simpan data user lengkap
-      await _sessionService.saveUserData(newId, newUser);
-      
-      isLoading.value = false;
-      
-      // Clear form
-      _clearForm();
-      
-      // Navigate to dashboard (langsung login)
-      Get.offAllNamed(Routes.pasienDashboard);
-      
-      SnackbarHelper.showSuccess(
-        'Pendaftaran berhasil! Selamat datang di Puskesmas Dau.',
-      );
+      if (userData != null) {
+        // Login immediately after registration
+        final loginResult = await _storage.auth.login(
+          email: emailController.text.trim(),
+          password: passwordController.text,
+          role: 'pasien',
+          rememberMe: false,
+        );
+        
+        isLoading.value = false;
+        
+        if (loginResult != null) {
+          _clearForm();
+          Get.offAllNamed(Routes.pasienDashboard);
+          SnackbarHelper.showSuccess(
+            'Pendaftaran berhasil! Selamat datang di Puskesmas Dau.',
+          );
+        }
+      } else {
+        isLoading.value = false;
+        SnackbarHelper.showError('Pendaftaran gagal');
+      }
       
     } catch (e) {
       isLoading.value = false;
-      SnackbarHelper.showError('Terjadi kesalahan: $e');
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      SnackbarHelper.showError(errorMessage);
     }
   }
   

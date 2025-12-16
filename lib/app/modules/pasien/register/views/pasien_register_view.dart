@@ -72,8 +72,8 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   void initState() {
     super.initState();
     
-    // Initialize controller
-    controller = Get.put(PasienRegisterController());
+    // Get controller from binding
+    controller = Get.find<PasienRegisterController>();
     
     _namaLengkapController.clear();
     _nikController.clear();

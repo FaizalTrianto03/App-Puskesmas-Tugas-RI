@@ -14,8 +14,8 @@ class DokterSettingsController extends GetxController {
     loadUserData();
   }
 
-  void loadUserData() {
-    final userData = AuthHelper.currentUserData;
+  Future<void> loadUserData() async {
+    final userData = await AuthHelper.currentUserData;
     if (userData != null) {
       userName.value = userData['namaLengkap'] ?? '';
       userRole.value = _formatRole(userData['role'] ?? '');

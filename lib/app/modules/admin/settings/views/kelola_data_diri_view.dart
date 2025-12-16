@@ -12,8 +12,6 @@ class KelolaDataDiriView extends GetView<KelolaDataDiriController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.delete<KelolaDataDiriController>();
-    final controller = Get.put(KelolaDataDiriController());
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.backgroundLight,

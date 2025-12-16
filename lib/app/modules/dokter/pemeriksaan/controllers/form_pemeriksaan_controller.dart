@@ -134,7 +134,7 @@ class FormPemeriksaanController extends GetxController {
         isLoading.value = true;
 
         // Get nama dokter dari session
-        final userData = AuthHelper.currentUserData;
+        final userData = await AuthHelper.currentUserData;
         final namaDokter = userData?['namaLengkap'] ?? 'Dokter';
 
         // Prepare data

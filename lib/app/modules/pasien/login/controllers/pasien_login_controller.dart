@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../data/services/storage_service.dart';
+import '../../../../utils/snackbar_helper.dart';
 import '../../../../routes/app_pages.dart';
 
 class PasienLoginController extends GetxController with GetSingleTickerProviderStateMixin {
+  
+  final StorageService _storage = StorageService();
   
   // Form controllers
   final usernameController = TextEditingController();
@@ -42,6 +46,9 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
     passwordError.value = null;
     rememberMe.value = false;
     isPasswordVisible.value = false;
+    
+    // Check for auto-login
+    _checkAutoLogin();
   }
   
   @override
@@ -50,6 +57,20 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
     usernameController.dispose();
     passwordController.dispose();
     super.onClose();
+  }
+  
+  Future<void> _checkAutoLogin() async {
+    try {
+      final savedCredentials = await _storage.auth.getSavedCredentials();
+      if (savedCredentials != null && savedCredentials['role'] == 'pasien') {
+        usernameController.text = savedCredentials['email']!;
+        passwordController.text = savedCredentials['password']!;
+        rememberMe.value = true;
+        await login();
+      }
+    } catch (e) {
+      print('Auto-login error: $e');
+    }
   }
   
   void togglePasswordVisibility() {
@@ -81,11 +102,15 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
   }
   
   Future<void> login() async {
+    // Clear previous errors
+    usernameError.value = null;
+    passwordError.value = null;
+    
     // Validasi field harus diisi
     bool isValid = true;
     
     if (usernameController.text.trim().isEmpty) {
-      usernameError.value = 'Username atau NIK wajib diisi';
+      usernameError.value = 'Email wajib diisi';
       isValid = false;
     }
     
@@ -100,10 +125,31 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
     
     isLoading.value = true;
     
-    await Future.delayed(const Duration(seconds: 2));
-    
-    isLoading.value = false;
-    Get.offAllNamed(Routes.pasienDashboard);
+    try {
+      final email = usernameController.text.trim();
+      final password = passwordController.text;
+      
+      // Login using AuthService
+      final userData = await _storage.auth.login(
+        email: email,
+        password: password,
+        role: 'pasien',
+        rememberMe: rememberMe.value,
+      );
+      
+      if (userData != null) {
+        SnackbarHelper.showSuccess('Selamat datang, ${userData['namaLengkap']}!');
+        usernameController.clear();
+        passwordController.clear();
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.offAllNamed(Routes.pasienDashboard);
+      }
+    } catch (e) {
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      SnackbarHelper.showError(errorMessage);
+    } finally {
+      isLoading.value = false;
+    }
   }
   
   // Navigate to Register

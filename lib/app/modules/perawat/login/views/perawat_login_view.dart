@@ -13,8 +13,6 @@ class PerawatLoginView extends GetView<PerawatLoginController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.delete<PerawatLoginController>();
-    final controller = Get.put(PerawatLoginController());
     return Scaffold(
       body: Container(
         width: double.infinity,

@@ -14,8 +14,8 @@ class AdminSettingsController extends GetxController {
     loadUserData();
   }
   
-  void loadUserData() {
-    final userData = AuthHelper.currentUserData;
+  Future<void> loadUserData() async {
+    final userData = await AuthHelper.currentUserData;
     if (userData != null) {
       userName.value = userData['namaLengkap'] ?? 'Admin';
       userEmail.value = userData['email'] ?? '-';

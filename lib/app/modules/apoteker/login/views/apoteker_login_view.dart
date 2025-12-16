@@ -13,8 +13,6 @@ class ApotekerLoginView extends GetView<ApotekerLoginController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.delete<ApotekerLoginController>();
-    final controller = Get.put(ApotekerLoginController());
     return Scaffold(
       body: Container(
         width: double.infinity,
