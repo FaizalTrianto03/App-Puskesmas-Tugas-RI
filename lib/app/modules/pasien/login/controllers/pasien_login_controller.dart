@@ -1,26 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../data/services/auth/session_service.dart';
-import '../../../../data/services/storage_service.dart';
 import '../../../../routes/app_pages.dart';
-import '../../../../utils/snackbar_helper.dart';
 
-class PasienLoginController extends GetxController {
-  final StorageService _storageService = StorageService();
-  final SessionService _sessionService = Get.find<SessionService>();
+class PasienLoginController extends GetxController with GetSingleTickerProviderStateMixin {
   
   // Form controllers
-  final emailController = TextEditingController();
+  final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+  
+  // Animation controller
+  late AnimationController animationController;
+  late Animation<double> fadeAnimation;
   
   // Observable states
   final isLoading = false.obs;
   final isPasswordVisible = false.obs;
+  final rememberMe = false.obs;
+  final usernameError = Rxn<String>();
+  final passwordError = Rxn<String>();
+  final isHoverDaftar = false.obs;
+  final isPressedDaftar = false.obs;
+  
+  @override
+  void onInit() {
+    super.onInit();
+    // Initialize animation
+    animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: animationController, curve: Curves.easeIn),
+    );
+    animationController.forward();
+    
+    // Clear fields
+    usernameController.clear();
+    passwordController.clear();
+    usernameError.value = null;
+    passwordError.value = null;
+    rememberMe.value = false;
+    isPasswordVisible.value = false;
+  }
   
   @override
   void onClose() {
-    emailController.dispose();
+    animationController.dispose();
+    usernameController.dispose();
     passwordController.dispose();
     super.onClose();
   }
@@ -29,126 +56,54 @@ class PasienLoginController extends GetxController {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
   
-  // Validasi Email
-  String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Email harus diisi';
-    }
-    
-    // Validasi format email
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) {
-      return 'Format email tidak valid';
-    }
-    
-    // Validasi Gmail untuk pasien
-    final gmailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
-    if (!gmailRegex.hasMatch(value)) {
-      return 'Email harus menggunakan Gmail (@gmail.com)';
-    }
-    
-    return null;
+  void toggleRememberMe(bool? value) {
+    rememberMe.value = value ?? false;
   }
   
-  // Validasi Password
-  String? validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Kata sandi harus diisi';
-    }
-    
-    if (value.length < 8) {
-      return 'Kata sandi minimal 8 karakter';
-    }
-    
-    return null;
+  void setHoverDaftar(bool value) {
+    isHoverDaftar.value = value;
   }
   
-  // Login Function
+  void setPressedDaftar(bool value) {
+    isPressedDaftar.value = value;
+  }
+  
+  void clearUsernameError() {
+    if (usernameError.value != null && usernameController.text.trim().isNotEmpty) {
+      usernameError.value = null;
+    }
+  }
+  
+  void clearPasswordError() {
+    if (passwordError.value != null && passwordController.text.trim().isNotEmpty) {
+      passwordError.value = null;
+    }
+  }
+  
   Future<void> login() async {
-    // Validasi input
-    final emailError = validateEmail(emailController.text.trim());
-    final passwordError = validatePassword(passwordController.text);
+    // Validasi field harus diisi
+    bool isValid = true;
     
-    if (emailError != null) {
-      SnackbarHelper.showError(emailError);
+    if (usernameController.text.trim().isEmpty) {
+      usernameError.value = 'Username atau NIK wajib diisi';
+      isValid = false;
+    }
+    
+    if (passwordController.text.trim().isEmpty) {
+      passwordError.value = 'Kata sandi wajib diisi';
+      isValid = false;
+    }
+    
+    if (!isValid) {
       return;
     }
     
-    if (passwordError != null) {
-      SnackbarHelper.showError(passwordError);
-      return;
-    }
+    isLoading.value = true;
     
-    try {
-      isLoading.value = true;
-      
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Cari user di database dummy
-      final user = _storageService.findUserByEmail(emailController.text.trim());
-      
-      if (user == null) {
-        SnackbarHelper.showError('Email tidak terdaftar');
-        isLoading.value = false;
-        return;
-      }
-      
-      // Validasi password
-      if (user['password'] != passwordController.text) {
-        SnackbarHelper.showError('Kata sandi salah');
-        isLoading.value = false;
-        return;
-      }
-      
-      // Validasi role
-      if (user['role'] != 'pasien') {
-        SnackbarHelper.showError('Akun ini bukan akun pasien');
-        isLoading.value = false;
-        return;
-      }
-      
-      // Simpan session
-      await _sessionService.saveUserSession(
-        userId: user['id'],
-        namaLengkap: user['namaLengkap'],
-        email: user['email'],
-        role: user['role'],
-      );
-      
-      // Simpan data user lengkap
-      await _sessionService.saveUserData(user['id'], user);
-      
-      // Tunggu sebentar untuk memastikan session tersimpan
-      await Future.delayed(const Duration(milliseconds: 100));
-      
-      // Verifikasi session tersimpan
-      print('=== PASIEN LOGIN DEBUG ===');
-      print('User role dari DB: ${user['role']}');
-      print('Session saved - Is logged in: ${_sessionService.isLoggedIn()}');
-      print('Session saved - Role: ${_sessionService.getRole()}');
-      print('Session saved - UserId: ${_sessionService.getUserId()}');
-      print('==========================');
-      
-      // Clear form
-      emailController.clear();
-      passwordController.clear();
-      
-      isLoading.value = false;
-      
-      // Tampilkan pesan sukses
-      SnackbarHelper.showSuccess(
-        'Selamat datang, ${user['namaLengkap']}!',
-      );
-      
-      // Navigate to dashboard - gunakan delay kecil untuk memastikan session tersimpan
-      await Future.delayed(const Duration(milliseconds: 50));
-      Get.offAllNamed(Routes.pasienDashboard);
-      
-    } catch (e) {
-      isLoading.value = false;
-      SnackbarHelper.showError('Terjadi kesalahan: $e');
-    }
+    await Future.delayed(const Duration(seconds: 2));
+    
+    isLoading.value = false;
+    Get.offAllNamed(Routes.pasienDashboard);
   }
   
   // Navigate to Register

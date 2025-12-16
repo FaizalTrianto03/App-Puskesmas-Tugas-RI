@@ -1,31 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../data/services/auth/session_service.dart';
-import '../../../../routes/app_pages.dart';
 import '../../../../utils/confirmation_dialog.dart';
-import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/pasien_settings_controller.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
 
-class PasienSettingsView extends StatefulWidget {
+class PasienSettingsView extends GetView<PasienSettingsController> {
   const PasienSettingsView({Key? key}) : super(key: key);
 
   @override
-  State<PasienSettingsView> createState() => _PasienSettingsViewState();
-}
-
-class _PasienSettingsViewState extends State<PasienSettingsView> {
-  bool _isHoverDataDiri = false;
-  bool _isHoverKataSandi = false;
-  bool _isHoverKeluar = false;
-  bool _isPressedDataDiri = false;
-  bool _isPressedKataSandi = false;
-  bool _isPressedKeluar = false;
-
-  @override
   Widget build(BuildContext context) {
+    // Inject controller
+    Get.lazyPut(() => PasienSettingsController());
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -33,11 +22,10 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.08),
         scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Pengaturan',
@@ -69,6 +57,7 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Profile Card
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -77,9 +66,9 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          CircleAvatar(
+                          const CircleAvatar(
                             radius: 30,
                             backgroundColor: Colors.white,
                             child: Icon(
@@ -88,8 +77,8 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
                               color: Color(0xFF02B1BA),
                             ),
                           ),
-                          SizedBox(width: 12),
-                          Expanded(
+                          const SizedBox(width: 12),
+                          const Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -101,6 +90,14 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
                                     color: Colors.white,
                                   ),
                                 ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Pasien',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -108,6 +105,7 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    // Menu Section
 
                     const Text(
                       'Pengaturan',
@@ -121,39 +119,25 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
                     _buildMenuItem(
                       icon: Icons.person_outline,
                       title: 'Kelola Data Diri',
-                      isHover: _isHoverDataDiri,
-                      isPressed: _isPressedDataDiri,
-                      onHoverChange: (hover) {
-                        setState(() {
-                          _isHoverDataDiri = hover;
-                        });
-                      },
-                      onPressedChange: (pressed) {
-                        setState(() {
-                          _isPressedDataDiri = pressed;
-                        });
-                      },
                       onTap: () {
-                        Get.to(() => const KelolaDataDiriView());
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const KelolaDataDiriView(),
+                          ),
+                        );
                       },
                     ),
                     _buildMenuItem(
                       icon: Icons.vpn_key_outlined,
                       title: 'Kelola Kata Sandi',
-                      isHover: _isHoverKataSandi,
-                      isPressed: _isPressedKataSandi,
-                      onHoverChange: (hover) {
-                        setState(() {
-                          _isHoverKataSandi = hover;
-                        });
-                      },
-                      onPressedChange: (pressed) {
-                        setState(() {
-                          _isPressedKataSandi = pressed;
-                        });
-                      },
                       onTap: () {
-                        Get.to(() => const KelolaKataSandiView());
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const KelolaKataSandiView(),
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 24),
@@ -161,18 +145,6 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
                       icon: Icons.logout,
                       title: 'Keluar',
                       textColor: Colors.red,
-                      isHover: _isHoverKeluar,
-                      isPressed: _isPressedKeluar,
-                      onHoverChange: (hover) {
-                        setState(() {
-                          _isHoverKeluar = hover;
-                        });
-                      },
-                      onPressedChange: (pressed) {
-                        setState(() {
-                          _isPressedKeluar = pressed;
-                        });
-                      },
                       onTap: () => _showLogoutDialog(context),
                     ),
                   ],
@@ -185,30 +157,10 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
-    ConfirmationDialog.show(
-      title: 'Konfirmasi Keluar',
-      message: 'Apakah Anda yakin ingin keluar dari akun?',
-      type: ConfirmationType.danger,
-      confirmText: 'Keluar',
-      cancelText: 'Batal',
-      onConfirm: () async {
-        final sessionService = Get.find<SessionService>();
-        await sessionService.clearSession();
-        SnackbarHelper.showSuccess('Berhasil keluar dari akun');
-        Get.offAllNamed(Routes.splash);
-      },
-    );
-  }
-
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    required bool isHover,
-    required bool isPressed,
-    required Function(bool) onHoverChange,
-    required Function(bool) onPressedChange,
     Color? textColor,
   }) {
     return Container(
@@ -251,6 +203,20 @@ class _PasienSettingsViewState extends State<PasienSettingsView> {
           color: textColor ?? const Color(0xFF02B1BA),
         ),
       ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    ConfirmationDialog.show(
+      title: 'Konfirmasi Keluar',
+      message: 'Apakah Anda yakin ingin keluar dari aplikasi?',
+      confirmText: 'Keluar',
+      cancelText: 'Batal',
+      type: ConfirmationType.danger,
+      onConfirm: () {
+        // Logout menggunakan controller
+        controller.logout();
+      },
     );
   }
 }

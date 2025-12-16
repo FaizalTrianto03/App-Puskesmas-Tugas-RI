@@ -44,7 +44,7 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                     color: Color(0xFF02B1BA),
                     size: 28,
                   ),
-                  onPressed: () => Get.to(() => const NotifikasiListView()),
+                  onPressed: () => Get.to(() => NotifikasiListView()),
                 ),
                 Positioned(
                   right: 8,

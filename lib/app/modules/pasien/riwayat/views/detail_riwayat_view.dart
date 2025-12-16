@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/detail_riwayat_controller.dart';
 
-class DetailRiwayatView extends StatelessWidget {
-  final Map<String, dynamic> data;
-  
-  const DetailRiwayatView({Key? key, required this.data}) : super(key: key);
+class DetailRiwayatView extends GetView<DetailRiwayatController> {
+  const DetailRiwayatView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    Get.put(DetailRiwayatController());
+    return Obx(() => Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
@@ -77,7 +77,7 @@ class DetailRiwayatView extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'No. Kunjungan: ${data['noAntrean']}',
+                            'No. Kunjungan: ${controller.data['noAntrean']}',
                             style: const TextStyle(
                               fontSize: 14,
                               color: Color(0xFF64748B),
@@ -95,8 +95,8 @@ class DetailRiwayatView extends StatelessWidget {
               _buildSection(
                 icon: Icons.medical_services,
                 iconColor: const Color(0xFF02B1BA),
-                title: data['poli'],
-                subtitle: '${data['tanggal']}\n${data['dokter']}',
+                title: controller.data['poli'],
+                subtitle: '${controller.data['tanggal']}\n${controller.data['dokter']}',
               ),
               const SizedBox(height: 16),
 
@@ -105,7 +105,7 @@ class DetailRiwayatView extends StatelessWidget {
                 icon: Icons.edit_note,
                 iconColor: const Color(0xFF02B1BA),
                 title: 'Keluhan Pasien',
-                content: data['keluhan'] ?? 'Pasien mengeluhkan demam, sakit kepala, dan badan terasa lemas sejak dua hari lalu terakhir. Tidak disertai batuk atau pilek, dan belum minum obat sebelumnya.',
+                content: controller.data['keluhan'] ?? 'Pasien mengeluhkan demam, sakit kepala, dan badan terasa lemas sejak dua hari lalu terakhir. Tidak disertai batuk atau pilek, dan belum minum obat sebelumnya.',
               ),
               const SizedBox(height: 16),
 
@@ -208,7 +208,7 @@ class DetailRiwayatView extends StatelessWidget {
                         border: Border.all(color: const Color(0xFFE0E0E0)),
                       ),
                       child: Text(
-                        data['diagnosis'],
+                        controller.data['diagnosis'],
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF1E293B),
@@ -225,12 +225,12 @@ class DetailRiwayatView extends StatelessWidget {
                 icon: Icons.medical_information,
                 iconColor: const Color(0xFF02B1BA),
                 title: 'Tindakan Medis',
-                content: data['tindakan'] ?? 'Pemberian obat antipiretik, vitamin. Istirahat cukup dan konsumsi cairan yang banyak.',
+                content: controller.data['tindakan'] ?? 'Pemberian obat antipiretik, vitamin. Istirahat cukup dan konsumsi cairan yang banyak.',
               ),
               const SizedBox(height: 16),
 
               // Resep Obat
-              if (data['resep'] != null && data['resep'].isNotEmpty) ...[
+              if (controller.data['resep'] != null && controller.data['resep'].isNotEmpty) ...[
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -330,7 +330,7 @@ class DetailRiwayatView extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Jadwal Kontrol
-              if (data['kontrolDate'] != null) ...[
+              if (controller.data['kontrolDate'] != null) ...[
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -366,7 +366,7 @@ class DetailRiwayatView extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              data['kontrolDate'],
+                              controller.data['kontrolDate'],
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -385,7 +385,7 @@ class DetailRiwayatView extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildSection({

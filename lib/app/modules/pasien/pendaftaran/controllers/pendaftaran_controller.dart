@@ -147,7 +147,6 @@ class PendaftaranController extends GetxController {
 
       await Future.delayed(Duration(milliseconds: 500));
       
-      // Delete old dashboard controller to force refresh
       Get.delete<PasienDashboardController>();
       
       Get.offAllNamed(Routes.pasienDashboard);

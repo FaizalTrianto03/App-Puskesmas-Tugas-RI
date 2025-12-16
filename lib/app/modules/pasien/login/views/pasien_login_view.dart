@@ -14,63 +14,8 @@ class PasienLoginView extends GetView<PasienLoginController> {
 
   @override
   Widget build(BuildContext context) {
-    return _PasienLoginViewContent();
-  }
-}
-
-class _PasienLoginViewContent extends StatefulWidget {
-  @override
-  State<_PasienLoginViewContent> createState() => _PasienLoginViewContentState();
-}
-
-class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with SingleTickerProviderStateMixin {
-  late final PasienLoginController controller;
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isPasswordVisible = false;
-  bool _rememberMe = false;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  String? _usernameError;
-  String? _passwordError;
-  bool _isHoverDaftar = false;
-  bool _isPressedDaftar = false;
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize controller
-    controller = Get.put(PasienLoginController());
+    Get.put(PasienLoginController());
     
-    // Clear fields saat halaman dibuka
-    _usernameController.clear();
-    _passwordController.clear();
-    _usernameError = null;
-    _passwordError = null;
-    _rememberMe = false;
-    _isPasswordVisible = false;
-    
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    _usernameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -85,7 +30,7 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
         ),
         child: SafeArea(
           child: FadeTransition(
-            opacity: _fadeAnimation,
+            opacity: controller.fadeAnimation,
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
               child: Column(
@@ -132,8 +77,8 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                   ),
                 ),
                 const SizedBox(height: 8),
-                CustomTextField(
-                  controller: _usernameController,
+                Obx(() => CustomTextField(
+                  controller: controller.usernameController,
                   hintText: 'Masukkan username atau NIK',
                   keyboardType: TextInputType.text,
                   prefixIcon: const Icon(
@@ -143,27 +88,22 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                   backgroundColor: AppColors.white,
                   textColor: Colors.black87,
                   hintColor: Colors.grey,
-                  borderColor: _usernameError != null ? Colors.red : AppColors.white,
-                  borderWidth: _usernameError != null ? 2 : 0,
-                  onChanged: (value) {
-                    if (_usernameError != null && value.trim().isNotEmpty) {
-                      setState(() {
-                        _usernameError = null;
-                      });
-                    }
-                  },
-                ),
-                if (_usernameError != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12, top: 4),
-                    child: Text(
-                      _usernameError!,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 12,
+                  borderColor: controller.usernameError.value != null ? Colors.red : AppColors.white,
+                  borderWidth: controller.usernameError.value != null ? 2 : 0,
+                  onChanged: (value) => controller.clearUsernameError(),
+                )),
+                Obx(() => controller.usernameError.value != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 12, top: 4),
+                      child: Text(
+                        controller.usernameError.value!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  ),
+                    )
+                  : const SizedBox.shrink()),
                 const SizedBox(height: 16),
                 RichText(
                   text: TextSpan(
@@ -181,68 +121,55 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                   ),
                 ),
                 const SizedBox(height: 8),
-                CustomTextField(
-                  controller: _passwordController,
+                Obx(() => CustomTextField(
+                  controller: controller.passwordController,
                   hintText: 'Masukkan kata sandi',
-                  obscureText: !_isPasswordVisible,
+                  obscureText: !controller.isPasswordVisible.value,
                   prefixIcon: const Icon(
                     Icons.lock_outline,
                     color: Colors.grey,
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isPasswordVisible
+                      controller.isPasswordVisible.value
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
                       color: Colors.grey,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
+                    onPressed: controller.togglePasswordVisibility,
                   ),
                   backgroundColor: AppColors.white,
                   textColor: Colors.black87,
                   hintColor: Colors.grey,
-                  borderColor: _passwordError != null ? Colors.red : AppColors.white,
-                  borderWidth: _passwordError != null ? 2 : 0,
-                  onChanged: (value) {
-                    if (_passwordError != null && value.trim().isNotEmpty) {
-                      setState(() {
-                        _passwordError = null;
-                      });
-                    }
-                  },
-                ),
-                if (_passwordError != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12, top: 4),
-                    child: Text(
-                      _passwordError!,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 12,
+                  borderColor: controller.passwordError.value != null ? Colors.red : AppColors.white,
+                  borderWidth: controller.passwordError.value != null ? 2 : 0,
+                  onChanged: (value) => controller.clearPasswordError(),
+                )),
+                Obx(() => controller.passwordError.value != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 12, top: 4),
+                      child: Text(
+                        controller.passwordError.value!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  ),
+                    )
+                  : const SizedBox.shrink()),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Checkbox(
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value ?? false;
-                        });
-                      },
+                    Obx(() => Checkbox(
+                      value: controller.rememberMe.value,
+                      onChanged: controller.toggleRememberMe,
                       checkColor: AppColors.white,
                       fillColor: MaterialStateProperty.all(AppColors.primary),
                       side: const BorderSide(
                         color: AppColors.primary,
                         width: 2,
                       ),
-                    ),
+                    )),
                     Text(
                       'Ingat Saya',
                       style: AppTextStyles.bodyMedium.copyWith(
@@ -265,48 +192,20 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                   ],
                 ),
                 const SizedBox(height: 32),
-                Semantics(
+                Obx(() => Semantics(
                   button: true,
                   label: 'Tombol masuk',
-                  enabled: !_isLoading,
+                  enabled: !controller.isLoading.value,
                   child: CustomButton(
                     text: 'MASUK',
-                    isLoading: _isLoading,
+                    isLoading: controller.isLoading.value,
                     backgroundColor: AppColors.white,
                     textColor: AppColors.primary,
                     borderColor: AppColors.primary,
                     borderWidth: 2,
-                    onPressed: _isLoading ? null : () async {
-                      // Validasi field harus diisi
-                      bool isValid = true;
-                      
-                      if (_usernameController.text.trim().isEmpty) {
-                        setState(() {
-                          _usernameError = 'Username atau NIK wajib diisi';
-                        });
-                        isValid = false;
-                      }
-                      
-                      if (_passwordController.text.trim().isEmpty) {
-                        setState(() {
-                          _passwordError = 'Kata sandi wajib diisi';
-                        });
-                        isValid = false;
-                      }
-                      
-                      if (!isValid) {
-                        return;
-                      }
-                      
-                      setState(() => _isLoading = true);
-                      
-                      await Future.delayed(const Duration(seconds: 2));
-                      
-                      setState(() => _isLoading = false);
-                      Get.offAllNamed(Routes.pasienDashboard);
-                    },
+                    onPressed: controller.isLoading.value ? null : controller.login,
                   ),
-                ),
+                )),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -325,23 +224,19 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                   ],
                 ),
                 const SizedBox(height: 16),
-                MouseRegion(
+                Obx(() => MouseRegion(
                   cursor: SystemMouseCursors.click,
-                  onEnter: (_) {
-                    setState(() => _isHoverDaftar = true);
-                  },
-                  onExit: (_) {
-                    setState(() => _isHoverDaftar = false);
-                  },
+                  onEnter: (_) => controller.setHoverDaftar(true),
+                  onExit: (_) => controller.setHoverDaftar(false),
                   child: GestureDetector(
-                    onTapDown: (_) => setState(() => _isPressedDaftar = true),
+                    onTapDown: (_) => controller.setPressedDaftar(true),
                     onTapUp: (_) {
-                      setState(() => _isPressedDaftar = false);
+                      controller.setPressedDaftar(false);
                       Get.toNamed(Routes.pasienRegister);
                     },
-                    onTapCancel: () => setState(() => _isPressedDaftar = false),
+                    onTapCancel: () => controller.setPressedDaftar(false),
                     child: AnimatedScale(
-                      scale: _isPressedDaftar ? 0.95 : (_isHoverDaftar ? 1.02 : 1.0),
+                      scale: controller.isPressedDaftar.value ? 0.95 : (controller.isHoverDaftar.value ? 1.02 : 1.0),
                       duration: const Duration(milliseconds: 150),
                       curve: Curves.easeInOut,
                       child: AnimatedContainer(
@@ -349,7 +244,7 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                         curve: Curves.easeInOut,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: _isHoverDaftar 
+                          color: controller.isHoverDaftar.value 
                               ? AppColors.white.withOpacity(0.9)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
@@ -357,7 +252,7 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                             color: AppColors.white,
                             width: 2,
                           ),
-                          boxShadow: _isHoverDaftar
+                          boxShadow: controller.isHoverDaftar.value
                               ? [
                                   BoxShadow(
                                     color: AppColors.white.withOpacity(0.3),
@@ -371,7 +266,7 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                           child: Text(
                             'Daftar sebagai Pasien Baru',
                             style: AppTextStyles.button.copyWith(
-                              color: _isHoverDaftar ? AppColors.primary : AppColors.white,
+                              color: controller.isHoverDaftar.value ? AppColors.primary : AppColors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -379,7 +274,7 @@ class _PasienLoginViewContentState extends State<_PasienLoginViewContent> with S
                       ),
                     ),
                   ),
-                ),
+                )),
                 const SizedBox(height: 32),
                 Container(
                   padding: const EdgeInsets.all(16),

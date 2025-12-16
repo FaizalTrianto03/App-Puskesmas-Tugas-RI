@@ -2,20 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/notifikasi_list_controller.dart';
 import 'detail_notifikasi_view.dart';
 
-class NotifikasiListView extends StatefulWidget {
-  const NotifikasiListView({Key? key}) : super(key: key);
+class NotifikasiListView extends GetView<NotifikasiListController> {
+  NotifikasiListView({Key? key}) : super(key: key);
 
   @override
-  State<NotifikasiListView> createState() => _NotifikasiListViewState();
-}
-
-class _NotifikasiListViewState extends State<NotifikasiListView> {
-  String selectedFilter = 'Semua';
-  int? _hoveredIndex;
-  int? _pressedIndex;
-  int? _hoveredFilterIndex;
+  Widget build(BuildContext context) {
+    Get.put(NotifikasiListController());
+    return _buildScaffold(context);
+  }
 
   final List<String> filterOptions = [
     'Semua',
@@ -127,24 +124,24 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
     },
   ];
 
-  List<Map<String, dynamic>> get filteredNotifications {
-    if (selectedFilter == 'Semua') {
+  List<Map<String, dynamic>> _getFilteredNotifications(String filter) {
+    if (filter == 'Semua') {
       return allNotifications;
     }
     return allNotifications
-        .where((notif) => notif['type'] == selectedFilter)
+        .where((notif) => notif['type'] == filter)
         .toList();
   }
 
-  int get unreadCount {
+  int _getUnreadCount() {
     return allNotifications.where((notif) => !notif['isRead']).length;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final notifList = filteredNotifications;
+  Widget _buildScaffold(BuildContext context) {
+    return Obx(() {
+      final notifList = _getFilteredNotifications(controller.selectedFilter.value);
 
-    return Scaffold(
+      return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
@@ -164,7 +161,7 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
           ),
         ),
         actions: [
-          if (unreadCount > 0)
+          if (_getUnreadCount() > 0)
             Stack(
               children: [
                 IconButton(
@@ -190,7 +187,7 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
                     ),
                     child: Center(
                       child: Text(
-                        unreadCount.toString(),
+                        _getUnreadCount().toString(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -216,30 +213,25 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
                   children: filterOptions.asMap().entries.map((entry) {
                     final index = entry.key;
                     final filter = entry.value;
-                    final isSelected = selectedFilter == filter;
-                    final isHovered = _hoveredFilterIndex == index;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        onEnter: (_) {
-                          setState(() {
-                            _hoveredFilterIndex = index;
-                          });
-                        },
-                        onExit: (_) {
-                          setState(() {
-                            _hoveredFilterIndex = null;
-                          });
-                        },
-                        child: FilterChip(
-                          label: Text(filter),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              selectedFilter = filter;
-                            });
+                    return Obx(() {
+                      final isSelected = controller.selectedFilter.value == filter;
+                      final isHovered = controller.hoveredFilterIndex.value == index;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          onEnter: (_) {
+                            controller.setHoveredFilterIndex(index);
                           },
+                          onExit: (_) {
+                            controller.setHoveredFilterIndex(null);
+                          },
+                          child: FilterChip(
+                            label: Text(filter),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              controller.setSelectedFilter(filter);
+                            },
                           backgroundColor: isHovered ? const Color(0xFFE0E0E0) : Colors.white,
                           selectedColor: isSelected 
                               ? (isHovered ? const Color(0xFF00959F) : const Color(0xFF02B1BA).withOpacity(0.2))
@@ -259,7 +251,8 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
                           ),
                         ),
                       ),
-                    );
+                      );
+                    });
                   }).toList(),
                 ),
               ),
@@ -299,47 +292,37 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
           ],
         ),
       ),
-    );
+      );
+    });
   }
 
   Widget _buildNotificationCard(Map<String, dynamic> notif, int index) {
-    final isHovered = _hoveredIndex == index;
-    final isPressed = _pressedIndex == index;
-    
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) {
-        setState(() {
-          _hoveredIndex = index;
-        });
-      },
-      onExit: (_) {
-        setState(() {
-          _hoveredIndex = null;
-        });
-      },
-      child: GestureDetector(
-        onTapDown: (_) {
-          setState(() {
-            _pressedIndex = index;
-          });
+    return Obx(() {
+      final isHovered = controller.hoveredIndex.value == index;
+      final isPressed = controller.pressedIndex.value == index;
+      
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) {
+          controller.setHoveredIndex(index);
         },
-        onTapUp: (_) {
-          setState(() {
-            _pressedIndex = null;
-          });
+        onExit: (_) {
+          controller.setHoveredIndex(null);
         },
-        onTapCancel: () {
-          setState(() {
-            _pressedIndex = null;
-          });
-        },
-        onTap: () {
-          setState(() {
+        child: GestureDetector(
+          onTapDown: (_) {
+            controller.setPressedIndex(index);
+          },
+          onTapUp: (_) {
+            controller.setPressedIndex(null);
+          },
+          onTapCancel: () {
+            controller.setPressedIndex(null);
+          },
+          onTap: () {
             notif['isRead'] = true;
-          });
-          Get.to(() => DetailNotifikasiView(notification: notif));
-        },
+            Get.to(() => const DetailNotifikasiView(), arguments: notif);
+          },
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
@@ -460,7 +443,8 @@ class _NotifikasiListViewState extends State<NotifikasiListView> {
             ],
           ),
         ),
-      ),
-    );
+        ),
+      );
+    });
   }
 }

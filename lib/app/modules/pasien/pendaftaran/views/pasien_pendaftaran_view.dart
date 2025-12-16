@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../data/services/auth/session_service.dart';
 import '../../../../data/services/antrian/antrian_service.dart';
+import '../../../../data/services/auth/session_service.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
+import '../../dashboard/controllers/pasien_dashboard_controller.dart';
 import '../../settings/views/kelola_data_diri_view.dart';
 import '../../status_antrean/views/status_antrean_view.dart';
 
@@ -730,15 +731,15 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       final sessionService = Get.find<SessionService>();
                       final antreanService = Get.find<AntreanService>();
                       
-                      final userId = sessionService.getUserId();
-                      if (userId == null) {
-                        throw Exception('User ID tidak ditemukan');
-                      }
+                      // Untuk sementara gunakan data dummy karena belum ada API/database
+                      final userId = sessionService.getUserId() ?? 'PASIEN001';
+                      print('Pendaftaran: userId = $userId');
                       
-                      // Get user data
+                      // Get user data atau gunakan dummy
                       final userData = sessionService.getUserData(userId);
-                      final namaLengkap = userData?['namaLengkap'] ?? 'Pasien';
-                      final noRekamMedis = userData?['noRekamMedis'] ?? '-';
+                      final namaLengkap = userData?['namaLengkap'] ?? 'Anisa Ayu';
+                      final noRekamMedis = userData?['noRekamMedis'] ?? 'RM-2025-001234';
+                      print('Pendaftaran: nama = $namaLengkap, RM = $noRekamMedis');
                       
                       // Create antrean
                       final result = await antreanService.createAntrian(
@@ -756,9 +757,20 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                         _isLoading = false;
                       });
                       
-                      SnackbarHelper.showSuccess('Pendaftaran berhasil! Nomor antrean: $queueNumber');
+                      // Refresh dashboard controller untuk update status antrian
+                      try {
+                        final dashboardController = Get.find<PasienDashboardController>();
+                        dashboardController.checkActiveQueue();
+                      } catch (e) {
+                        print('Dashboard controller not found: $e');
+                      }
                       
+                      // Kembali ke dashboard
                       Get.back(result: true);
+                      
+                      // Tampilkan notif setelah kembali
+                      await Future.delayed(const Duration(milliseconds: 100));
+                      SnackbarHelper.showSuccess('Pendaftaran berhasil! Nomor antrean: $queueNumber');
                     } catch (e) {
                       setState(() {
                         _isLoading = false;
