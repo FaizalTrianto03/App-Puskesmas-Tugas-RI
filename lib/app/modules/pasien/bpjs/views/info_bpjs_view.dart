@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/info_bpjs_controller.dart';
 import 'cara_klaim_view.dart';
 
-class InfoBpjsView extends StatelessWidget {
+class InfoBpjsView extends GetView<InfoBpjsController> {
   const InfoBpjsView({Key? key}) : super(key: key);
 
   @override
@@ -18,7 +20,7 @@ class InfoBpjsView extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Info BPJS Kesehatan',
@@ -104,14 +106,7 @@ class InfoBpjsView extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CaraKlaimView(),
-                      ),
-                    );
-                  },
+                  onPressed: () => Get.to(() => const CaraKlaimView()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF02B1BA),
                     padding: const EdgeInsets.symmetric(vertical: 16),
