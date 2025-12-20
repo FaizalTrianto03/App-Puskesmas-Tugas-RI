@@ -1,6 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async'; // ✅ Import untuk StreamSubscription
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../data/models/user_profile_model.dart';
 import '../../../../data/services/firestore/antrian_firestore_service.dart';
@@ -8,12 +10,11 @@ import '../../../../data/services/firestore/user_profile_firestore_service.dart'
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../dashboard/controllers/pasien_dashboard_controller.dart';
-import '../../settings/views/kelola_data_diri_view.dart';
+import '../../../../routes/app_pages.dart';
 import '../../status_antrean/views/status_antrean_view.dart';
 
 class PasienPendaftaranView extends StatefulWidget {
-  final bool hasActiveQueue;
-  const PasienPendaftaranView({Key? key, this.hasActiveQueue = false}) : super(key: key);
+  const PasienPendaftaranView({Key? key}) : super(key: key);
 
   @override
   State<PasienPendaftaranView> createState() => _PasienPendaftaranViewState();
@@ -30,7 +31,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
   
   // Firestore services
   final UserProfileFirestoreService _profileService = UserProfileFirestoreService();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final AntrianFirestoreService _antrianService = AntrianFirestoreService();
   
   // User data from Firestore
   UserProfileModel? _userProfile;
@@ -48,6 +49,12 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
   bool isHoverUmum = false;
   bool _isKeluhanFocused = false;
   bool _isPoliFocused = false;
+  bool _hasActiveQueue = false;
+  bool _isCheckingActiveQueue = true;
+  StreamSubscription? _antrianStreamSubscription; // ✅ Tambahkan stream listener
+
+  DateTime? _estimatedTime;
+  bool _isEstimatingTime = false;
 
   final List<String> poliList = [
     'Poli Umum',
@@ -93,6 +100,103 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
     
     // Load user profile from Firestore
     _loadUserProfile();
+    _checkActiveQueue();
+    
+    // ✅ Setup real-time listener untuk auto-update status antrian
+    _setupAntrianListener();
+  }
+
+  /// ✅ Setup stream listener untuk auto-update _hasActiveQueue
+  void _setupAntrianListener() {
+    print('[PasienPendaftaranView] Setting up antrian stream listener');
+    
+    _antrianStreamSubscription?.cancel(); // Cancel existing listener jika ada
+    
+    _antrianStreamSubscription = _antrianService.watchActiveAntrian().listen(
+      (activeAntrian) {
+        if (!mounted) return;
+        
+        final hasActive = activeAntrian != null;
+        
+        print('[PasienPendaftaranView] Stream update: hasActiveQueue=$hasActive, queueNumber=${activeAntrian?.queueNumber}');
+        
+        setState(() {
+          _hasActiveQueue = hasActive;
+          _isCheckingActiveQueue = false;
+        });
+      },
+      onError: (error) {
+        print('[PasienPendaftaranView] Stream error: $error');
+        if (!mounted) return;
+        setState(() {
+          _hasActiveQueue = false;
+          _isCheckingActiveQueue = false;
+        });
+      },
+    );
+  }
+
+  Future<void> _checkActiveQueue() async {
+    try {
+      setState(() {
+        _isCheckingActiveQueue = true;
+      });
+      
+      // Fetch langsung dari Firestore
+      final activeAntrian = await _antrianService.getActiveAntrian();
+      
+      if (!mounted) return;
+      setState(() {
+        _hasActiveQueue = activeAntrian != null;
+        _isCheckingActiveQueue = false;
+      });
+      print('[PasienPendaftaranView] Check active queue: active=${activeAntrian != null}, queueNumber=${activeAntrian?.queueNumber}');
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _hasActiveQueue = false;
+        _isCheckingActiveQueue = false;
+      });
+      print('[PasienPendaftaranView] Check error: $error');
+    }
+  }
+
+  Future<void> _updateEstimatedTime() async {
+    if (selectedPoli == null) {
+      setState(() {
+        _estimatedTime = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _isEstimatingTime = true;
+    });
+
+    try {
+      // Hitung jumlah antrean aktif hari ini untuk poli yang dipilih
+      final count = await _antrianService.getTodayQueueCountByPoli(selectedPoli!);
+
+      // Asumsi 15 menit per pasien (sesuai teks di header)
+      const minutesPerPatient = 15;
+      final totalMinutes = (count + 1) * minutesPerPatient;
+
+      final now = DateTime.now();
+      final estimated = now.add(Duration(minutes: totalMinutes));
+
+      setState(() {
+        _estimatedTime = estimated;
+      });
+    } catch (_) {
+      // Jika gagal, biarkan estimasi kosong
+      setState(() {
+        _estimatedTime = null;
+      });
+    } finally {
+      setState(() {
+        _isEstimatingTime = false;
+      });
+    }
   }
   
   Future<void> _loadUserProfile() async {
@@ -103,7 +207,6 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
         _isLoadingProfile = false;
       });
     } catch (e) {
-      print('Error loading profile: $e');
       setState(() {
         _isLoadingProfile = false;
       });
@@ -112,6 +215,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
 
   @override
   void dispose() {
+    _antrianStreamSubscription?.cancel(); // ✅ Cancel stream listener
     _keluhanFocusNode.dispose();
     _poliFocusNode.dispose();
     _scrollController.dispose();
@@ -143,9 +247,16 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
         ),
       ),
       body: QuarterCircleBackground(
-        child: widget.hasActiveQueue
-            ? _buildActiveQueueWarning()
-            : Form(
+        child: _isCheckingActiveQueue
+            ? const Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF02B1BA)),
+                ),
+              )
+            : _hasActiveQueue
+                ? _buildActiveQueueWarning()
+                : Form(
           key: _formKey,
           child: SingleChildScrollView(
           controller: _scrollController,
@@ -200,7 +311,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            Get.to(() => const KelolaDataDiriView());
+                            Get.toNamed(Routes.pasienKelolaDataDiri);
                           },
                           child: Row(
                             children: [
@@ -253,7 +364,64 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
               ),
               const SizedBox(height: 16),
               
+              // ⚠️ WARNING BANNER - Jika ada antrian aktif
+              if (_hasActiveQueue)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF4242).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFFF4242),
+                      width: 2,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.block,
+                        color: Color(0xFFFF4242),
+                        size: 32,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'TIDAK BISA DAFTAR!',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFFF4242),
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Anda masih memiliki antrian aktif. Selesaikan atau batalkan antrian sebelumnya terlebih dahulu.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF1E293B),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              
               // Poli Tujuan
+              // Disable form jika ada antrian aktif
+              IgnorePointer(
+                ignoring: _hasActiveQueue,
+                child: Opacity(
+                  opacity: _hasActiveQueue ? 0.5 : 1.0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
               _buildLabel('Poli Tujuan'),
               const SizedBox(height: 8),
               Focus(
@@ -338,6 +506,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       showPoliOptions = false;
                       poliError = null;
                     });
+                    _updateEstimatedTime();
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -365,6 +534,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       showPoliOptions = false;
                       poliError = null;
                     });
+                    _updateEstimatedTime();
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -392,6 +562,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       showPoliOptions = false;
                       poliError = null;
                     });
+                    _updateEstimatedTime();
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -653,13 +824,35 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                           ),
                           const SizedBox(height: 6),
                           const Text(
-                            '10:15',
-                            style: TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFFF4242),
-                              height: 1,
-                            ),
+                            '',
+                          ),
+                          Builder(
+                            builder: (_) {
+                              if (_isEstimatingTime) {
+                                return const SizedBox(
+                                  height: 32,
+                                  width: 32,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF4242)),
+                                  ),
+                                );
+                              }
+
+                              final displayText = _estimatedTime != null
+                                  ? DateFormat('HH:mm').format(_estimatedTime!)
+                                  : '--:--';
+
+                              return Text(
+                                displayText,
+                                style: const TextStyle(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFFF4242),
+                                  height: 1,
+                                ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 6),
                           const Text(
@@ -705,19 +898,32 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                 ),
               ),
               const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
               
               // Button Daftar
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : () async {
+                  // DISABLE tombol jika loading ATAU ada antrian aktif
+                  onPressed: (_isLoading || _hasActiveQueue) ? null : () async {
                     // Reset errors
                     setState(() {
                       poliError = null;
                       keluhanError = null;
                       pembayaranError = null;
                     });
+                    
+                    // ❌ BLOCK jika ada antrian aktif
+                    if (_hasActiveQueue) {
+                      SnackbarHelper.showError(
+                        'TIDAK BISA DAFTAR! Anda masih memiliki antrian aktif!',
+                      );
+                      return;
+                    }
                     
                     bool isValid = true;
                     
@@ -749,6 +955,23 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       return;
                     }
                     
+                    // ✅ DOUBLE CHECK: Validasi lagi sebelum submit
+                    // Mencegah race condition jika user cepat klik submit
+                    try {
+                      final recheck = await _antrianService.getActiveAntrian();
+                      if (recheck != null) {
+                        // Ada antrian aktif!
+                        setState(() {
+                          _hasActiveQueue = true;
+                          _isCheckingActiveQueue = false;
+                        });
+                        SnackbarHelper.showError('Anda sudah memiliki antrian aktif!');
+                        return;
+                      }
+                    } catch (e) {
+                      print('[PasienPendaftaranView] Recheck error: $e');
+                    }
+                    
                     // Set loading
                     setState(() {
                       _isLoading = true;
@@ -763,13 +986,11 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       final userProfile = await profileService.getUserProfile();
                       
                       if (userProfile == null) {
-                        throw Exception('Profile tidak ditemukan. Silakan lengkapi profile Anda terlebih dahulu.');
+                        throw Exception('Profile tidak ditemukan dan gagal dibuat otomatis. Silakan lengkapi profile Anda terlebih dahulu.');
                       }
                       
                       final namaLengkap = userProfile.namaLengkap;
                       final noRekamMedis = userProfile.noRekamMedis ?? 'RM-${DateTime.now().millisecondsSinceEpoch}';
-                      
-                      print('Pendaftaran: nama = $namaLengkap, RM = $noRekamMedis');
                       
                       // Create antrian to Firestore
                       final antrian = await antrianService.createAntrian(
@@ -789,17 +1010,21 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                       // Refresh dashboard controller untuk update status antrian
                       try {
                         final dashboardController = Get.find<PasienDashboardController>();
-                        dashboardController.checkActiveQueue();
+                        await dashboardController.checkActiveQueue();
                       } catch (e) {
-                        print('Dashboard controller not found: $e');
+                        print('[PasienPendaftaranView] Dashboard update error: $e');
                       }
                       
                       // Kembali ke dashboard
                       Get.back(result: true);
                       
                       // Tampilkan notif setelah kembali
-                      await Future.delayed(const Duration(milliseconds: 100));
+                      await Future.delayed(const Duration(milliseconds: 200));
                       SnackbarHelper.showSuccess('Pendaftaran berhasil! Nomor antrean: $queueNumber');
+                      
+                      // Navigate langsung ke Status Antrian
+                      await Future.delayed(const Duration(milliseconds: 500));
+                      Get.toNamed(Routes.pasienStatusAntrean);
                     } catch (e) {
                       setState(() {
                         _isLoading = false;
@@ -808,7 +1033,9 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF02B1BA),
+                    backgroundColor: _hasActiveQueue 
+                        ? Colors.grey  // Warna abu jika ada antrian aktif
+                        : const Color(0xFF02B1BA),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -823,9 +1050,11 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : const Text(
-                          'DAFTAR & AMBIL NOMOR ANTREAN',
-                          style: TextStyle(
+                      : Text(
+                          _hasActiveQueue 
+                              ? 'TIDAK BISA DAFTAR - ANTRIAN AKTIF ADA'
+                              : 'DAFTAR & AMBIL NOMOR ANTREAN',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -937,7 +1166,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                   child: ElevatedButton(
                     onPressed: () {
                       Get.back();
-                      Get.to(() => const StatusAntreanView(hasActiveQueue: true));
+                      Get.to(() => const StatusAntreanView());
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFB547),
@@ -1075,16 +1304,12 @@ class DashedBorderPainter extends CustomPainter {
       bool draw = true;
       while (distance < metric.length) {
         final length = draw ? dashWidth : dashSpace;
-        if (distance + length > metric.length) {
-          if (draw) {
-            dest.addPath(
-              metric.extractPath(distance, metric.length),
-              Offset.zero,
-            );
-          }
-          break;
-        }
-        if (draw) {
+        if (distance + length > metric.length && draw) {
+          dest.addPath(
+            metric.extractPath(distance, metric.length),
+            Offset.zero,
+          );
+        } else if (draw) {
           dest.addPath(
             metric.extractPath(distance, distance + length),
             Offset.zero,

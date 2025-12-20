@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../data/services/firestore/antrian_firestore_service.dart';
 import '../../../../data/services/firestore/user_profile_firestore_service.dart';
 import '../../../../routes/app_pages.dart';
 
-class PasienDashboardController extends GetxController {
+class PasienDashboardController extends GetxController with WidgetsBindingObserver {
   final AntrianFirestoreService _antrianService = AntrianFirestoreService();
   final UserProfileFirestoreService _profileService = UserProfileFirestoreService();
   
@@ -16,9 +17,11 @@ class PasienDashboardController extends GetxController {
   final noRekamMedis = ''.obs;
   final hasActiveQueue = false.obs;
   final queueNumber = ''.obs;
+  final jenisLayanan = ''.obs;
+  final estimatedTime = ''.obs;
   final isLoading = false.obs;
+  final isRefreshing = false.obs;
   
-  StreamSubscription? _antrianSubscription;
   StreamSubscription? _profileSubscription;
   
   // UI State for hover and press effects
@@ -36,25 +39,53 @@ class PasienDashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print('PasienDashboardController: onInit()');
+    WidgetsBinding.instance.addObserver(this);
     watchUserProfile();
-    watchActiveQueue();
+    _initQueueState();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    // Force refetch data setiap kali halaman dashboard muncul/ready
+    print('[PasienDashboardController] ===== onReady: FORCE REFETCH =====');
+    Future.microtask(() async {
+      await refreshData();
+    });
   }
 
   @override
   void onClose() {
-    _antrianSubscription?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _profileSubscription?.cancel();
     super.onClose();
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Refetch data setiap kali app kembali ke foreground
+      print('[PasienDashboardController] App resumed: force refetch data');
+      refreshData();
+    }
+  }
+
+  Future<void> _initQueueState() async {
+    print('[PasienDashboardController] ===== _initQueueState: START =====');
+    isLoading.value = true;
+    
+    // Load langsung dari Firestore, simpan di state
+    await checkActiveQueue();
+    
+    isLoading.value = false;
+    print('[PasienDashboardController] ===== _initQueueState: END ===== hasActiveQueue=${hasActiveQueue.value}, queueNumber=${queueNumber.value}');
+  }
   
   void watchUserProfile() {
-    print('PasienDashboardController: watchUserProfile()');
-    
     // Add timeout to prevent infinite loading
     Future.delayed(const Duration(seconds: 5), () {
       if (userName.value.isEmpty) {
-        print('PasienDashboardController: Timeout - falling back to direct fetch');
         loadUserData();
       }
     });
@@ -65,69 +96,106 @@ class PasienDashboardController extends GetxController {
           userName.value = profile.namaLengkap;
           userEmail.value = profile.email;
           noRekamMedis.value = profile.noRekamMedis ?? '-';
-          print('PasienDashboardController: Loaded user - ${userName.value}');
         } else {
-          print('PasienDashboardController: Profile is null - trying direct fetch');
           loadUserData();
         }
       },
       onError: (error) {
-        print('PasienDashboardController: Error watching profile - $error');
         loadUserData(); // Fallback to direct fetch on error
       },
     );
   }
   
   Future<void> loadUserData() async {
-    print('PasienDashboardController: loadUserData()');
     try {
       final profile = await _profileService.getUserProfile();
       if (profile != null) {
         userName.value = profile.namaLengkap;
         userEmail.value = profile.email;
         noRekamMedis.value = profile.noRekamMedis ?? '-';
-        print('PasienDashboardController: Loaded user - ${userName.value}');
       }
     } catch (e) {
-      print('PasienDashboardController: Error loading user data - $e');
     }
   }
   
-  void watchActiveQueue() {
-    // Listen to real-time antrian updates from Firestore
-    _antrianSubscription = _antrianService.watchActiveAntrian().listen(
-      (antrian) {
-        if (antrian != null) {
-          hasActiveQueue.value = true;
-          queueNumber.value = antrian.queueNumber;
-          print('Active antrian: ${antrian.queueNumber}');
-        } else {
-          hasActiveQueue.value = false;
-          queueNumber.value = '';
-          print('No active antrian');
-        }
-      },
-      onError: (error) {
-        print('Error watching active antrian: $error');
-        hasActiveQueue.value = false;
-        queueNumber.value = '';
-      },
-    );
-  }
-  
   Future<void> checkActiveQueue() async {
-    // Refresh active queue manually
+    // Refresh active queue manually - SELALU ambil data REAL dari Firestore
     try {
+      print('[PasienDashboardController] ===== checkActiveQueue: START =====');
       final antrian = await _antrianService.getActiveAntrian();
+      print('[PasienDashboardController] checkActiveQueue: result = ${antrian?.toMap()}');
+      
       if (antrian != null) {
+        print('[PasienDashboardController] ✅ FOUND: ${antrian.queueNumber}, ${antrian.jenisLayanan}');
         hasActiveQueue.value = true;
         queueNumber.value = antrian.queueNumber;
+        jenisLayanan.value = antrian.jenisLayanan;
+        await _calculateEstimatedTime(antrian.jenisLayanan);
+        print('[PasienDashboardController] State updated: hasActiveQueue=${hasActiveQueue.value}, queueNumber=${queueNumber.value}');
       } else {
+        print('[PasienDashboardController] ❌ NO ACTIVE ANTRIAN');
         hasActiveQueue.value = false;
         queueNumber.value = '';
+        jenisLayanan.value = '';
+        estimatedTime.value = '';
+      }
+      print('[PasienDashboardController] ===== checkActiveQueue: END =====');
+    } catch (e) {
+      print('[PasienDashboardController] ❌ checkActiveQueue ERROR: $e');
+      // Jika error, set state kosong
+      hasActiveQueue.value = false;
+      queueNumber.value = '';
+      jenisLayanan.value = '';
+      estimatedTime.value = '';
+    }
+  }
+
+  Future<void> _calculateEstimatedTime(String poli) async {
+    try {
+      // Hitung jumlah antrian yang masih menunggu
+      final count = await _antrianService.getTodayQueueCountByPoli(poli);
+      // Asumsi 15 menit per pasien
+      const minutesPerPatient = 15;
+      final totalMinutes = count * minutesPerPatient;
+      
+      if (totalMinutes < 60) {
+        estimatedTime.value = '$totalMinutes menit';
+      } else {
+        final hours = totalMinutes ~/ 60;
+        final minutes = totalMinutes % 60;
+        if (minutes == 0) {
+          estimatedTime.value = '$hours jam';
+        } else {
+          estimatedTime.value = '$hours jam $minutes menit';
+        }
       }
     } catch (e) {
-      print('Error checking active queue: $e');
+      estimatedTime.value = '15 menit';
+    }
+  }
+  
+  Future<void> refreshData() async {
+    // Method untuk pull-to-refresh
+    print('[PasienDashboardController] ===== refreshData: START =====');
+    isRefreshing.value = true;
+    
+    try {
+      // Refresh user profile
+      await loadUserData();
+      
+      // Refresh antrian - ambil data REAL dari Firestore
+      await checkActiveQueue();
+      
+      print('[PasienDashboardController] ===== refreshData: SUCCESS ===== hasActiveQueue=${hasActiveQueue.value}');
+    } catch (e) {
+      print('[PasienDashboardController] ===== refreshData: ERROR ===== $e');
+      Get.snackbar(
+        'Error',
+        'Gagal memuat data. Silakan coba lagi.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isRefreshing.value = false;
     }
   }
   
@@ -137,7 +205,7 @@ class PasienDashboardController extends GetxController {
   }
   
   void goToStatusAntrean() {
-    Get.snackbar('Info', 'Fitur Status Antrian sedang dalam pengembangan');
+    Get.toNamed(Routes.pasienStatusAntrean);
   }
   
   void goToRiwayatKunjungan() {

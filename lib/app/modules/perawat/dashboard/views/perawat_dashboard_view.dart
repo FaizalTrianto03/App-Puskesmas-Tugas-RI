@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../utils/confirmation_dialog.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../settings/views/perawat_settings_view.dart';
 import '../controllers/perawat_dashboard_controller.dart';
@@ -47,21 +48,26 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
             ),
             Expanded(
               child: QuarterCircleBackground(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildProfileCard(context),
-                      const SizedBox(height: 16),
-                      _buildStatisticCards(),
-                      const SizedBox(height: 16),
-                      _buildMenuSection(),
-                      const SizedBox(height: 24),
-                      _buildSearchAndFilter(),
-                      const SizedBox(height: 16),
-                      _buildPasienList(context),
-                    ],
+                child: RefreshIndicator(
+                  onRefresh: controller.loadAntrian,
+                  color: const Color(0xFF02B1BA),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileCard(context),
+                        const SizedBox(height: 16),
+                        _buildStatisticCards(),
+                        const SizedBox(height: 16),
+                        _buildMenuSection(),
+                        const SizedBox(height: 24),
+                        _buildSearchAndFilter(),
+                        const SizedBox(height: 16),
+                        _buildPasienList(context),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -654,6 +660,7 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
   }) {
     String getStatusText(String status) {
       switch (status) {
+        case 'menunggu':
         case 'menunggu_verifikasi':
           return 'Menunggu Verifikasi';
         case 'menunggu_dokter':
@@ -662,6 +669,8 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
           return 'Sedang Dilayani';
         case 'selesai':
           return 'Selesai';
+        case 'dipanggil':
+          return 'Dipanggil';
         case 'dibatalkan':
           return 'Dibatalkan';
         default:
@@ -671,6 +680,7 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
 
     Color getStatusColor(String status) {
       switch (status) {
+        case 'menunggu':
         case 'menunggu_verifikasi':
           return const Color(0xFFFF9800);
         case 'menunggu_dokter':
@@ -814,7 +824,7 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
           const SizedBox(height: 16),
           
           // Dropdown Ubah Status (hanya untuk antrian menunggu verifikasi)
-          if (status == 'menunggu_verifikasi') ...[
+          if (status == 'menunggu' || status == 'menunggu_verifikasi') ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
@@ -861,18 +871,18 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   borderRadius: BorderRadius.circular(8),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
-                      value: 'menunggu_verifikasi',
+                      value: status,
                       child: Row(
                         children: [
-                          Icon(Icons.hourglass_empty, size: 18, color: Color(0xFFFF9800)),
-                          SizedBox(width: 8),
-                          Text('Menunggu Verifikasi'),
+                          Icon(Icons.hourglass_empty, size: 18, color: statusColor),
+                          const SizedBox(width: 8),
+                          Text(statusText),
                         ],
                       ),
                     ),
-                    DropdownMenuItem(
+                    const DropdownMenuItem(
                       value: 'menunggu_dokter',
                       child: Row(
                         children: [
@@ -882,7 +892,7 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
                         ],
                       ),
                     ),
-                    DropdownMenuItem(
+                    const DropdownMenuItem(
                       value: 'dibatalkan',
                       child: Row(
                         children: [
@@ -893,38 +903,33 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
                       ),
                     ),
                   ],
-                  onChanged: (String? newStatus) {
+                  onChanged: (String? newStatus) async {
                     if (newStatus == null || newStatus == status) return;
-                    
-                    // Konfirmasi sebelum ubah status
-                    Get.dialog(
-                      AlertDialog(
-                        title: const Text('Konfirmasi Ubah Status'),
-                        content: Text(
-                          'Apakah Anda yakin ingin mengubah status antrian ${antrian['queueNumber']} menjadi "${_getStatusText(newStatus)}"?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Get.back(),
-                            child: const Text('Batal'),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              Get.back();
-                              controller.ubahStatusAntrian(
-                                antrianId: antrian['id'],
-                                newStatus: newStatus,
-                                antrian: antrian,
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF02B1BA),
-                            ),
-                            child: const Text('Ya, Ubah'),
-                          ),
-                        ],
-                      ),
+
+                    // Tampilkan modal konfirmasi WAJIB
+                    final confirm = await ConfirmationDialog.show(
+                      title: 'Konfirmasi Ubah Status',
+                      message:
+                          'Ubah status antrian ${antrian['queueNumber']} menjadi "${_getStatusText(newStatus)}"?',
+                      type: newStatus == 'dibatalkan'
+                          ? ConfirmationType.danger
+                          : ConfirmationType.confirmation,
+                      confirmText: 'Ya, Ubah',
+                      cancelText: 'Batal',
                     );
+
+                    // HANYA jika user klik Ya (confirm == true)
+                    if (confirm == true) {
+                      // Close dialog dulu biar gak stuck
+                      await Future.delayed(const Duration(milliseconds: 100));
+                      
+                      controller.ubahStatusAntrian(
+                        antrianId: antrian['id'],
+                        newStatus: newStatus,
+                        antrian: antrian,
+                      );
+                    }
+                    // Jika cancel atau null, dropdown tetap di status lama (tidak berubah)
                   },
                 ),
               ),
@@ -962,6 +967,7 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
   
   String _getStatusText(String status) {
     switch (status) {
+      case 'menunggu':
       case 'menunggu_verifikasi':
         return 'Menunggu Verifikasi';
       case 'menunggu_dokter':

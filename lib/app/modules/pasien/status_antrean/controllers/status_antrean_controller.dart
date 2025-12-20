@@ -17,18 +17,20 @@ class StatusAntreanController extends GetxController {
   final antrianData = Rxn<AntrianModel>();
   final userProfile = Rxn<UserProfileModel>();
   final queuePosition = 0.obs;
-  final estimatedTime = ''.obs;
+  final totalQueue = 0.obs; // Total antrian hari ini untuk poli yang sama
+  final progressPercentage = 0.0.obs; // Progress dalam persen (0.0 - 1.0)
+  final estimatedTime = ''.obs; // minutes remaining as string, or '0' for segera
   final isLoading = false.obs;
+  final isInitialLoading = true.obs; // Flag untuk loading pertama kali
   
-  StreamSubscription? _antrianSubscription;
-  Timer? _positionTimer;
+  Timer? _refreshTimer;
 
   @override
   void onInit() {
     super.onInit();
     _loadUserProfile();
-    _watchAntrianData();
-    _startPositionUpdate();
+    _loadAntrianData();
+    _startAutoRefresh();
   }
   
   Future<void> _loadUserProfile() async {
@@ -36,49 +38,51 @@ class StatusAntreanController extends GetxController {
       final profile = await _profileService.getUserProfile();
       userProfile.value = profile;
     } catch (e) {
-      print('Error loading user profile: $e');
     }
   }
 
   @override
   void onClose() {
-    _antrianSubscription?.cancel();
-    _positionTimer?.cancel();
+    _refreshTimer?.cancel();
     super.onClose();
   }
 
-  void _watchAntrianData() {
-    // Real-time listener untuk antrian aktif
-    _antrianSubscription = _antrianService.watchActiveAntrian().listen(
-      (antrian) {
-        if (antrian == null) {
-          SnackbarHelper.showInfo('Tidak ada antrian aktif');
-          Get.offAllNamed(Routes.pasienDashboard);
-          return;
-        }
+  Future<void> _loadAntrianData() async {
+    try {
+      print('[StatusAntreanController] ===== _loadAntrianData: START =====');
+      isInitialLoading.value = true;
+      
+      // Fetch antrian aktif langsung dari Firestore
+      final antrian = await _antrianService.getActiveAntrian();
+      print('[StatusAntreanController] _loadAntrianData: result = ${antrian?.toMap()}');
+      
+      isInitialLoading.value = false;
+      
+      if (antrian == null) {
+        print('[StatusAntreanController] ❌ NO ACTIVE ANTRIAN - redirecting to dashboard');
+        SnackbarHelper.showInfo('Tidak ada antrian aktif');
+        Get.offAllNamed(Routes.pasienDashboard);
+        return;
+      }
 
-        final oldStatus = antrianData.value?.status;
-        antrianData.value = antrian;
-        
-        // Update posisi antrian
-        _updateQueuePosition();
-        
-        // Show notification jika status berubah
-        if (oldStatus != null && oldStatus != antrian.status) {
-          _showStatusNotification(antrian.status);
-        }
-      },
-      onError: (error) {
-        print('Error watching antrian: $error');
-        SnackbarHelper.showError('Gagal memuat data antrian');
-      },
-    );
+      print('[StatusAntreanController] ✅ FOUND: ${antrian.queueNumber}, ${antrian.jenisLayanan}');
+      antrianData.value = antrian;
+      
+      // Update posisi antrian
+      await _updateQueuePosition();
+      
+      print('[StatusAntreanController] ===== _loadAntrianData: END ===== queueNumber=${antrian.queueNumber}');
+    } catch (error) {
+      isInitialLoading.value = false;
+      print('[StatusAntreanController] ❌ _loadAntrianData ERROR: $error');
+      SnackbarHelper.showError('Gagal memuat data antrian');
+    }
   }
 
-  void _startPositionUpdate() {
-    // Update posisi antrian setiap 30 detik
-    _positionTimer = Timer.periodic(Duration(seconds: 30), (timer) {
-      _updateQueuePosition();
+  void _startAutoRefresh() {
+    // Auto refresh data setiap 30 detik untuk update posisi
+    _refreshTimer = Timer.periodic(Duration(seconds: 30), (timer) {
+      _loadAntrianData();
     });
   }
 
@@ -86,44 +90,50 @@ class StatusAntreanController extends GetxController {
     if (antrianData.value == null) return;
 
     try {
+      // Get posisi antrian saat ini
       final position = await _antrianService.getQueuePosition(
         antrianData.value!.queueNumber,
         antrianData.value!.jenisLayanan,
       );
       
+      // Get total antrian hari ini untuk poli yang sama
+      final total = await _antrianService.getTodayQueueCountByPoli(
+        antrianData.value!.jenisLayanan,
+      );
+      
       queuePosition.value = position;
-
-      if (position > 0) {
-        final minutes = position * 15;
-        estimatedTime.value = '$minutes menit';
+      totalQueue.value = total;
+      
+      // Hitung progress percentage
+      // Progress = (total - posisi) / total
+      // Jika posisi 1 dari 10 = (10-1)/10 = 0.9 = 90% progress
+      // Jika posisi 10 dari 10 = (10-10)/10 = 0.0 = 0% progress
+      if (total > 0) {
+        final progress = (total - position) / total;
+        progressPercentage.value = progress.clamp(0.0, 1.0);
       } else {
-        estimatedTime.value = 'Segera dipanggil';
+        progressPercentage.value = 0.0;
       }
+      
+      // Hitung estimasi waktu
+      if (position > 0) {
+        final minutes = position * 15; // 15 menit per pasien
+        estimatedTime.value = minutes.toString();
+      } else {
+        estimatedTime.value = '0';
+      }
+      
+      print('[StatusAntreanController] Position: $position/$total, Progress: ${(progressPercentage.value * 100).toStringAsFixed(0)}%');
     } catch (e) {
-      print('Error updating queue position: $e');
+      print('[StatusAntreanController] _updateQueuePosition error: $e');
     }
   }
 
   Future<void> refreshData() async {
     // Manual refresh
-    await _updateQueuePosition();
-  }
-
-  void _showStatusNotification(String status) {
-    switch (status) {
-      case 'menunggu_dokter':
-        SnackbarHelper.showSuccess('Rekam medis Anda sudah diverifikasi perawat');
-        break;
-      case 'sedang_dilayani':
-        SnackbarHelper.showInfo('Antrian Anda sedang dilayani dokter');
-        break;
-      case 'selesai':
-        SnackbarHelper.showSuccess('Pemeriksaan selesai, silakan ke apotek');
-        break;
-      case 'dibatalkan':
-        SnackbarHelper.showWarning('Antrian Anda dibatalkan');
-        break;
-    }
+    isLoading.value = true;
+    await _loadAntrianData();
+    isLoading.value = false;
   }
 
   String getStatusText() {
@@ -163,16 +173,16 @@ class StatusAntreanController extends GetxController {
 
     final confirm = await Get.dialog<bool>(
       AlertDialog(
-        title: Text('Batalkan Antrian?'),
-        content: Text('Apakah Anda yakin ingin membatalkan antrian ini?'),
+        title: const Text('Batalkan Antrian?'),
+        content: const Text('Apakah Anda yakin ingin membatalkan antrian ini?'),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: Text('Tidak'),
+            child: const Text('Tidak'),
           ),
           TextButton(
             onPressed: () => Get.back(result: true),
-            child: Text('Ya, Batalkan'),
+            child: const Text('Ya, Batalkan'),
           ),
         ],
       ),
@@ -187,7 +197,7 @@ class StatusAntreanController extends GetxController {
       if (antrianId != null) {
         await _antrianService.cancelAntrian(antrianId);
         SnackbarHelper.showSuccess('Antrian berhasil dibatalkan');
-        Future.delayed(Duration(milliseconds: 500), () {
+        Future.delayed(const Duration(milliseconds: 500), () {
           Get.offAllNamed(Routes.pasienDashboard);
         });
       } else {
@@ -195,7 +205,6 @@ class StatusAntreanController extends GetxController {
       }
     } catch (e) {
       SnackbarHelper.showError('Gagal membatalkan antrian');
-      print('Error canceling antrian: $e');
     } finally {
       isLoading.value = false;
     }

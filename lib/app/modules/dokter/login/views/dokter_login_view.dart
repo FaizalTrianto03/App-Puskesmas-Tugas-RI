@@ -135,16 +135,16 @@ class DokterLoginView extends GetView<DokterLoginController> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Checkbox(
-                      value: true,
-                      onChanged: null,
+                    Obx(() => Checkbox(
+                      value: controller.rememberMe.value,
+                      onChanged: (value) => controller.toggleRememberMe(),
                       checkColor: AppColors.white,
                       fillColor: MaterialStateProperty.all(AppColors.primary),
                       side: const BorderSide(
                         color: AppColors.white,
                         width: 2,
                       ),
-                    ),
+                    )),
                     Text(
                       'Ingat Saya',
                       style: AppTextStyles.bodyMedium.copyWith(

@@ -49,8 +49,8 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    userId == null ? Icons.person_add : Icons.edit,
+                  const Icon(
+                    Icons.person_add,
                     color: Colors.white,
                   ),
                   const SizedBox(width: 12),
@@ -65,7 +65,9 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Get.back(),
+                    onPressed: () {
+                      Get.back();
+                    },
                   ),
                 ],
               ),
@@ -88,6 +90,8 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                         prefixIcon: const Icon(Icons.person_outline),
                         borderColor: AppColors.primary,
                         borderWidth: 1,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black87,
                         hintColor: Colors.grey.shade600,
                         validator: controller.validateNama,
                       ),
@@ -102,6 +106,8 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                         keyboardType: TextInputType.number,
                         borderColor: AppColors.primary,
                         borderWidth: 1,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black87,
                         hintColor: Colors.grey.shade600,
                         validator: (value) => controller.validateNIK(value, excludeId: userId),
                       ),
@@ -116,6 +122,8 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                         keyboardType: TextInputType.emailAddress,
                         borderColor: AppColors.primary,
                         borderWidth: 1,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black87,
                         hintColor: Colors.grey.shade600,
                         validator: (value) => controller.validateEmail(value, excludeId: userId),
                       ),
@@ -130,6 +138,8 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                         keyboardType: TextInputType.phone,
                         borderColor: AppColors.primary,
                         borderWidth: 1,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black87,
                         hintColor: Colors.grey.shade600,
                         validator: controller.validateNoHp,
                       ),
@@ -304,6 +314,8 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                         maxLines: 3,
                         borderColor: AppColors.primary,
                         borderWidth: 1,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black87,
                         hintColor: Colors.grey.shade600,
                         validator: controller.validateAlamat,
                       ),
@@ -326,6 +338,8 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                         ),
                         borderColor: AppColors.primary,
                         borderWidth: 1,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black87,
                         hintColor: Colors.grey.shade600,
                         validator: (value) => controller.validatePassword(value, isRequired: userId == null),
                       )),
@@ -348,6 +362,8 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                         ),
                         borderColor: AppColors.primary,
                         borderWidth: 1,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black87,
                         hintColor: Colors.grey.shade600,
                         validator: (value) => controller.validateConfirmPassword(value, isRequired: userId == null),
                       )),
@@ -371,7 +387,9 @@ class KelolaPenggunaFormDialog extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () {
+                        Get.back();
+                      },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         side: BorderSide(color: Colors.grey.shade400),

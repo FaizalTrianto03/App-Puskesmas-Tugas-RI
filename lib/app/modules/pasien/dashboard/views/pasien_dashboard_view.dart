@@ -7,7 +7,6 @@ import '../../layanan_lainnya/views/layanan_lainnya_view.dart';
 import '../../notifikasi/views/notifikasi_list_view.dart';
 import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
 import '../../riwayat/views/riwayat_kunjungan_view.dart';
-import '../../status_antrean/views/status_antrean_view.dart';
 import '../controllers/pasien_dashboard_controller.dart';
 
 class PasienDashboardView extends GetView<PasienDashboardController> {
@@ -50,9 +49,9 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                   right: 8,
                   top: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(2),
                     decoration: const BoxDecoration(
-                      color: Color(0xFFFF4242),
+                      color: Colors.red,
                       shape: BoxShape.circle,
                     ),
                     constraints: const BoxConstraints(
@@ -92,45 +91,58 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
             ),
             Expanded(
               child: QuarterCircleBackground(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildProfileCard(context),
+                child: RefreshIndicator(
+                  onRefresh: controller.refreshData,
+                  color: const Color(0xFF02B1BA),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileCard(context),
                       const SizedBox(height: 16),
                       Obx(
-                        () =>
-                            controller.hasActiveQueue.value
-                                ? _buildActiveQueueCard(context)
-                                : _buildNoActiveQueueCard(context),
+                        () {
+                          print('[DashboardView] Building queue card: isLoading=${controller.isLoading.value}, hasActiveQueue=${controller.hasActiveQueue.value}, queueNumber="${controller.queueNumber.value}"');
+                          if (controller.isLoading.value) {
+                            return _buildQueueLoadingSkeleton(context);
+                          }
+                          return controller.hasActiveQueue.value
+                              ? _buildActiveQueueCard(context)
+                              : _buildNoActiveQueueCard(context);
+                        },
                       ),
                       const SizedBox(height: 16),
                       Obx(
-                        () => _buildMenuButton(
-                          context,
-                          icon: Icons.add_circle_outline,
-                          title: 'Daftar Baru',
-                          isHover: controller.isHoverDaftarBaru.value,
-                          isPressed: controller.isPressedDaftarBaru.value,
-                          onHoverChange:
-                              (hover) =>
-                                  controller.isHoverDaftarBaru.value = hover,
-                          onPressedChange:
-                              (pressed) =>
-                                  controller.isPressedDaftarBaru.value =
-                                      pressed,
-                          onTap: () async {
-                            final result = await Get.to(
-                              () => PasienPendaftaranView(
-                                hasActiveQueue: controller.hasActiveQueue.value,
-                              ),
-                            );
-                            if (result == true) {
-                              controller.checkActiveQueue();
-                            }
-                          },
-                        ),
+                        () {
+                          if (controller.isLoading.value) {
+                            return _buildMenuLoadingSkeleton(context);
+                          }
+                          if (controller.hasActiveQueue.value) {
+                            return const SizedBox.shrink();
+                          }
+                          return _buildMenuButton(
+                            context,
+                            icon: Icons.add_circle_outline,
+                            title: 'Daftar Baru',
+                            isHover: controller.isHoverDaftarBaru.value,
+                            isPressed: controller.isPressedDaftarBaru.value,
+                            onHoverChange: (hover) =>
+                                controller.isHoverDaftarBaru.value = hover,
+                            onPressedChange: (pressed) =>
+                                controller.isPressedDaftarBaru.value =
+                                    pressed,
+                            onTap: () async {
+                              final result = await Get.toNamed(
+                                Routes.pasienPendaftaran,
+                              );
+                              if (result == true) {
+                                controller.checkActiveQueue();
+                              }
+                            },
+                          );
+                        },
                       ),
                       const SizedBox(height: 12),
                       Obx(
@@ -148,10 +160,8 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                                   controller.isPressedStatusAntrean.value =
                                       pressed,
                           onTap: () async {
-                            final result = await Get.to(
-                              () => StatusAntreanView(
-                                hasActiveQueue: controller.hasActiveQueue.value,
-                              ),
+                            final result = await Get.toNamed(
+                              Routes.pasienStatusAntrean,
                             );
                             if (result == true) {
                               controller.checkActiveQueue();
@@ -199,6 +209,7 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                   ),
                 ),
               ),
+            ),
             ),
           ],
         ),
@@ -338,27 +349,26 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
               children: [
                 Expanded(
                   child: Obx(
-                    () => Text(
-                      controller.queueNumber.value.isEmpty 
-                          ? 'G - 009' 
-                          : controller.queueNumber.value,
-                      style: const TextStyle(
-                        fontSize: 44,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFFF4242),
-                        letterSpacing: 4,
-                        height: 1,
-                      ),
-                    ),
+                    () {
+                      print('[DashboardView] Building queueNumber: "${controller.queueNumber.value}"');
+                      return Text(
+                        controller.queueNumber.value.isEmpty 
+                            ? '...' 
+                            : controller.queueNumber.value,
+                        style: const TextStyle(
+                          fontSize: 44,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFFF4242),
+                          letterSpacing: 4,
+                          height: 1,
+                        ),
+                      );
+                    },
                   ),
                 ),
                 ElevatedButton(
                   onPressed:
-                      () => Get.to(
-                        () => StatusAntreanView(
-                          hasActiveQueue: controller.hasActiveQueue.value,
-                        ),
-                      ),
+                      () => Get.toNamed(Routes.pasienStatusAntrean),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFFB547),
                     padding: const EdgeInsets.symmetric(
@@ -384,9 +394,13 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
             const SizedBox(height: 12),
             Container(height: 1, color: Colors.white.withOpacity(0.5)),
             const SizedBox(height: 12),
-            const Text(
-              'Poli Gigi - Estimasi: 15 menit',
-              style: TextStyle(fontSize: 13, color: Colors.white),
+            Obx(
+              () => Text(
+                controller.jenisLayanan.value.isEmpty
+                    ? 'Memuat...'
+                    : '${controller.jenisLayanan.value} - Estimasi: ${controller.estimatedTime.value}',
+                style: const TextStyle(fontSize: 13, color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -419,9 +433,7 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
             child: ElevatedButton(
               onPressed: () async {
                 final result = await Get.to(
-                  () => PasienPendaftaranView(
-                    hasActiveQueue: controller.hasActiveQueue.value,
-                  ),
+                  () => const PasienPendaftaranView(),
                 );
                 if (result == true) {
                   controller.checkActiveQueue();
@@ -442,6 +454,86 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQueueLoadingSkeleton(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF02B1BA).withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 100,
+            height: 14,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Container(
+                width: 80,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuLoadingSkeleton(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF02B1BA).withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              height: 18,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
           ),
