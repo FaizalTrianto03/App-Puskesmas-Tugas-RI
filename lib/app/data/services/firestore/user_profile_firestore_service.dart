@@ -13,27 +13,53 @@ class UserProfileFirestoreService {
   Future<UserProfileModel?> getUserProfile() async {
     try {
       final userId = _auth.currentUser?.uid;
-      print('UserProfileFirestoreService: getUserProfile() - userId: $userId');
-      
       if (userId == null) {
-        print('UserProfileFirestoreService: User not logged in');
         return null;
       }
-
-      print('UserProfileFirestoreService: Fetching document for user: $userId');
-      final doc = await _usersCollection.doc(userId).get();
       
-      if (!doc.exists) {
-        print('UserProfileFirestoreService: Document does not exist for user: $userId');
-        return null;
+      // 1) Coba langsung pakai document ID = Firebase UID (path baru)
+      final docById = await _usersCollection.doc(userId).get();
+      if (docById.exists) {
+        return UserProfileModel.fromFirestore(docById);
       }
 
-      print('UserProfileFirestoreService: Document found, parsing data...');
-      final profile = UserProfileModel.fromFirestore(doc);
-      print('UserProfileFirestoreService: Profile loaded - ${profile.namaLengkap}');
+      // 2) Fallback: cari berdasarkan firebaseUid (untuk data lama)
+      final byFirebaseUid = await _usersCollection
+          .where('firebaseUid', isEqualTo: userId)
+          .limit(1)
+          .get();
+      if (byFirebaseUid.docs.isNotEmpty) {
+        return UserProfileModel.fromFirestore(byFirebaseUid.docs.first);
+      }
+
+      // 3) Fallback tambahan: kalau user punya email di Auth, coba cari by email
+      final currentUser = _auth.currentUser;
+      if (currentUser?.email != null) {
+        final byEmail = await _usersCollection
+            .where('email', isEqualTo: currentUser!.email)
+            .limit(1)
+            .get();
+        if (byEmail.docs.isNotEmpty) {
+          return UserProfileModel.fromFirestore(byEmail.docs.first);
+        }
+      }
+
+      // Tidak menemukan profile sama sekali -> buat minimal profile baru
+      final email = currentUser?.email ?? '';
+      final displayName = currentUser?.displayName ?? 'Pasien Baru';
+
+      final profile = UserProfileModel(
+        id: userId,
+        namaLengkap: displayName,
+        email: email,
+        role: 'pasien',
+        createdAt: DateTime.now(),
+      );
+
+      await _usersCollection.doc(userId).set(profile.toMap());
+
       return profile;
     } catch (e) {
-      print('UserProfileFirestoreService: Error getting user profile: $e');
       return null;
     }
   }
@@ -41,22 +67,16 @@ class UserProfileFirestoreService {
   // Stream user profile untuk real-time updates
   Stream<UserProfileModel?> watchUserProfile() {
     final userId = _auth.currentUser?.uid;
-    print('UserProfileFirestoreService: watchUserProfile() - userId: $userId');
     
     if (userId == null) {
-      print('UserProfileFirestoreService: User not logged in, returning empty stream');
       return Stream.value(null);
     }
 
-    print('UserProfileFirestoreService: Setting up snapshot listener for user: $userId');
     return _usersCollection.doc(userId).snapshots().map((doc) {
-      print('UserProfileFirestoreService: Snapshot received - exists: ${doc.exists}');
       if (!doc.exists) {
-        print('UserProfileFirestoreService: Document does not exist in snapshot');
         return null;
       }
       final profile = UserProfileModel.fromFirestore(doc);
-      print('UserProfileFirestoreService: Profile from snapshot - ${profile.namaLengkap}');
       return profile;
     });
   }

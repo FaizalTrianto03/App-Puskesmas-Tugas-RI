@@ -234,12 +234,10 @@ class ConfirmationDialog {
                           // Cancel Button
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: isLoading.value
-                                  ? null
-                                  : () {
-                                      onCancel?.call();
-                                      Get.back(result: false);
-                                    },
+                              onPressed: isLoading.value ? null : () {
+                                onCancel?.call();
+                                Get.back(result: false);
+                              },
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 12),
                                 side: const BorderSide(
@@ -250,7 +248,6 @@ class ConfirmationDialog {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 backgroundColor: Colors.transparent,
-                                disabledForegroundColor: const Color(0xFF94A3B8),
                               ),
                               child: Text(
                                 cancelText ?? 'Batal',
@@ -269,18 +266,9 @@ class ConfirmationDialog {
                             child: ElevatedButton(
                               onPressed: isConfirmDisabled
                                   ? null
-                                  : () async {
+                                  : () {
                                       if (onConfirm != null) {
-                                        isLoading.value = true;
-                                        try {
-                                          onConfirm();
-                                          // Small delay to show loading state
-                                          await Future.delayed(
-                                            const Duration(milliseconds: 100),
-                                          );
-                                        } finally {
-                                          isLoading.value = false;
-                                        }
+                                        onConfirm();
                                       }
                                       Get.back(result: true);
                                     },

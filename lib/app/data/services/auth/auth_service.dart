@@ -84,7 +84,6 @@ class AuthService {
       
       return snapshot.docs.isNotEmpty;
     } catch (e) {
-      print('Error checking email exists: $e');
       return false;
     }
   }
@@ -119,7 +118,6 @@ class AuthService {
       }
 
       // Sign in with Firebase Auth
-      print('AuthService: Attempting Firebase Auth signIn for email: $email');
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -127,18 +125,6 @@ class AuthService {
 
       if (userCredential.user == null) {
         throw Exception('Login gagal');
-      }
-
-      print('AuthService: Firebase Auth successful');
-      print('AuthService: Firebase UID: ${userCredential.user!.uid}');
-      print('AuthService: Firestore document ID: ${userData['id']}');
-      
-      // IMPORTANT: Check if Firebase UID matches Firestore document ID
-      if (userCredential.user!.uid != userData['id']) {
-        print('WARNING: Firebase UID does not match Firestore document ID!');
-        print('  Firebase UID: ${userCredential.user!.uid}');
-        print('  Firestore ID: ${userData['id']}');
-        // This will cause getUserProfile() to fail!
       }
 
       // Save session
@@ -149,8 +135,6 @@ class AuthService {
         role: userData['role'],
       );
       
-      print('AuthService: Session saved successfully');
-
       // Save credentials if remember me is enabled
       if (rememberMe) {
         await _saveCredentials(email, password, role);
@@ -160,7 +144,6 @@ class AuthService {
 
       return userData;
     } on FirebaseAuthException catch (e) {
-      print('FirebaseAuth error: ${e.code}');
       switch (e.code) {
         case 'user-not-found':
           throw Exception('Email tidak terdaftar');
@@ -176,7 +159,6 @@ class AuthService {
           throw Exception('Login gagal: ${e.message}');
       }
     } catch (e) {
-      print('Login error: $e');
       rethrow;
     }
   }
@@ -186,8 +168,8 @@ class AuthService {
     try {
       await _auth.signOut();
       await _sessionService.clearSession();
+      await _clearCredentials(); // Clear saved credentials to prevent auto-login
     } catch (e) {
-      print('Logout error: $e');
       throw Exception('Logout gagal');
     }
   }
@@ -210,7 +192,6 @@ class AuthService {
       // Send password reset email
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      print('Firebase error: ${e.code}');
       switch (e.code) {
         case 'invalid-email':
           throw Exception('Format email tidak valid');
@@ -220,7 +201,6 @@ class AuthService {
           throw Exception('Gagal mengirim email: ${e.message}');
       }
     } catch (e) {
-      print('Send password reset error: $e');
       rethrow;
     }
   }
@@ -262,7 +242,6 @@ class AuthService {
         );
       }
     } on FirebaseAuthException catch (e) {
-      print('Change password error: ${e.code}');
       switch (e.code) {
         case 'wrong-password':
           throw Exception('Password lama salah');
@@ -274,7 +253,6 @@ class AuthService {
           throw Exception('Gagal mengubah password: ${e.message}');
       }
     } catch (e) {
-      print('Change password error: $e');
       rethrow;
     }
   }
@@ -289,7 +267,6 @@ class AuthService {
       await _credentialsBox.write('savedRole', role);
       await _credentialsBox.write('rememberMe', true);
     } catch (e) {
-      print('Error saving credentials: $e');
     }
   }
 
@@ -313,7 +290,6 @@ class AuthService {
         'role': role,
       };
     } catch (e) {
-      print('Error getting saved credentials: $e');
       return null;
     }
   }
@@ -326,8 +302,12 @@ class AuthService {
       await _credentialsBox.remove('savedRole');
       await _credentialsBox.remove('rememberMe');
     } catch (e) {
-      print('Error clearing credentials: $e');
     }
+  }
+
+  /// Public method to clear saved credentials (for logout or clearing invalid credentials)
+  Future<void> clearSavedCredentials() async {
+    await _clearCredentials();
   }
 
   /// Check if has saved credentials
@@ -348,7 +328,6 @@ class AuthService {
         rememberMe: true,
       );
     } catch (e) {
-      print('Auto login error: $e');
       // Clear invalid credentials
       await _clearCredentials();
       return null;
@@ -436,12 +415,6 @@ class AuthService {
       final userId = userCredential.user!.uid;
       await _firestore.collection('users').doc(userId).set(userData);
       userData['id'] = userId;
-      
-      print('AuthService: User registered successfully');
-      print('  Firebase UID: $userId');
-      print('  Firestore Document ID: $userId');
-      print('  Email: $email');
-      print('  Role: $role');
 
       // Sign out the newly created user
       await _auth.signOut();
@@ -450,13 +423,10 @@ class AuthService {
       if (currentSession != null && currentFirebaseUser != null) {
         // Admin session is preserved in GetStorage, just need to re-sign in to Firebase
         // The session service will keep the admin logged in
-        print('Admin session preserved after user creation');
       }
 
       return userData;
     } on FirebaseAuthException catch (e) {
-      print('Firebase registration error: ${e.code}');
-      
       // Try to restore admin session if it exists
       if (currentSession != null && currentFirebaseUser != null) {
         try {
@@ -475,8 +445,6 @@ class AuthService {
           throw Exception('Registrasi gagal: ${e.message}');
       }
     } catch (e) {
-      print('Registration error: $e');
-      
       // Try to restore admin session if it exists
       if (currentSession != null && currentFirebaseUser != null) {
         try {
