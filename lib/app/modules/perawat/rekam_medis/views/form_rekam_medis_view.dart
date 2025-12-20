@@ -22,7 +22,8 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
   
   // Controllers - Identitas Pasien (read-only from pasienData)
   late final TextEditingController _namaPasienController;
-  late final TextEditingController _idPasienController;
+  late final TextEditingController _noRekamMedisController;
+  late final TextEditingController _noAntrianController;
   late final TextEditingController _usiaController;
   late final TextEditingController _poliTujuanController;
   
@@ -57,14 +58,52 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
   void initState() {
     super.initState();
     // Initialize from pasienData
-    _namaPasienController = TextEditingController(text: widget.pasienData['nama'] ?? 'Anisa Ayu');
-    _idPasienController = TextEditingController(text: '202210370311009');
-    _usiaController = TextEditingController(text: '21 Tahun');
-    _poliTujuanController = TextEditingController(text: 'Poli umum');
+    _namaPasienController = TextEditingController(
+      text: widget.pasienData['namaLengkap'] ?? widget.pasienData['nama'] ?? '-'
+    );
+    _noRekamMedisController = TextEditingController(
+      text: widget.pasienData['noRekamMedis'] ?? '-'
+    );
+    _noAntrianController = TextEditingController(
+      text: widget.pasienData['queueNumber'] ?? '-'
+    );
+    _usiaController = TextEditingController(
+      text: _calculateAge(widget.pasienData['tanggalLahir'])
+    );
+    _poliTujuanController = TextEditingController(
+      text: widget.pasienData['jenisLayanan'] ?? widget.pasienData['poliklinik'] ?? 'Poli Umum'
+    );
     
     // Add listeners untuk auto-calculate IMT
     _beratBadanController.addListener(_calculateIMT);
     _tinggiBadanController.addListener(_calculateIMT);
+  }
+
+  String _calculateAge(dynamic tanggalLahir) {
+    if (tanggalLahir == null) return '- Tahun';
+    
+    try {
+      DateTime birthDate;
+      if (tanggalLahir is String) {
+        birthDate = DateTime.parse(tanggalLahir);
+      } else if (tanggalLahir is DateTime) {
+        birthDate = tanggalLahir;
+      } else {
+        return '- Tahun';
+      }
+      
+      final now = DateTime.now();
+      int age = now.year - birthDate.year;
+      
+      if (now.month < birthDate.month || 
+          (now.month == birthDate.month && now.day < birthDate.day)) {
+        age--;
+      }
+      
+      return '$age Tahun';
+    } catch (e) {
+      return '- Tahun';
+    }
   }
 
   void _calculateIMT() {
@@ -149,7 +188,8 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
   @override
   void dispose() {
     _namaPasienController.dispose();
-    _idPasienController.dispose();
+    _noRekamMedisController.dispose();
+    _noAntrianController.dispose();
     _usiaController.dispose();
     _poliTujuanController.dispose();
     _tekananDarahSistolikController.dispose();
@@ -220,9 +260,14 @@ class _FormRekamMedisViewState extends State<FormRekamMedisView> {
               _buildReadOnlyField(_namaPasienController),
               const SizedBox(height: 12),
               
-              _buildLabel('Id Pasien'),
+              _buildLabel('No. Rekam Medis'),
               const SizedBox(height: 8),
-              _buildReadOnlyField(_idPasienController),
+              _buildReadOnlyField(_noRekamMedisController),
+              const SizedBox(height: 12),
+              
+              _buildLabel('No. Antrian'),
+              const SizedBox(height: 8),
+              _buildReadOnlyField(_noAntrianController),
               const SizedBox(height: 12),
               
               _buildLabel('Usia'),

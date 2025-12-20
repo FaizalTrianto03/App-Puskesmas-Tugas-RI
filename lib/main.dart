@@ -21,8 +21,12 @@ void main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      print('Firebase initialized successfully');
+    } else {
+      print('Firebase already initialized');
     }
-  } catch (_) {
+  } catch (e) {
+    print('Error initializing Firebase: $e');
     // Firebase kemungkinan sudah terinisialisasi di level platform
   }
 

@@ -5,8 +5,9 @@ import '../controllers/status_antrean_controller.dart';
 class StatusAntreanBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<StatusAntreanController>(
-      () => StatusAntreanController(),
+    // Gunakan put() bukan lazyPut() agar controller langsung diinisialisasi
+    Get.put<StatusAntreanController>(
+      StatusAntreanController(),
     );
   }
 }

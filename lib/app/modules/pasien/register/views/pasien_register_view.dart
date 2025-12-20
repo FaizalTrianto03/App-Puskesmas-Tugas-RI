@@ -15,10 +15,12 @@ class PasienRegisterView extends GetView<PasienRegisterController> {
 
 class _PasienRegisterViewContent extends StatefulWidget {
   @override
-  State<_PasienRegisterViewContent> createState() => _PasienRegisterViewContentState();
+  State<_PasienRegisterViewContent> createState() =>
+      _PasienRegisterViewContentState();
 }
 
-class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> {
+class _PasienRegisterViewContentState
+    extends State<_PasienRegisterViewContent> {
   late final PasienRegisterController controller;
   final _namaLengkapController = TextEditingController();
   final _nikController = TextEditingController();
@@ -28,7 +30,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   final _tanggalLahirController = TextEditingController();
   final _kataSandiController = TextEditingController();
   final _konfirmasiKataSandiController = TextEditingController();
-  
+
   final _namaLengkapFocus = FocusNode();
   final _nikFocus = FocusNode();
   final _emailFocus = FocusNode();
@@ -37,7 +39,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   final _tanggalLahirFocus = FocusNode();
   final _kataSandiFocus = FocusNode();
   final _konfirmasiKataSandiFocus = FocusNode();
-  
+
   final _namaLengkapKey = GlobalKey();
   final _nikKey = GlobalKey();
   final _emailKey = GlobalKey();
@@ -46,13 +48,12 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   final _tanggalLahirKey = GlobalKey();
   final _kataSandiKey = GlobalKey();
   final _konfirmasiKataSandiKey = GlobalKey();
-  
+
   final ScrollController _scrollController = ScrollController();
-  
+
   String _jenisKelamin = '';
   bool _isPasswordVisible = false;
   bool _isKonfirmasiPasswordVisible = false;
-  bool _isLoading = false;
 
   bool _isNamaLengkapFocused = false;
   bool _isNikFocused = false;
@@ -62,7 +63,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   bool _isTanggalLahirFocused = false;
   bool _isKataSandiFocused = false;
   bool _isKonfirmasiKataSandiFocused = false;
-  
+
   String? namaError;
   String? nikError;
   String? emailError;
@@ -76,10 +77,10 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   @override
   void initState() {
     super.initState();
-    
+
     // Get controller from binding
     controller = Get.find<PasienRegisterController>();
-    
+
     _namaLengkapController.clear();
     _nikController.clear();
     _emailController.clear();
@@ -101,7 +102,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
     jenisKelaminError = null;
     kataSandiError = null;
     konfirmasiKataSandiError = null;
-    
+
     _namaLengkapFocus.addListener(() {
       setState(() => _isNamaLengkapFocused = _namaLengkapFocus.hasFocus);
     });
@@ -124,7 +125,10 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
       setState(() => _isKataSandiFocused = _kataSandiFocus.hasFocus);
     });
     _konfirmasiKataSandiFocus.addListener(() {
-      setState(() => _isKonfirmasiKataSandiFocused = _konfirmasiKataSandiFocus.hasFocus);
+      setState(
+        () =>
+            _isKonfirmasiKataSandiFocused = _konfirmasiKataSandiFocus.hasFocus,
+      );
     });
   }
 
@@ -138,7 +142,7 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
     _tanggalLahirController.dispose();
     _kataSandiController.dispose();
     _konfirmasiKataSandiController.dispose();
-    
+
     _scrollController.dispose();
     _namaLengkapFocus.dispose();
     _nikFocus.dispose();
@@ -220,250 +224,292 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
                   ),
                 ),
                 const SizedBox(height: 24),
-              
-              _buildLabel('Nama Lengkap'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                _namaLengkapController, 
-                'Isi nama lengkap Anda...',
-                errorText: namaError,
-                focusNode: _namaLengkapFocus,
-                isFocused: _isNamaLengkapFocused,
-                fieldKey: _namaLengkapKey,
-                onChanged: (value) {
-                  if (namaError != null && value.isNotEmpty) {
-                    setState(() => namaError = null);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              _buildLabel('NIK'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                _nikController, 
-                'Isi NIK Anda...', 
-                keyboardType: TextInputType.number,
-                errorText: nikError,
-                focusNode: _nikFocus,
-                isFocused: _isNikFocused,
-                fieldKey: _nikKey,
-                onChanged: (value) {
-                  if (nikError != null && value.isNotEmpty) {
-                    setState(() => nikError = null);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              _buildLabel('Email'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                _emailController, 
-                'Masukkan email Gmail Anda...', 
-                keyboardType: TextInputType.emailAddress,
-                errorText: emailError,
-                focusNode: _emailFocus,
-                isFocused: _isEmailFocused,
-                fieldKey: _emailKey,
-                onChanged: (value) {
-                  if (emailError != null && value.isNotEmpty) {
-                    setState(() => emailError = null);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              _buildLabel('Alamat'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                _alamatController, 
-                'Isi alamat Anda', 
-                maxLines: 3,
-                errorText: alamatError,
-                focusNode: _alamatFocus,
-                isFocused: _isAlamatFocused,
-                fieldKey: _alamatKey,
-                onChanged: (value) {
-                  if (alamatError != null && value.isNotEmpty) {
-                    setState(() => alamatError = null);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              _buildLabel('Nomor HP'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                _noHpController, 
-                'Isi nomor HP Anda...', 
-                keyboardType: TextInputType.phone,
-                errorText: noHpError,
-                focusNode: _noHpFocus,
-                isFocused: _isNoHpFocused,
-                fieldKey: _noHpKey,
-                onChanged: (value) {
-                  if (noHpError != null && value.isNotEmpty) {
-                    setState(() => noHpError = null);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('Jenis Kelamin'),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(child: _buildGenderButton('L')),
-                            Expanded(child: _buildGenderButton('P')),
-                          ],
-                        ),
-                        SizedBox(
-                          height: jenisKelaminError != null ? 24 : 0,
-                          child: jenisKelaminError != null
-                              ? Padding(
-                                  padding: const EdgeInsets.only(left: 12, top: 4),
-                                  child: Text(
-                                    jenisKelaminError!,
-                                    style: const TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 12,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.visible,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ],
+
+                _buildLabel('Nama Lengkap'),
+                const SizedBox(height: 8),
+                _buildTextField(
+                  _namaLengkapController,
+                  'Isi nama lengkap Anda...',
+                  errorText: namaError,
+                  focusNode: _namaLengkapFocus,
+                  isFocused: _isNamaLengkapFocused,
+                  fieldKey: _namaLengkapKey,
+                  onChanged: (value) {
+                    if (namaError != null && value.isNotEmpty) {
+                      setState(() => namaError = null);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                _buildLabel('NIK'),
+                const SizedBox(height: 8),
+                _buildTextField(
+                  _nikController,
+                  'Isi NIK Anda...',
+                  keyboardType: TextInputType.number,
+                  errorText: nikError,
+                  focusNode: _nikFocus,
+                  isFocused: _isNikFocused,
+                  fieldKey: _nikKey,
+                  onChanged: (value) {
+                    if (nikError != null && value.isNotEmpty) {
+                      setState(() => nikError = null);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                _buildLabel('Email'),
+                const SizedBox(height: 8),
+                _buildTextField(
+                  _emailController,
+                  'Masukkan email Gmail Anda...',
+                  keyboardType: TextInputType.emailAddress,
+                  errorText: emailError,
+                  focusNode: _emailFocus,
+                  isFocused: _isEmailFocused,
+                  fieldKey: _emailKey,
+                  onChanged: (value) {
+                    if (emailError != null && value.isNotEmpty) {
+                      setState(() => emailError = null);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                _buildLabel('Alamat'),
+                const SizedBox(height: 8),
+                _buildTextField(
+                  _alamatController,
+                  'Isi alamat Anda',
+                  maxLines: 3,
+                  errorText: alamatError,
+                  focusNode: _alamatFocus,
+                  isFocused: _isAlamatFocused,
+                  fieldKey: _alamatKey,
+                  onChanged: (value) {
+                    if (alamatError != null && value.isNotEmpty) {
+                      setState(() => alamatError = null);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                _buildLabel('Nomor HP'),
+                const SizedBox(height: 8),
+                _buildTextField(
+                  _noHpController,
+                  'Isi nomor HP Anda...',
+                  keyboardType: TextInputType.phone,
+                  errorText: noHpError,
+                  focusNode: _noHpFocus,
+                  isFocused: _isNoHpFocused,
+                  fieldKey: _noHpKey,
+                  onChanged: (value) {
+                    if (noHpError != null && value.isNotEmpty) {
+                      setState(() => noHpError = null);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildLabel('Jenis Kelamin'),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(child: _buildGenderButton('L')),
+                              Expanded(child: _buildGenderButton('P')),
+                            ],
+                          ),
+                          SizedBox(
+                            height: jenisKelaminError != null ? 24 : 0,
+                            child:
+                                jenisKelaminError != null
+                                    ? Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 12,
+                                        top: 4,
+                                      ),
+                                      child: Text(
+                                        jenisKelaminError!,
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 12,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.visible,
+                                      ),
+                                    )
+                                    : null,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildLabel('Tanggal Lahir'),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: _selectDate,
-                          child: AbsorbPointer(
-                            child: _buildTextField(
-                              _tanggalLahirController, 
-                              'dd/mm/yyyy',
-                              errorText: tanggalLahirError,
-                              focusNode: _tanggalLahirFocus,
-                              isFocused: _isTanggalLahirFocused,
-                              fieldKey: _tanggalLahirKey,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildLabel('Tanggal Lahir'),
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: _selectDate,
+                            child: AbsorbPointer(
+                              child: _buildTextField(
+                                _tanggalLahirController,
+                                'dd/mm/yyyy',
+                                errorText: tanggalLahirError,
+                                focusNode: _tanggalLahirFocus,
+                                isFocused: _isTanggalLahirFocused,
+                                fieldKey: _tanggalLahirKey,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              
-              _buildLabel('Kata Sandi'),
-              const SizedBox(height: 8),
-              _buildPasswordField(
-                _kataSandiController, 
-                'Silahkan isi kata sandi Anda...', 
-                _isPasswordVisible, 
-                () {
-                  setState(() => _isPasswordVisible = !_isPasswordVisible);
-                },
-                errorText: kataSandiError,
-                focusNode: _kataSandiFocus,
-                isFocused: _isKataSandiFocused,
-                fieldKey: _kataSandiKey,
-                onChanged: (value) {
-                  if (kataSandiError != null && value.isNotEmpty) {
-                    setState(() => kataSandiError = null);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              _buildLabel('Konfirmasi Kata Sandi'),
-              const SizedBox(height: 8),
-              _buildPasswordField(
-                _konfirmasiKataSandiController, 
-                'Silahkan isi kata sandi Anda...', 
-                _isKonfirmasiPasswordVisible, 
-                () {
-                  setState(() => _isKonfirmasiPasswordVisible = !_isKonfirmasiPasswordVisible);
-                },
-                errorText: konfirmasiKataSandiError,
-                focusNode: _konfirmasiKataSandiFocus,
-                isFocused: _isKonfirmasiKataSandiFocused,
-                fieldKey: _konfirmasiKataSandiKey,
-                onChanged: (value) {
-                  if (konfirmasiKataSandiError != null && value.isNotEmpty) {
-                    setState(() => konfirmasiKataSandiError = null);
-                  }
-                },
-              ),
-              const SizedBox(height: 32),
-              
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : () async {
-                    // Get controller instance
-                    final controller = Get.find<PasienRegisterController>();
-                    
-                    // Set values to controller
-                    controller.namaLengkapController.text = _namaLengkapController.text;
-                    controller.nikController.text = _nikController.text;
-                    controller.emailController.text = _emailController.text;
-                    controller.alamatController.text = _alamatController.text;
-                    controller.noHpController.text = _noHpController.text;
-                    controller.tanggalLahirController.text = _tanggalLahirController.text;
-                    controller.passwordController.text = _kataSandiController.text;
-                    controller.konfirmasiPasswordController.text = _konfirmasiKataSandiController.text;
-                    controller.selectedJenisKelamin.value = _jenisKelamin.isNotEmpty ? _jenisKelamin : null;
-                    
-                    // Set dummy values for fields not in current view
-                    controller.tempatLahirController.text = 'Malang';
-                    
-                    setState(() => _isLoading = true);
-                    
-                    // Call controller register
-                    await controller.register();
-                    
-                    setState(() => _isLoading = false);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF02B1BA),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          'DAFTAR SEKARANG',
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                _buildLabel('Kata Sandi'),
+                const SizedBox(height: 8),
+                _buildPasswordField(
+                  _kataSandiController,
+                  'Silahkan isi kata sandi Anda...',
+                  _isPasswordVisible,
+                  () {
+                    setState(() => _isPasswordVisible = !_isPasswordVisible);
+                  },
+                  errorText: kataSandiError,
+                  focusNode: _kataSandiFocus,
+                  isFocused: _isKataSandiFocused,
+                  fieldKey: _kataSandiKey,
+                  onChanged: (value) {
+                    if (kataSandiError != null && value.isNotEmpty) {
+                      setState(() => kataSandiError = null);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                _buildLabel('Konfirmasi Kata Sandi'),
+                const SizedBox(height: 8),
+                _buildPasswordField(
+                  _konfirmasiKataSandiController,
+                  'Silahkan isi kata sandi Anda...',
+                  _isKonfirmasiPasswordVisible,
+                  () {
+                    setState(
+                      () =>
+                          _isKonfirmasiPasswordVisible =
+                              !_isKonfirmasiPasswordVisible,
+                    );
+                  },
+                  errorText: konfirmasiKataSandiError,
+                  focusNode: _konfirmasiKataSandiFocus,
+                  isFocused: _isKonfirmasiKataSandiFocused,
+                  fieldKey: _konfirmasiKataSandiKey,
+                  onChanged: (value) {
+                    if (konfirmasiKataSandiError != null && value.isNotEmpty) {
+                      setState(() => konfirmasiKataSandiError = null);
+                    }
+                  },
+                ),
+                const SizedBox(height: 32),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: Obx(() {
+                    print(
+                      '[PasienRegisterView] Button rebuild - isLoading: ${controller.isLoading.value}',
+                    );
+                    return ElevatedButton(
+                      onPressed:
+                          controller.isLoading.value
+                              ? null
+                              : () async {
+                                print('[PasienRegisterView] Button clicked!');
+                                print(
+                                  '[PasienRegisterView] isLoading before register: ${controller.isLoading.value}',
+                                );
+
+                                // Set values to controller
+                                controller.namaLengkapController.text =
+                                    _namaLengkapController.text.trim();
+                                controller.nikController.text =
+                                    _nikController.text.trim();
+                                controller.emailController.text =
+                                    _emailController.text.trim();
+                                controller.alamatController.text =
+                                    _alamatController.text.trim();
+                                controller.noHpController.text =
+                                    _noHpController.text.trim();
+                                controller.tanggalLahirController.text =
+                                    _tanggalLahirController.text.trim();
+                                controller.passwordController.text =
+                                    _kataSandiController.text;
+                                controller.konfirmasiPasswordController.text =
+                                    _konfirmasiKataSandiController.text;
+                                controller.selectedJenisKelamin.value =
+                                    _jenisKelamin.isNotEmpty
+                                        ? _jenisKelamin
+                                        : null;
+
+                                // Set dummy values for fields not in current view
+                                controller.tempatLahirController.text =
+                                    'Malang';
+
+                                // Call controller register - it handles loading state internally
+                                await controller.register();
+
+                                print(
+                                  '[PasienRegisterView] isLoading after register: ${controller.isLoading.value}',
+                                );
+                              },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF02B1BA),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                        disabledBackgroundColor: const Color(
+                          0xFF02B1BA,
+                        ).withOpacity(0.6),
+                      ),
+                      child:
+                          controller.isLoading.value
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : const Text(
+                                'DAFTAR SEKARANG',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                    );
+                  }),
+                ),
+              ],
             ),
           ),
         ),
@@ -474,7 +520,11 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   Widget _buildLabel(String text) {
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF02B1BA)),
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF02B1BA),
+        ),
         children: [
           TextSpan(text: text),
           const TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
@@ -484,138 +534,141 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   }
 
   Widget _buildTextField(
-    TextEditingController controller, 
-    String hint, 
-    {
-      int maxLines = 1, 
-      TextInputType? keyboardType,
-      String? errorText,
-      Function(String)? onChanged,
-      FocusNode? focusNode,
-      bool isFocused = false,
-      GlobalKey? fieldKey,
-    }
-  ) {
+    TextEditingController controller,
+    String hint, {
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    String? errorText,
+    Function(String)? onChanged,
+    FocusNode? focusNode,
+    bool isFocused = false,
+    GlobalKey? fieldKey,
+  }) {
     return Container(
       key: fieldKey,
       child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: errorText != null ? Colors.red : const Color(0xFF02B1BA),
-              width: isFocused ? 2.5 : 2,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: errorText != null ? Colors.red : const Color(0xFF02B1BA),
+                width: isFocused ? 2.5 : 2,
+              ),
+              boxShadow:
+                  isFocused
+                      ? [
+                        BoxShadow(
+                          color: const Color(0xFF02B1BA).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                      : null,
             ),
-            boxShadow: isFocused
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF02B1BA).withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            maxLines: maxLines,
-            keyboardType: keyboardType,
-            onChanged: onChanged,
-            decoration: InputDecoration(
-              hintText: hint,
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-        ),
-        if (errorText != null) ...[
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.only(left: 12),
-            child: Text(
-              errorText,
-              style: const TextStyle(
-                color: Colors.red,
-                fontSize: 12,
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              maxLines: maxLines,
+              keyboardType: keyboardType,
+              onChanged: onChanged,
+              decoration: InputDecoration(
+                hintText: hint,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
             ),
           ),
+          if (errorText != null) ...[
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Text(
+                errorText,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ),
+          ],
         ],
-      ],
       ),
     );
   }
 
   Widget _buildPasswordField(
-    TextEditingController controller, 
-    String hint, 
-    bool isVisible, 
-    VoidCallback onToggle,
-    {
-      String? errorText,
-      Function(String)? onChanged,
-      FocusNode? focusNode,
-      bool isFocused = false,
-      GlobalKey? fieldKey,
-    }
-  ) {
+    TextEditingController controller,
+    String hint,
+    bool isVisible,
+    VoidCallback onToggle, {
+    String? errorText,
+    Function(String)? onChanged,
+    FocusNode? focusNode,
+    bool isFocused = false,
+    GlobalKey? fieldKey,
+  }) {
     return Container(
       key: fieldKey,
       child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: errorText != null ? Colors.red : const Color(0xFF02B1BA),
-              width: isFocused ? 2.5 : 2,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: errorText != null ? Colors.red : const Color(0xFF02B1BA),
+                width: isFocused ? 2.5 : 2,
+              ),
+              boxShadow:
+                  isFocused
+                      ? [
+                        BoxShadow(
+                          color: const Color(0xFF02B1BA).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                      : null,
             ),
-            boxShadow: isFocused
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF02B1BA).withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            obscureText: !isVisible,
-            onChanged: onChanged,
-            decoration: InputDecoration(
-              hintText: hint,
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              suffixIcon: IconButton(
-                icon: Icon(isVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: Colors.grey),
-                onPressed: onToggle,
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              obscureText: !isVisible,
+              onChanged: onChanged,
+              decoration: InputDecoration(
+                hintText: hint,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    isVisible
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: Colors.grey,
+                  ),
+                  onPressed: onToggle,
+                ),
               ),
             ),
           ),
-        ),
-        if (errorText != null) ...[
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.only(left: 12),
-            child: Text(
-              errorText,
-              style: const TextStyle(
-                color: Colors.red,
-                fontSize: 12,
+          if (errorText != null) ...[
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Text(
+                errorText,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
-          ),
+          ],
         ],
-      ],
       ),
     );
   }
@@ -623,8 +676,9 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
   Widget _buildGenderButton(String gender) {
     final isSelected = _jenisKelamin == gender;
     final isLeft = gender == 'L';
-    final errorColor = jenisKelaminError != null ? Colors.red : const Color(0xFF02B1BA);
-    
+    final errorColor =
+        jenisKelaminError != null ? Colors.red : const Color(0xFF02B1BA);
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -636,20 +690,27 @@ class _PasienRegisterViewContentState extends State<_PasienRegisterViewContent> 
         height: 54,
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF02B1BA) : Colors.white,
-          borderRadius: isLeft 
-            ? const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                bottomLeft: Radius.circular(12),
-              )
-            : const BorderRadius.only(
-                topRight: Radius.circular(12),
-                bottomRight: Radius.circular(12),
-              ),
+          borderRadius:
+              isLeft
+                  ? const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  )
+                  : const BorderRadius.only(
+                    topRight: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
           border: Border(
             top: BorderSide(color: errorColor, width: 2),
             bottom: BorderSide(color: errorColor, width: 2),
-            left: isLeft ? BorderSide(color: errorColor, width: 2) : BorderSide(color: errorColor, width: 1),
-            right: isLeft ? BorderSide(color: errorColor, width: 1) : BorderSide(color: errorColor, width: 2),
+            left:
+                isLeft
+                    ? BorderSide(color: errorColor, width: 2)
+                    : BorderSide(color: errorColor, width: 1),
+            right:
+                isLeft
+                    ? BorderSide(color: errorColor, width: 1)
+                    : BorderSide(color: errorColor, width: 2),
           ),
         ),
         child: Center(

@@ -39,7 +39,7 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
     );
     animationController.forward();
     
-    // Clear fields
+    // Clear fields on init
     usernameController.clear();
     passwordController.clear();
     usernameError.value = null;
@@ -47,7 +47,7 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
     rememberMe.value = false;
     isPasswordVisible.value = false;
     
-    // Check for auto-login
+    // Check for auto-login ONLY if credentials are saved
     _checkAutoLogin();
   }
   
@@ -62,14 +62,25 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
   Future<void> _checkAutoLogin() async {
     try {
       final savedCredentials = await _storage.auth.getSavedCredentials();
+      
+      // Only auto-login if:
+      // 1. Credentials exist
+      // 2. Role matches 'pasien'
       if (savedCredentials != null && savedCredentials['role'] == 'pasien') {
+        print('Auto-login: Credentials found for pasien');
         usernameController.text = savedCredentials['email']!;
         passwordController.text = savedCredentials['password']!;
         rememberMe.value = true;
+        
+        // Auto login
         await login();
+      } else {
+        print('Auto-login: No saved credentials or wrong role');
       }
     } catch (e) {
       print('Auto-login error: $e');
+      // Clear invalid credentials
+      await _storage.auth.clearSavedCredentials();
     }
   }
   

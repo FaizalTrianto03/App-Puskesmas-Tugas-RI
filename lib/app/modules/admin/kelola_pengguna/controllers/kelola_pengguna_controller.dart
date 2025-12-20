@@ -197,10 +197,11 @@ class KelolaPenggunaController extends GetxController {
         await loadUsers();
         SnackbarHelper.showSuccess('Pengguna berhasil ditambahkan');
         
-        // Delay sebentar agar snackbar terlihat
-        await Future.delayed(const Duration(milliseconds: 600));
-
+        // Tutup dialog terlebih dahulu, baru clear form
         Get.back();
+        
+        // Delay sebentar agar dialog benar-benar tertutup
+        await Future.delayed(const Duration(milliseconds: 300));
         clearForm();
       } else {
         SnackbarHelper.showError('Gagal menambahkan pengguna');
@@ -264,10 +265,11 @@ class KelolaPenggunaController extends GetxController {
 
         SnackbarHelper.showSuccess('Data pengguna berhasil diperbarui');
         
-        // Delay sebentar agar snackbar terlihat
-        await Future.delayed(const Duration(milliseconds: 600));
-
+        // Tutup dialog terlebih dahulu, baru clear form
         Get.back();
+        
+        // Delay sebentar agar dialog benar-benar tertutup
+        await Future.delayed(const Duration(milliseconds: 300));
         clearForm();
       } else {
         SnackbarHelper.showError('Pengguna tidak ditemukan');

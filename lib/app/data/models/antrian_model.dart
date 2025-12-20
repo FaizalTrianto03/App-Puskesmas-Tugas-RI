@@ -15,6 +15,8 @@ class AntrianModel {
   final String? dokterNama;
   final String? diagnosis;
   final String? tindakan;
+  final String tanggal;
+  final String? tanggalLahir;  // ✅ Tambahkan field tanggalLahir
 
   AntrianModel({
     this.id,
@@ -31,6 +33,8 @@ class AntrianModel {
     this.dokterNama,
     this.diagnosis,
     this.tindakan,
+    required this.tanggal,
+    this.tanggalLahir,  // ✅ Tambahkan ke constructor
   });
 
   // Convert to Map for Firestore
@@ -49,6 +53,8 @@ class AntrianModel {
       'dokterNama': dokterNama,
       'diagnosis': diagnosis,
       'tindakan': tindakan,
+      'tanggal': tanggal,
+      'tanggalLahir': tanggalLahir,  // ✅ Tambahkan ke map
     };
   }
 
@@ -72,6 +78,8 @@ class AntrianModel {
       dokterNama: data['dokterNama'],
       diagnosis: data['diagnosis'],
       tindakan: data['tindakan'],
+      tanggal: data['tanggal'] ?? '',
+      tanggalLahir: data['tanggalLahir'],  // ✅ Tambahkan
     );
   }
 
@@ -98,6 +106,8 @@ class AntrianModel {
       dokterNama: map['dokterNama'],
       diagnosis: map['diagnosis'],
       tindakan: map['tindakan'],
+      tanggal: map['tanggal'] ?? '',
+      tanggalLahir: map['tanggalLahir'],  // ✅ Tambahkan
     );
   }
 
@@ -117,6 +127,8 @@ class AntrianModel {
     String? dokterNama,
     String? diagnosis,
     String? tindakan,
+    String? tanggal,
+    String? tanggalLahir,  // ✅ Tambahkan
   }) {
     return AntrianModel(
       id: id ?? this.id,
@@ -133,6 +145,8 @@ class AntrianModel {
       dokterNama: dokterNama ?? this.dokterNama,
       diagnosis: diagnosis ?? this.diagnosis,
       tindakan: tindakan ?? this.tindakan,
+      tanggal: tanggal ?? this.tanggal,
+      tanggalLahir: tanggalLahir ?? this.tanggalLahir,  // ✅ Tambahkan
     );
   }
 }

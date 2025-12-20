@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import '../../../../data/services/firestore/antrian_firestore_service.dart';
 import '../../../../data/services/auth/session_service.dart';
@@ -10,6 +11,7 @@ import '../../rekam_medis/views/form_rekam_medis_view.dart';
 class PerawatDashboardController extends GetxController {
   final AntrianFirestoreService _antrianService = AntrianFirestoreService();
   final SessionService _sessionService = Get.find<SessionService>();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
   StreamSubscription? _antrianSubscription;
 
@@ -45,23 +47,12 @@ class PerawatDashboardController extends GetxController {
   }
 
   Future<void> loadUserData() async {
-    print('=== PERAWAT DASHBOARD DEBUG ===');
-    print('Loading user data for dashboard...');
-    
     final userData = await AuthHelper.currentUserData;
-    print('UserData from Firestore: $userData');
     
     if (userData != null) {
       userName.value = userData['namaLengkap'] ?? '';
       userRole.value = _formatRole(userData['role'] ?? '');
-      
-      print('Dashboard loaded:');
-      print('  - Name: ${userName.value}');
-      print('  - Role: ${userRole.value}');
-    } else {
-      print('ERROR: userData is NULL!');
     }
-    print('=== END PERAWAT DASHBOARD DEBUG ===');
   }
 
   String _formatRole(String role) {
@@ -74,12 +65,20 @@ class PerawatDashboardController extends GetxController {
   }
 
   void _startAntrianListener() {
+    // Subscribe to real-time updates menggunakan stream
+    _antrianSubscription?.cancel();
+    
+    // ✅ GUNAKAN STREAM untuk auto refresh real-time dari Firestore
     _antrianSubscription = _antrianService.watchAllAntrianToday().listen(
-      (antrianData) {
-        antrianList.value = antrianData;
+      (data) {
+        print('[PerawatDashboardController] Real-time update: ${data.length} antrian');
+        antrianList.value = data;
+        isLoading.value = false;
       },
       onError: (error) {
-        print('Error listening to antrian: $error');
+        print('[PerawatDashboardController] Stream error: $error');
+        SnackbarHelper.showError('Gagal memuat data antrian');
+        isLoading.value = false;
       },
     );
   }
@@ -88,10 +87,10 @@ class PerawatDashboardController extends GetxController {
     isLoading.value = true;
     
     try {
-      final data = await _antrianService.getAllAntrianToday();
+      // Load antrian dari Firestore (manual refresh)
+      List<Map<String, dynamic>> data = await _antrianService.getAllAntrian();
       antrianList.value = data;
     } catch (e) {
-      print('Error loading antrian: $e');
       SnackbarHelper.showError('Gagal memuat data antrian');
     } finally {
       isLoading.value = false;
@@ -100,13 +99,13 @@ class PerawatDashboardController extends GetxController {
 
   List<Map<String, dynamic>> get antrianMenungguVerifikasi {
     return _filteredAntrianList
-        .where((a) => a['status'] == 'menunggu_verifikasi')
+        .where((a) => a['status'] == 'menunggu' || a['status'] == 'menunggu_verifikasi')
         .toList();
   }
 
   List<Map<String, dynamic>> get antrianTerverifikasi {
     return _filteredAntrianList
-        .where((a) => a['status'] == 'menunggu_dokter' || a['status'] == 'sedang_dilayani')
+        .where((a) => a['status'] == 'menunggu_dokter' || a['status'] == 'sedang_dilayani' || a['status'] == 'dipanggil')
         .toList();
   }
   
@@ -129,10 +128,14 @@ class PerawatDashboardController extends GetxController {
     
     // Apply status filter
     if (selectedFilter.value == 'menunggu_verifikasi') {
-      filtered = filtered.where((a) => a['status'] == 'menunggu_verifikasi').toList();
+      filtered = filtered.where((a) => 
+        a['status'] == 'menunggu' || a['status'] == 'menunggu_verifikasi'
+      ).toList();
     } else if (selectedFilter.value == 'terverifikasi') {
       filtered = filtered.where((a) => 
-        a['status'] == 'menunggu_dokter' || a['status'] == 'sedang_dilayani'
+        a['status'] == 'menunggu_dokter' || 
+        a['status'] == 'sedang_dilayani' || 
+        a['status'] == 'dipanggil'
       ).toList();
     }
     
@@ -164,7 +167,12 @@ class PerawatDashboardController extends GetxController {
   }
 
   void refreshData() {
-    loadAntrian();
+    // ✅ Tidak perlu manual refresh karena sudah ada stream real-time
+    // Stream akan otomatis update ketika ada perubahan data di Firestore
+    // Hanya perlu trigger manual jika stream belum aktif
+    if (_antrianSubscription == null || _antrianSubscription!.isPaused) {
+      _startAntrianListener();
+    }
   }
 
   Future<void> verifikasiAntrian(Map<String, dynamic> antrian) async {
@@ -191,7 +199,7 @@ class PerawatDashboardController extends GetxController {
       SnackbarHelper.showSuccess(
         'Antrian ${antrian['queueNumber']} berhasil diverifikasi',
       );
-      refreshData();
+      // ✅ Tidak perlu refresh manual, stream akan auto-update
     } else {
       SnackbarHelper.showError('Gagal memverifikasi antrian');
     }
@@ -207,63 +215,78 @@ class PerawatDashboardController extends GetxController {
     Get.to(() => FormRekamMedisView(pasienData: antrian));
   }
 
-  /// Ubah status antrian dengan dropdown
   Future<void> ubahStatusAntrian({
     required String antrianId,
     required String newStatus,
     required Map<String, dynamic> antrian,
   }) async {
-    final perawatId = _sessionService.getUserId();
-    final perawatName = _sessionService.getNamaLengkap();
+    // Validasi input
+    if (antrianId.isEmpty) {
+      SnackbarHelper.showError('ID antrian tidak valid');
+      return;
+    }
 
-    if (perawatId == null || perawatName == null) {
-      SnackbarHelper.showError('Sesi tidak valid');
+    // Prevent double-click
+    if (isLoading.value) {
+      print('[PerawatDashboardController] Already processing, ignoring duplicate request');
       return;
     }
 
     isLoading.value = true;
 
-    bool success = false;
-    String message = '';
+    try {
+      print('[PerawatDashboardController] Updating status: $antrianId -> $newStatus');
+      
+      // Update status di Firestore
+      await _firestore.collection('antrian').doc(antrianId).update({
+        'status': newStatus,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
-    switch (newStatus) {
-      case 'menunggu_dokter':
-        // Verifikasi & kirim ke dokter
-        success = await _antrianService.verifikasiAntrian(
-          antrianId: antrianId,
-          perawatId: perawatId,
-          perawatName: perawatName,
-          catatan: 'Diverifikasi dan dikirim ke dokter',
-        );
-        message = success
-            ? 'Antrian ${antrian['queueNumber']} berhasil dikirim ke dokter'
-            : 'Gagal mengirim antrian ke dokter';
-        break;
+      print('[PerawatDashboardController] ✅ Status updated successfully');
 
-      case 'dibatalkan':
-        // Batalkan antrian
-        success = await _antrianService.batalkanAntrian(
-          antrianId,
-          'Dibatalkan oleh perawat',
-        );
-        message = success
-            ? 'Antrian ${antrian['queueNumber']} berhasil dibatalkan'
-            : 'Gagal membatalkan antrian';
-        break;
+      // Close dialog jika ada
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
 
-      default:
-        SnackbarHelper.showError('Status tidak valid');
-        isLoading.value = false;
-        return;
+      // Show success message
+      SnackbarHelper.showSuccess('Status berhasil diubah ke: ${_formatStatusText(newStatus)}');
+
+      // Stream akan otomatis update data, tidak perlu manual refresh
+      
+    } catch (e) {
+      print('[PerawatDashboardController] ❌ Error updating status: $e');
+      
+      // Close dialog jika ada
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      
+      SnackbarHelper.showError('Gagal mengubah status: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
     }
+  }
 
-    isLoading.value = false;
-
-    if (success) {
-      SnackbarHelper.showSuccess(message);
-      refreshData();
-    } else {
-      SnackbarHelper.showError(message);
+  String _formatStatusText(String status) {
+    switch (status) {
+      case 'menunggu':
+        return 'Menunggu Verifikasi';
+      case 'menunggu_verifikasi':
+        return 'Menunggu Verifikasi';
+      case 'menunggu_dokter':
+        return 'Menunggu Dokter';
+      case 'dipanggil':
+        return 'Dipanggil';
+      case 'sedang_dilayani':
+        return 'Sedang Dilayani';
+      case 'selesai':
+        return 'Selesai';
+      case 'dibatalkan':
+        return 'Dibatalkan';
+      default:
+        return status;
     }
   }
 }

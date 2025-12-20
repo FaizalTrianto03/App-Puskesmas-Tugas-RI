@@ -13,7 +13,8 @@ class FormRekamMedisController extends GetxController {
 
   // Controllers untuk Identitas Pasien (read-only)
   final namaPasienController = TextEditingController();
-  final idPasienController = TextEditingController();
+  final noRekamMedisController = TextEditingController();
+  final noAntrianController = TextEditingController();
   final usiaController = TextEditingController();
   final poliTujuanController = TextEditingController();
   
@@ -50,7 +51,8 @@ class FormRekamMedisController extends GetxController {
   void onClose() {
     // Dispose all controllers
     namaPasienController.dispose();
-    idPasienController.dispose();
+    noRekamMedisController.dispose();
+    noAntrianController.dispose();
     usiaController.dispose();
     poliTujuanController.dispose();
     tekananDarahSistolikController.dispose();
@@ -73,9 +75,10 @@ class FormRekamMedisController extends GetxController {
     
     // Set identitas pasien (read-only)
     namaPasienController.text = data['namaLengkap'] ?? '';
-    idPasienController.text = data['noRekamMedis'] ?? data['pasienId'] ?? '';
+    noRekamMedisController.text = data['noRekamMedis'] ?? '';
+    noAntrianController.text = data['queueNumber'] ?? '';
     usiaController.text = _calculateAge(data['tanggalLahir']);
-    poliTujuanController.text = data['poliklinik'] ?? 'Poli Umum';
+    poliTujuanController.text = data['jenisLayanan'] ?? data['poliklinik'] ?? 'Poli Umum';
     
     // Set keluhan dari data pendaftaran
     keluhanUtamaController.text = data['keluhan'] ?? '';

@@ -28,6 +28,8 @@ import '../modules/pasien/login/bindings/pasien_login_binding.dart';
 import '../modules/pasien/login/views/pasien_login_view.dart';
 import '../modules/pasien/pendaftaran/bindings/pendaftaran_binding.dart';
 import '../modules/pasien/pendaftaran/views/pasien_pendaftaran_view.dart';
+import '../modules/pasien/status_antrean/bindings/status_antrean_binding.dart';
+import '../modules/pasien/status_antrean/views/status_antrean_view.dart';
 import '../modules/pasien/profile/bindings/pasien_profile_binding.dart';
 import '../modules/pasien/profile/views/pasien_profile_view.dart';
 import '../modules/pasien/register/bindings/pasien_register_binding.dart';
@@ -178,6 +180,11 @@ class AppPages {
       name: _Paths.pasienPendaftaran,
       page: () => const PasienPendaftaranView(),
       binding: PendaftaranBinding(),
+    ),
+    GetPage(
+      name: _Paths.pasienStatusAntrean,
+      page: () => const StatusAntreanView(),
+      binding: StatusAntreanBinding(),
     ),
     GetPage(
       name: _Paths.pasienProfile,

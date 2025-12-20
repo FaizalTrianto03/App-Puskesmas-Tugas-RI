@@ -6,9 +6,7 @@ import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
 import '../controllers/status_antrean_controller.dart';
 
 class StatusAntreanView extends GetView<StatusAntreanController> {
-  final bool hasActiveQueue;
-  
-  const StatusAntreanView({Key? key, this.hasActiveQueue = false}) : super(key: key);
+  const StatusAntreanView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +31,21 @@ class StatusAntreanView extends GetView<StatusAntreanController> {
         ),
       ),
       body: QuarterCircleBackground(
-        child: hasActiveQueue 
-          ? _buildActiveQueueContent(context)
-          : _buildNoQueueContent(context),
+        child: Obx(() {
+          // Tampilkan loading saat initial loading
+          if (controller.isInitialLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF02B1BA),
+              ),
+            );
+          }
+          
+          final hasActiveQueue = controller.antrianData.value != null;
+          return hasActiveQueue
+              ? _buildActiveQueueContent(context)
+              : _buildNoQueueContent(context);
+        }),
       ),
     );
   }
@@ -81,7 +91,7 @@ class StatusAntreanView extends GetView<StatusAntreanController> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final result = await Get.to(() => PasienPendaftaranView(hasActiveQueue: hasActiveQueue));
+                    final result = await Get.to(() => const PasienPendaftaranView());
                     if (result == true && context.mounted) {
                       Get.back(result: true);
                     }
@@ -185,16 +195,16 @@ class StatusAntreanView extends GetView<StatusAntreanController> {
                               ),
                             ),
                             const SizedBox(height: 18),
-                            const Text(
-                              'G - 009',
-                              style: TextStyle(
+                            Obx(() => Text(
+                              controller.antrianData.value?.queueNumber ?? 'Loading...',
+                              style: const TextStyle(
                                 fontSize: 60,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFFF4242),
                                 letterSpacing: 8,
                                 height: 1.1,
                               ),
-                            ),
+                            )),
                             const SizedBox(height: 18),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 7),
@@ -230,49 +240,68 @@ class StatusAntreanView extends GetView<StatusAntreanController> {
                 ),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Progress Antrean',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF1E293B),
+                    Obx(() {
+                      final progress = controller.progressPercentage.value;
+                      final progressPercent = (progress * 100).toStringAsFixed(0);
+                      
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Progress Antrean',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B),
+                            ),
                           ),
-                        ),
-                        Text(
-                          '70%',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade600,
+                          Text(
+                            '$progressPercent%',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade600,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      );
+                    }),
                     const SizedBox(height: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: 0.7,
-                        backgroundColor: const Color(0xFF02B1BA).withOpacity(0.2),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF02B1BA)),
-                        minHeight: 8,
-                      ),
-                    ),
+                    Obx(() {
+                      final progress = controller.progressPercentage.value;
+                      
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor: const Color(0xFF02B1BA).withOpacity(0.2),
+                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF02B1BA)),
+                          minHeight: 8,
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildProgressCard('Sisa Antrean', '3'),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildProgressCard('Estimasi', '3', 'Menit Lagi'),
-                        ),
-                      ],
-                    ),
+                    Obx(() {
+                      final posisi = controller.queuePosition.value;
+                      final sisaAntrean = posisi > 0 ? (posisi - 1).toString() : '0';
+
+                      final estStr = controller.estimatedTime.value;
+                      final isSegera = estStr == '0' || estStr.isEmpty;
+                      final estimasiValue = isSegera ? 'Segera' : estStr;
+                      final estimasiSubtitle = isSegera ? '' : 'Menit Lagi';
+
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _buildProgressCard('Sisa Antrean', sisaAntrean),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildProgressCard('Estimasi', estimasiValue, estimasiSubtitle),
+                          ),
+                        ],
+                      );
+                    }),
                   ],
                 ),
               ),
