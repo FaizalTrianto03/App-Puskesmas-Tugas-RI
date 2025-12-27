@@ -100,6 +100,15 @@ class DetailRiwayatView extends GetView<DetailRiwayatController> {
               ),
               const SizedBox(height: 16),
 
+              // Email Pasien
+              _buildInfoCard(
+                icon: Icons.email,
+                iconColor: const Color(0xFF02B1BA),
+                title: 'Email Pasien',
+                content: controller.data['email'] ?? 'Email tidak tersedia',
+              ),
+              const SizedBox(height: 16),
+
               // Keluhan Pasien
               _buildInfoCard(
                 icon: Icons.edit_note,
