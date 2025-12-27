@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../data/services/firestore/antrian_firestore_service.dart';
+import '../../../../data/services/firestore/notifikasi_firestore_service.dart';
 import '../../../../data/services/firestore/user_profile_firestore_service.dart';
 import '../../../../routes/app_pages.dart';
 
 class PasienDashboardController extends GetxController with WidgetsBindingObserver {
   final AntrianFirestoreService _antrianService = AntrianFirestoreService();
   final UserProfileFirestoreService _profileService = UserProfileFirestoreService();
+  final NotifikasiFirestoreService _notifikasiService = NotifikasiFirestoreService();
   
   // Observable states
   final userName = ''.obs;
@@ -21,8 +23,10 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
   final estimatedTime = ''.obs;
   final isLoading = false.obs;
   final isRefreshing = false.obs;
+  final unreadNotificationCount = 0.obs;
   
   StreamSubscription? _profileSubscription;
+  StreamSubscription? _unreadNotificationSubscription;
   
   // UI State for hover and press effects
   final isHoverDaftarBaru = false.obs;
@@ -41,6 +45,7 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
     watchUserProfile();
+    watchUnreadNotificationCount();
     _initQueueState();
   }
 
@@ -58,6 +63,7 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
   void onClose() {
     WidgetsBinding.instance.removeObserver(this);
     _profileSubscription?.cancel();
+    _unreadNotificationSubscription?.cancel();
     super.onClose();
   }
 
@@ -116,6 +122,19 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
       }
     } catch (e) {
     }
+  }
+  
+  void watchUnreadNotificationCount() {
+    _unreadNotificationSubscription?.cancel();
+    _unreadNotificationSubscription = _notifikasiService.watchUnreadCount().listen(
+      (count) {
+        unreadNotificationCount.value = count;
+      },
+      onError: (e) {
+        print('[PasienDashboardController] watchUnreadNotificationCount error: $e');
+        unreadNotificationCount.value = 0;
+      }
+    );
   }
   
   Future<void> checkActiveQueue() async {
@@ -225,7 +244,7 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
   }
   
   void goToNotifikasi() {
-    Get.snackbar('Info', 'Fitur Notifikasi sedang dalam pengembangan');
+    Get.toNamed(Routes.pasienNotifikasi);
   }
   
   Future<void> logout() async {

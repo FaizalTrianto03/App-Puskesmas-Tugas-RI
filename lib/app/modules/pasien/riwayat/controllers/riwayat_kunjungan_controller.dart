@@ -11,10 +11,12 @@ class RiwayatKunjunganController extends GetxController {
   final riwayatList = <RiwayatKunjunganModel>[].obs;
   final isLoading = false.obs;
   final totalKunjungan = 0.obs;
+  final availableBulan = <String>['Semua'].obs;
 
   @override
   void onInit() {
     super.onInit();
+    loadAvailableBulan();
     loadRiwayat();
   }
 
@@ -79,6 +81,60 @@ class RiwayatKunjunganController extends GetxController {
   }
 
   Future<void> refreshRiwayat() async {
+    await loadAvailableBulan();
     await loadRiwayat();
+  }
+
+  Future<void> loadAvailableBulan() async {
+    try {
+      final riwayatData = await _riwayatService.getRiwayatKunjungan();
+      
+      // Extract unique months from riwayat data
+      final bulanSet = <String>{'Semua'};
+      
+      for (var riwayat in riwayatData) {
+        final monthName = _getMonthName(riwayat.tanggalKunjungan.month);
+        final year = riwayat.tanggalKunjungan.year;
+        final bulanString = '$monthName $year';
+        bulanSet.add(bulanString);
+      }
+      
+      // Sort bulan (terbaru dulu)
+      final sortedBulan = bulanSet.toList()..sort((a, b) {
+        if (a == 'Semua') return -1;
+        if (b == 'Semua') return 1;
+        
+        final aParts = a.split(' ');
+        final bParts = b.split(' ');
+        
+        final aMonth = _getMonthNumber(aParts[0]);
+        final bMonth = _getMonthNumber(bParts[0]);
+        final aYear = int.parse(aParts[1]);
+        final bYear = int.parse(bParts[1]);
+        
+        // Sort by year desc, then month desc
+        if (aYear != bYear) return bYear.compareTo(aYear);
+        return bMonth.compareTo(aMonth);
+      });
+      
+      availableBulan.value = sortedBulan;
+      
+      // Reset selectedBulan jika tidak tersedia
+      if (!availableBulan.contains(selectedBulan.value)) {
+        selectedBulan.value = 'Semua';
+      }
+      
+    } catch (e) {
+      print('Error loading available bulan: $e');
+      availableBulan.value = ['Semua'];
+    }
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return months[month];
   }
 }

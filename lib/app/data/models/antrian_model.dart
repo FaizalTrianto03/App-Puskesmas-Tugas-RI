@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AntrianModel {
   final String? id;
   final String pasienId;
+  final String email;
   final String namaLengkap;
   final String noRekamMedis;
   final String jenisLayanan;
@@ -21,6 +22,7 @@ class AntrianModel {
   AntrianModel({
     this.id,
     required this.pasienId,
+    required this.email,
     required this.namaLengkap,
     required this.noRekamMedis,
     required this.jenisLayanan,
@@ -41,6 +43,7 @@ class AntrianModel {
   Map<String, dynamic> toMap() {
     return {
       'pasienId': pasienId,
+      'email': email,
       'namaLengkap': namaLengkap,
       'noRekamMedis': noRekamMedis,
       'jenisLayanan': jenisLayanan,
@@ -64,6 +67,7 @@ class AntrianModel {
     return AntrianModel(
       id: doc.id,
       pasienId: data['pasienId'] ?? '',
+      email: data['email'] ?? '',
       namaLengkap: data['namaLengkap'] ?? '',
       noRekamMedis: data['noRekamMedis'] ?? '',
       jenisLayanan: data['jenisLayanan'] ?? '',
@@ -88,6 +92,7 @@ class AntrianModel {
     return AntrianModel(
       id: map['id'],
       pasienId: map['pasienId'] ?? '',
+      email: map['email'] ?? '',
       namaLengkap: map['namaLengkap'] ?? '',
       noRekamMedis: map['noRekamMedis'] ?? '',
       jenisLayanan: map['jenisLayanan'] ?? '',
@@ -115,6 +120,7 @@ class AntrianModel {
   AntrianModel copyWith({
     String? id,
     String? pasienId,
+    String? email,
     String? namaLengkap,
     String? noRekamMedis,
     String? jenisLayanan,
@@ -133,6 +139,7 @@ class AntrianModel {
     return AntrianModel(
       id: id ?? this.id,
       pasienId: pasienId ?? this.pasienId,
+      email: email ?? this.email,
       namaLengkap: namaLengkap ?? this.namaLengkap,
       noRekamMedis: noRekamMedis ?? this.noRekamMedis,
       jenisLayanan: jenisLayanan ?? this.jenisLayanan,

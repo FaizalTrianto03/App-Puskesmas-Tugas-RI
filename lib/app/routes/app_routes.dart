@@ -48,6 +48,7 @@ abstract class Routes {
   static const pasienKelolaDataDiri = _Paths.pasienKelolaDataDiri;
   static const pasienKelolaKataSandi = _Paths.pasienKelolaKataSandi;
   static const pasienRiwayat = _Paths.pasienRiwayat;
+  static const pasienNotifikasi = _Paths.pasienNotifikasi;
 }
 
 abstract class _Paths {
@@ -97,4 +98,5 @@ abstract class _Paths {
   static const pasienKelolaDataDiri = '/pasien-kelola-data-diri';
   static const pasienKelolaKataSandi = '/pasien-kelola-kata-sandi';
   static const pasienRiwayat = '/pasien-riwayat';
+  static const pasienNotifikasi = '/pasien-notifikasi';
 }

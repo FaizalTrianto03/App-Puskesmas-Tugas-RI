@@ -45,6 +45,7 @@ class DetailRiwayatController extends GetxController {
       'tanggal': _formatTanggal(r.tanggalKunjungan),
       'noAntrean': r.noAntrean,
       'dokter': r.dokter,
+      'email': r.email,
       'keluhan': r.keluhan,
       'diagnosis': r.diagnosis,
       'tindakan': r.tindakan,

@@ -1,11 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
 import '../controllers/lokasi_puskesmas_controller.dart';
 
-class LokasiPuskesmasView extends GetView<LokasiPuskesmasController> {
+class LokasiPuskesmasView extends StatefulWidget {
   const LokasiPuskesmasView({Key? key}) : super(key: key);
+
+  @override
+  State<LokasiPuskesmasView> createState() => _LokasiPuskesmasViewState();
+}
+
+class _LokasiPuskesmasViewState extends State<LokasiPuskesmasView> {
+  late final LokasiPuskesmasController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = LokasiPuskesmasController();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,45 +65,75 @@ class LokasiPuskesmasView extends GetView<LokasiPuskesmasController> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(
-                    'assets/images/peta_puskesmas_dau.png',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              const Color(0xFF02B1BA).withOpacity(0.1),
-                              const Color(0xFF84F3EE).withOpacity(0.1),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                  child: GestureDetector(
+                    onTap: controller.openInGoogleMaps,
+                    child: Stack(
+                      children: [
+                        FlutterMap(
+                          options: const MapOptions(
+                            initialCenter: LatLng(-7.913862, 112.585557),
+                            initialZoom: 16.0,
+                            maxZoom: 18.0,
+                            minZoom: 10.0,
                           ),
+                          children: [
+                            TileLayer(
+                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.example.app_puskesmas_tugas_ri',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: controller.puskesmasLocation,
+                                  child: const Icon(
+                                    Icons.location_on,
+                                    color: Color(0xFF02B1BA),
+                                    size: 40,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        child: const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 64,
-                                color: Color(0xFF02B1BA),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Peta Lokasi',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.touch_app,
+                                  size: 16,
                                   color: Color(0xFF02B1BA),
                                 ),
-                              ),
-                            ],
+                                SizedBox(width: 4),
+                                Text(
+                                  'Tap untuk buka Maps',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF02B1BA),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -172,9 +223,9 @@ class LokasiPuskesmasView extends GetView<LokasiPuskesmasController> {
                 ),
                 child: Column(
                   children: [
-                    _buildContactRow(Icons.phone, 'Telepon', '(0341) 463015'),
-                    _buildContactRow(Icons.email, 'Email', 'puskesmas.dau@malangkab.go.id'),
-                    _buildContactRow(Icons.language, 'Website', 'puskesmas-dau.malangkab.go.id', isLast: true),
+                    _buildContactRow(Icons.phone, 'Telepon', controller.telepon, onTap: controller.openPhone),
+                    _buildContactRow(Icons.email, 'Email', controller.email, onTap: controller.openEmail),
+                    _buildContactRow(Icons.language, 'Website', controller.website, onTap: controller.openWebsite, isLast: true),
                   ],
                 ),
               ),
@@ -213,41 +264,55 @@ class LokasiPuskesmasView extends GetView<LokasiPuskesmasController> {
     );
   }
 
-  Widget _buildContactRow(IconData icon, String label, String value, {bool isLast = false}) {
+  Widget _buildContactRow(IconData icon, String label, String value, {bool isLast = false, VoidCallback? onTap}) {
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: const Color(0xFF02B1BA)),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1E293B),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          child: Row(
+            children: [
+              Icon(icon, size: 18, color: const Color(0xFF02B1BA)),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 80,
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
               ),
-            ),
-          ),
-          const Text(
-            ': ',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF64748B),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF64748B),
+              const Text(
+                ': ',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF64748B),
+                ),
               ),
-            ),
+              Expanded(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: onTap != null ? const Color(0xFF02B1BA) : const Color(0xFF64748B),
+                    decoration: onTap != null ? TextDecoration.underline : null,
+                  ),
+                ),
+              ),
+              if (onTap != null)
+                Icon(
+                  Icons.open_in_new,
+                  size: 16,
+                  color: const Color(0xFF02B1BA),
+                ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

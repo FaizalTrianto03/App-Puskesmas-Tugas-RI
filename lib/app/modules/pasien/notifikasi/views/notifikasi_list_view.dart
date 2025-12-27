@@ -5,12 +5,30 @@ import '../../../../widgets/quarter_circle_background.dart';
 import '../controllers/notifikasi_list_controller.dart';
 import 'detail_notifikasi_view.dart';
 
-class NotifikasiListView extends GetView<NotifikasiListController> {
-  NotifikasiListView({Key? key}) : super(key: key);
+class NotifikasiListView extends StatefulWidget {
+  const NotifikasiListView({Key? key}) : super(key: key);
+
+  @override
+  State<NotifikasiListView> createState() => _NotifikasiListViewState();
+}
+
+class _NotifikasiListViewState extends State<NotifikasiListView> {
+  late NotifikasiListController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = NotifikasiListController();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Get.put(NotifikasiListController());
     return _buildScaffold(context);
   }
 
@@ -51,10 +69,19 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
   }
 
   Widget _buildScaffold(BuildContext context) {
-    return Obx(() {
-      final notifList = controller.filteredNotifikasi;
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        controller.selectedFilter,
+        controller.hoveredIndex,
+        controller.pressedIndex,
+        controller.hoveredFilterIndex,
+        controller.notifikasiList,
+        controller.unreadCount,
+      ]),
+      builder: (context, child) {
+        final notifList = controller.filteredNotifikasi;
 
-      return Scaffold(
+        return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
@@ -74,49 +101,51 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
           ),
         ),
         actions: [
-          Obx(() {
-            final unreadCount = controller.unreadCount.value;
-            if (unreadCount > 0) {
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.notifications,
-                      color: Colors.white,
-                      size: 28,
+          Builder(
+            builder: (context) {
+              final unreadCount = controller.unreadCount.value;
+              if (unreadCount > 0) {
+                return Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.notifications,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      onPressed: () {},
                     ),
-                    onPressed: () {},
-                  ),
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFF4242),
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
-                      ),
-                      child: Center(
-                        child: Text(
-                          unreadCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFF4242),
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Center(
+                          child: Text(
+                            unreadCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            }
-            return const SizedBox.shrink();
-          }),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -131,20 +160,21 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
                   children: filterOptions.asMap().entries.map((entry) {
                     final index = entry.key;
                     final filter = entry.value;
-                    return Obx(() {
-                      final isSelected = controller.selectedFilter.value == filter;
-                      final isHovered = controller.hoveredFilterIndex.value == index;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          onEnter: (_) {
-                            controller.setHoveredFilterIndex(index);
-                          },
-                          onExit: (_) {
-                            controller.setHoveredFilterIndex(null);
-                          },
-                          child: FilterChip(
+                    return Builder(
+                      builder: (context) {
+                        final isSelected = controller.selectedFilter.value == filter;
+                        final isHovered = controller.hoveredFilterIndex.value == index;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            onEnter: (_) {
+                              controller.setHoveredFilterIndex(index);
+                            },
+                            onExit: (_) {
+                              controller.setHoveredFilterIndex(null);
+                            },
+                            child: FilterChip(
                             label: Text(filter),
                             selected: isSelected,
                             onSelected: (selected) {
@@ -168,9 +198,10 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
                             width: isHovered ? 1.5 : 1,
                           ),
                         ),
-                      ),
+                        ),
                       );
-                    });
+                      },
+                    );
                   }).toList(),
                 ),
               ),
@@ -211,7 +242,8 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
         ),
       ),
       );
-    });
+      },
+    );
   }
 
   Widget _buildNotificationCard(notif, int index) {
@@ -219,9 +251,10 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
     final color = _getColorForType(notif.type);
     final timeAgo = _getTimeAgo(notif.createdAt);
     
-    return Obx(() {
-      final isHovered = controller.hoveredIndex.value == index;
-      final isPressed = controller.pressedIndex.value == index;
+    return Builder(
+      builder: (context) {
+        final isHovered = controller.hoveredIndex.value == index;
+        final isPressed = controller.pressedIndex.value == index;
       
       return MouseRegion(
         cursor: SystemMouseCursors.click,
@@ -369,6 +402,7 @@ class NotifikasiListView extends GetView<NotifikasiListController> {
         ),
         ),
       );
-    });
+      },
+    );
   }
 }

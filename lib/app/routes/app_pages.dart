@@ -26,10 +26,9 @@ import '../modules/pasien/dashboard/views/pasien_dashboard_view.dart';
 // Pasien
 import '../modules/pasien/login/bindings/pasien_login_binding.dart';
 import '../modules/pasien/login/views/pasien_login_view.dart';
+import '../modules/pasien/notifikasi/views/notifikasi_list_view.dart';
 import '../modules/pasien/pendaftaran/bindings/pendaftaran_binding.dart';
 import '../modules/pasien/pendaftaran/views/pasien_pendaftaran_view.dart';
-import '../modules/pasien/status_antrean/bindings/status_antrean_binding.dart';
-import '../modules/pasien/status_antrean/views/status_antrean_view.dart';
 import '../modules/pasien/profile/bindings/pasien_profile_binding.dart';
 import '../modules/pasien/profile/views/pasien_profile_view.dart';
 import '../modules/pasien/register/bindings/pasien_register_binding.dart';
@@ -39,13 +38,15 @@ import '../modules/pasien/settings/bindings/pasien_settings_binding.dart';
 import '../modules/pasien/settings/views/kelola_data_diri_view.dart';
 import '../modules/pasien/settings/views/kelola_kata_sandi_view.dart';
 import '../modules/pasien/settings/views/pasien_settings_view.dart';
+import '../modules/pasien/status_antrean/bindings/status_antrean_binding.dart';
+import '../modules/pasien/status_antrean/views/status_antrean_view.dart';
 import '../modules/perawat/dashboard/bindings/perawat_dashboard_binding.dart';
 import '../modules/perawat/dashboard/views/perawat_dashboard_view.dart';
+import '../modules/perawat/laporan_kinerja/bindings/laporan_kinerja_binding.dart';
+import '../modules/perawat/laporan_kinerja/views/laporan_kinerja_view.dart';
 // Perawat
 import '../modules/perawat/login/bindings/perawat_login_binding.dart';
 import '../modules/perawat/login/views/perawat_login_view.dart';
-import '../modules/perawat/laporan_kinerja/bindings/laporan_kinerja_binding.dart';
-import '../modules/perawat/laporan_kinerja/views/laporan_kinerja_view.dart';
 import '../modules/perawat/riwayat_pemeriksaan/bindings/riwayat_pemeriksaan_binding.dart';
 import '../modules/perawat/riwayat_pemeriksaan/views/detail_riwayat_view.dart';
 import '../modules/perawat/riwayat_pemeriksaan/views/riwayat_pemeriksaan_view.dart';
@@ -209,6 +210,10 @@ class AppPages {
     GetPage(
       name: _Paths.pasienRiwayat,
       page: () => const RiwayatKunjunganView(),
+    ),
+    GetPage(
+      name: _Paths.pasienNotifikasi,
+      page: () => NotifikasiListView(),
     ),
   ];
 }

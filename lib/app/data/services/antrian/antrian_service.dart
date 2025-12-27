@@ -67,6 +67,7 @@ class AntreanService extends GetxService {
 
   Future<Map<String, dynamic>> createAntrian({
     required String pasienId,
+    required String email,
     required String namaLengkap,
     required String noRekamMedis,
     required String jenisLayanan,
@@ -80,6 +81,7 @@ class AntreanService extends GetxService {
       'id': queueNumber,
       'queueNumber': queueNumber,
       'pasienId': pasienId,
+      'email': email,
       'namaLengkap': namaLengkap,
       'noRekamMedis': noRekamMedis,
       'jenisLayanan': jenisLayanan,

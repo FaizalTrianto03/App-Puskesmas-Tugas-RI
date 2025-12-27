@@ -1,38 +1,41 @@
 import 'dart:async';
 
-import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../data/models/notifikasi_model.dart';
 import '../../../../data/services/firestore/notifikasi_firestore_service.dart';
 
-class NotifikasiListController extends GetxController {
+class NotifikasiListController {
   final NotifikasiFirestoreService _notifikasiService = NotifikasiFirestoreService();
   
-  final selectedFilter = 'Semua'.obs;
-  final hoveredIndex = Rxn<int>();
-  final pressedIndex = Rxn<int>();
-  final hoveredFilterIndex = Rxn<int>();
+  final selectedFilter = ValueNotifier<String>('Semua');
+  final hoveredIndex = ValueNotifier<int?>(null);
+  final pressedIndex = ValueNotifier<int?>(null);
+  final hoveredFilterIndex = ValueNotifier<int?>(null);
   
   // Firestore data
-  final notifikasiList = <NotifikasiModel>[].obs;
-  final unreadCount = 0.obs;
-  final isLoading = false.obs;
+  final notifikasiList = ValueNotifier<List<NotifikasiModel>>([]);
+  final unreadCount = ValueNotifier<int>(0);
+  final isLoading = ValueNotifier<bool>(false);
   
   StreamSubscription? _notifikasiSubscription;
   StreamSubscription? _unreadCountSubscription;
   
-  @override
-  void onInit() {
-    super.onInit();
+  NotifikasiListController() {
     _watchNotifikasi();
     _watchUnreadCount();
   }
   
-  @override
-  void onClose() {
+  void dispose() {
     _notifikasiSubscription?.cancel();
     _unreadCountSubscription?.cancel();
-    super.onClose();
+    selectedFilter.dispose();
+    hoveredIndex.dispose();
+    pressedIndex.dispose();
+    hoveredFilterIndex.dispose();
+    notifikasiList.dispose();
+    unreadCount.dispose();
+    isLoading.dispose();
   }
   
   void _watchNotifikasi() {
@@ -49,9 +52,9 @@ class NotifikasiListController extends GetxController {
   
   List<NotifikasiModel> get filteredNotifikasi {
     if (selectedFilter.value == 'Semua') {
-      return notifikasiList;
+      return notifikasiList.value;
     }
-    return notifikasiList.where((n) => n.type == selectedFilter.value).toList();
+    return notifikasiList.value.where((n) => n.type == selectedFilter.value).toList();
   }
   
   Future<void> markAsRead(String notifikasiId) async {
@@ -70,8 +73,16 @@ class NotifikasiListController extends GetxController {
     }
   }
 
-  void setSelectedFilter(String filter) => selectedFilter.value = filter;
-  void setHoveredIndex(int? index) => hoveredIndex.value = index;
-  void setPressedIndex(int? index) => pressedIndex.value = index;
-  void setHoveredFilterIndex(int? index) => hoveredFilterIndex.value = index;
+  void setSelectedFilter(String filter) {
+    selectedFilter.value = filter;
+  }
+  void setHoveredIndex(int? index) {
+    hoveredIndex.value = index;
+  }
+  void setPressedIndex(int? index) {
+    pressedIndex.value = index;
+  }
+  void setHoveredFilterIndex(int? index) {
+    hoveredFilterIndex.value = index;
+  }
 }

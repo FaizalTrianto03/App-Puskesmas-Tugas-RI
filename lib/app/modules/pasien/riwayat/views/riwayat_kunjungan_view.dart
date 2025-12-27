@@ -1,21 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../data/models/riwayat_kunjungan_model.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../controllers/riwayat_kunjungan_controller.dart';
 import 'detail_riwayat_view.dart';
 
 class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
   const RiwayatKunjunganView({Key? key}) : super(key: key);
-
-  final List<String> bulanOptions = const [
-    'Semua',
-    'Desember 2025',
-    'November 2025',
-    'Oktober 2025',
-    'September 2025',
-    'Agustus 2025',
-  ];
 
   final List<String> poliOptions = const [
     'Semua',
@@ -24,223 +17,12 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
     'Poli KIA',
   ];
 
-  final List<Map<String, dynamic>> allRiwayatList = const [
-    {
-      'poli': 'Poli Umum',
-      'tanggal': '15 Desember 2025, 09:15 WIB',
-      'noAntrean': 'A-012',
-      'dokter': 'dr. Faizal Qadri',
-      'diagnosis': 'Hipertensi Grade 1',
-      'keluhan': 'Pasien mengeluhkan sakit kepala berulang sejak 1 minggu terakhir, terutama di pagi hari. Tekanan darah terukur 145/95 mmHg.',
-      'tindakan': 'Pemberian obat antihipertensi (Amlodipine 5mg), edukasi diet rendah garam, dan olahraga teratur. Kontrol tekanan darah secara rutin.',
-      'resep': '3 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '22 Desember 2025',
-    },
-    {
-      'poli': 'Poli KIA',
-      'tanggal': '12 Desember 2025, 10:30 WIB',
-      'noAntrean': 'K-008',
-      'dokter': 'dr. Siti Nurhaliza',
-      'diagnosis': 'Kehamilan Normal (28 minggu)',
-      'keluhan': 'Pasien datang untuk pemeriksaan rutin kehamilan trimester ketiga. Tidak ada keluhan khusus.',
-      'tindakan': 'Pemeriksaan USG, pengukuran tekanan darah, berat badan, dan tinggi fundus. Pemberian vitamin ibu hamil dan edukasi persiapan persalinan.',
-      'resep': '2 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '19 Desember 2025',
-    },
-    {
-      'poli': 'Poli Gigi',
-      'tanggal': '8 Desember 2025, 14:00 WIB',
-      'noAntrean': 'G-015',
-      'dokter': 'drg. Nisa Ayu',
-      'diagnosis': 'Periodontitis Kronis',
-      'keluhan': 'Gusi sering berdarah saat sikat gigi, gigi terasa goyang, dan bau mulut tidak sedap sejak 2 bulan terakhir.',
-      'tindakan': 'Scaling dan root planing, pemberian antibiotik dan obat kumur. Edukasi perawatan gigi dan gusi yang benar.',
-      'resep': '3 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '15 Desember 2025',
-    },
-    {
-      'poli': 'Poli Gigi',
-      'tanggal': '20 November 2025, 13:45 WIB',
-      'noAntrean': 'G-008',
-      'dokter': 'drg. Nisa Ayu',
-      'diagnosis': 'Pulpitis (Peradangan Pulpa Gigi)',
-      'keluhan': 'Nyeri hebat pada gigi geraham kiri bawah, terutama saat makan dan di malam hari. Keluhan dirasakan sejak 4 hari yang lalu.',
-      'tindakan': 'Perawatan saluran akar (root canal treatment), pemberian obat pereda nyeri dan antibiotik. Penambalan sementara.',
-      'resep': '3 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '27 November 2025',
-    },
-    {
-      'poli': 'Poli KIA',
-      'tanggal': '18 November 2025, 11:00 WIB',
-      'noAntrean': 'K-005',
-      'dokter': 'dr. Siti Nurhaliza',
-      'diagnosis': 'Imunisasi Bayi (DPT-HB-Hib 3)',
-      'keluhan': 'Pasien bayi usia 4 bulan datang untuk imunisasi rutin sesuai jadwal.',
-      'tindakan': 'Pemberian vaksin DPT-HB-Hib dosis ke-3. Pemeriksaan tumbuh kembang bayi normal. Edukasi ASI eksklusif dan MPASI.',
-      'resep': '',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '18 Desember 2025',
-    },
-    {
-      'poli': 'Poli Umum',
-      'tanggal': '10 November 2025, 08:30 WIB',
-      'noAntrean': 'A-003',
-      'dokter': 'dr. Faizal Qadri',
-      'diagnosis': 'Diabetes Mellitus Tipe 2',
-      'keluhan': 'Pasien mengeluhkan sering haus, sering buang air kecil, dan mudah lelah sejak 2 minggu terakhir. Gula darah sewaktu 245 mg/dL.',
-      'tindakan': 'Pemberian obat antidiabetes (Metformin 500mg), edukasi diet diabetes, dan olahraga teratur. Monitoring gula darah rutin.',
-      'resep': '4 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '17 November 2025',
-    },
-    {
-      'poli': 'Poli Umum',
-      'tanggal': '5 Oktober 2025, 10:30 WIB',
-      'noAntrean': 'A-005',
-      'dokter': 'dr. Faizal Qadri',
-      'diagnosis': 'Febris (Demam) akibat infeksi virus',
-      'keluhan': 'Pasien mengeluhkan demam, sakit kepala, dan badan terasa lemas sejak dua hari lalu terakhir.',
-      'tindakan': 'Pemberian obat antipiretik, vitamin. Istirahat cukup dan konsumsi cairan yang banyak.',
-      'resep': '2 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': null,
-    },
-    {
-      'poli': 'Poli KIA',
-      'tanggal': '28 Oktober 2025, 13:15 WIB',
-      'noAntrean': 'K-011',
-      'dokter': 'dr. Siti Nurhaliza',
-      'diagnosis': 'Anemia pada Ibu Hamil',
-      'keluhan': 'Ibu hamil usia kehamilan 24 minggu mengeluh mudah lelah, pusing, dan pucat. Hemoglobin 9.5 g/dL.',
-      'tindakan': 'Pemberian tablet besi (Fe sulfat), asam folat, dan vitamin B kompleks. Edukasi pola makan tinggi zat besi.',
-      'resep': '3 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '4 November 2025',
-    },
-    {
-      'poli': 'Poli Gigi',
-      'tanggal': '22 Oktober 2025, 09:00 WIB',
-      'noAntrean': 'G-006',
-      'dokter': 'drg. Nisa Ayu',
-      'diagnosis': 'Abses Gigi',
-      'keluhan': 'Bengkak pada gusi dan pipi kanan bawah disertai nyeri berdenyut sejak 3 hari yang lalu. Demam ringan.',
-      'tindakan': 'Insisi dan drainase abses, pemberian antibiotik dan analgesik. Rujukan untuk perawatan saluran akar setelah infeksi mereda.',
-      'resep': '3 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '29 Oktober 2025',
-    },
-    {
-      'poli': 'Poli Gigi',
-      'tanggal': '29 September 2025, 09:30 WIB',
-      'noAntrean': 'G-003',
-      'dokter': 'drg. Nisa Ayu',
-      'diagnosis': 'Karies Dentis (Gigi Berlubang)',
-      'keluhan': 'Nyeri pada gigi geraham kanan atas, terutama saat makan dan minum dingin.',
-      'tindakan': 'Penambalan gigi geraham kanan atas. Pembersihan karang gigi. Edukasi cara menyikat gigi yang benar.',
-      'resep': '',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '06 Oktober 2025',
-    },
-    {
-      'poli': 'Poli Gigi',
-      'tanggal': '15 September 2025, 14:00 WIB',
-      'noAntrean': 'G-012',
-      'dokter': 'drg. Nisa Ayu',
-      'diagnosis': 'Gingivitis (Radang Gusi)',
-      'keluhan': 'Gusi bengkak, berdarah saat menyikat gigi, dan terasa nyeri sejak 3 hari yang lalu.',
-      'tindakan': 'Pembersihan karang gigi (scaling), pemberian obat kumur antiseptik, dan vitamin. Edukasi cara menyikat gigi yang benar.',
-      'resep': '2 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '22 September 2025',
-    },
-    {
-      'poli': 'Poli Umum',
-      'tanggal': '2 September 2025, 08:15 WIB',
-      'noAntrean': 'A-002',
-      'dokter': 'dr. Faizal Qadri',
-      'diagnosis': 'Gastritis (Maag Akut)',
-      'keluhan': 'Nyeri ulu hati, mual, dan kembung setelah makan. Keluhan dirasakan sejak kemarin malam.',
-      'tindakan': 'Pemberian obat antasida dan PPI (Proton Pump Inhibitor). Anjuran diet teratur dan hindari makanan pedas.',
-      'resep': '2 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '9 September 2025',
-    },
-    {
-      'poli': 'Poli KIA',
-      'tanggal': '25 Agustus 2025, 10:45 WIB',
-      'noAntrean': 'K-007',
-      'dokter': 'dr. Siti Nurhaliza',
-      'diagnosis': 'Infeksi Saluran Pernapasan Akut (ISPA) pada Balita',
-      'keluhan': 'Anak usia 3 tahun batuk berdahak, pilek, dan demam sejak 2 hari yang lalu. Nafsu makan menurun.',
-      'tindakan': 'Pemberian obat batuk, antipiretik, dan vitamin. Edukasi perawatan di rumah dan pemberian ASI/cairan cukup.',
-      'resep': '3 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': null,
-    },
-    {
-      'poli': 'Poli Umum',
-      'tanggal': '18 Agustus 2025, 14:30 WIB',
-      'noAntrean': 'A-015',
-      'dokter': 'dr. Faizal Qadri',
-      'diagnosis': 'Asam Urat (Gout)',
-      'keluhan': 'Nyeri dan bengkak pada ibu jari kaki kanan sejak semalam. Riwayat sering konsumsi makanan tinggi purin.',
-      'tindakan': 'Pemberian obat anti-inflamasi (NSAID) dan penurun asam urat. Edukasi diet rendah purin dan perbanyak minum air putih.',
-      'resep': '3 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': '25 Agustus 2025',
-    },
-    {
-      'poli': 'Poli Gigi',
-      'tanggal': '10 Agustus 2025, 11:15 WIB',
-      'noAntrean': 'G-009',
-      'dokter': 'drg. Nisa Ayu',
-      'diagnosis': 'Stomatitis Aphtosa (Sariawan)',
-      'keluhan': 'Sariawan multiple di lidah dan bibir bagian dalam, nyeri saat makan dan berbicara sejak 3 hari yang lalu.',
-      'tindakan': 'Pemberian obat kumur antiseptik, gel topikal, dan vitamin B kompleks. Edukasi kebersihan mulut dan hindari makanan asam/pedas.',
-      'resep': '2 item',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF4CAF50),
-      'kontrolDate': null,
-    },
-  ];
-
-  List<Map<String, dynamic>> _getFilteredRiwayatList(String bulan, String poli) {
-    return allRiwayatList.where((data) {
-      bool matchesBulan = bulan == 'Semua' ||
-          data['tanggal'].toString().contains(bulan.split(' ')[0]);
-      bool matchesPoli = poli == 'Semua' ||
-          data['poli'] == poli;
-      return matchesBulan && matchesPoli;
-    }).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     Get.put(RiwayatKunjunganController());
     
     return Obx(() {
-      final riwayatList = _getFilteredRiwayatList(
-        controller.selectedBulan.value,
-        controller.selectedPoli.value,
-      );
+      final riwayatList = controller.riwayatList;
     
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -329,7 +111,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: bulanOptions.map((bulan) {
+                  children: controller.availableBulan.map((bulan) {
                     final isSelected = controller.selectedBulan.value == bulan;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
@@ -469,9 +251,9 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                   ),
                 )
               else
-                ...riwayatList.map((data) => Padding(
+                ...riwayatList.map((riwayat) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildRiwayatCard(context, data),
+                      child: _buildRiwayatCard(context, riwayat),
                     )),
             ],
           ),
@@ -511,7 +293,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
     );
   }
 
-  Widget _buildRiwayatCard(BuildContext context, Map<String, dynamic> data) {
+  Widget _buildRiwayatCard(BuildContext context, RiwayatKunjunganModel riwayat) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -542,7 +324,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      data['poli'],
+                      riwayat.poli,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -551,7 +333,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      data['tanggal'],
+                      DateFormat('dd MMMM yyyy, HH:mm WIB').format(riwayat.tanggalKunjungan),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF64748B),
@@ -559,7 +341,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'No: ${data['noAntrean']}',
+                      'No: ${riwayat.noAntrean}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF64748B),
@@ -571,15 +353,15 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: (data['statusColor'] as Color).withOpacity(0.1),
+                  color: _getStatusColor(riwayat.status).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  data['status'],
+                  _getStatusText(riwayat.status),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: data['statusColor'] as Color,
+                    color: _getStatusColor(riwayat.status),
                   ),
                 ),
               ),
@@ -594,7 +376,23 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
               const Icon(Icons.person, size: 18, color: Color(0xFF02B1BA)),
               const SizedBox(width: 8),
               Text(
-                data['dokter'],
+                riwayat.dokter,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          
+          Row(
+            children: [
+              const Icon(Icons.email, size: 18, color: Color(0xFF02B1BA)),
+              const SizedBox(width: 8),
+              Text(
+                riwayat.email,
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -615,7 +413,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
           ),
           const SizedBox(height: 8),
           Text(
-            data['keluhan'],
+            riwayat.keluhan,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -625,7 +423,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
             ),
           ),
           
-          if (data['resep'].isNotEmpty) ...[
+          if (riwayat.resep != null && riwayat.resep!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Row(
               children: [
@@ -638,7 +436,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                   ),
                 ),
                 Text(
-                  data['resep'],
+                  '${riwayat.resep!.length} item',
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF64748B),
@@ -648,7 +446,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
             ),
           ],
           
-          if (data['kontrolDate'] != null) ...[
+          if (riwayat.kontrolDate != null) ...[
             const SizedBox(height: 12),
             Row(
               children: [
@@ -661,7 +459,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
                   ),
                 ),
                 Text(
-                  data['kontrolDate'],
+                  DateFormat('dd MMMM yyyy').format(riwayat.kontrolDate!),
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF64748B),
@@ -677,7 +475,7 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
             children: [
               TextButton.icon(
                 onPressed: () {
-                  Get.to(() => const DetailRiwayatView(), arguments: data);
+                  Get.to(() => const DetailRiwayatView(), arguments: riwayat);
                 },
                 icon: const Icon(
                   Icons.arrow_forward,
@@ -697,5 +495,39 @@ class RiwayatKunjunganView extends GetView<RiwayatKunjunganController> {
         ],
       ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'menunggu':
+        return const Color(0xFFFFA500); // Orange
+      case 'dipanggil':
+        return const Color(0xFF2196F3); // Blue
+      case 'sedang_dilayani':
+        return const Color(0xFF9C27B0); // Purple
+      case 'selesai':
+        return const Color(0xFF4CAF50); // Green
+      case 'dibatalkan':
+        return const Color(0xFFF44336); // Red
+      default:
+        return const Color(0xFF9E9E9E); // Grey
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'menunggu':
+        return 'Menunggu';
+      case 'dipanggil':
+        return 'Dipanggil';
+      case 'sedang_dilayani':
+        return 'Sedang Dilayani';
+      case 'selesai':
+        return 'Selesai';
+      case 'dibatalkan':
+        return 'Dibatalkan';
+      default:
+        return status;
+    }
   }
 }
