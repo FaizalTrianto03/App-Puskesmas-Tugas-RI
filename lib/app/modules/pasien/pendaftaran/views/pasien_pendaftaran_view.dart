@@ -7,10 +7,10 @@ import 'package:intl/intl.dart';
 import '../../../../data/models/user_profile_model.dart';
 import '../../../../data/services/firestore/antrian_firestore_service.dart';
 import '../../../../data/services/firestore/user_profile_firestore_service.dart';
+import '../../../../routes/app_pages.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../dashboard/controllers/pasien_dashboard_controller.dart';
-import '../../../../routes/app_pages.dart';
 import '../../status_antrean/views/status_antrean_view.dart';
 
 class PasienPendaftaranView extends StatefulWidget {
@@ -999,6 +999,7 @@ class _PasienPendaftaranViewState extends State<PasienPendaftaranView> {
                         jenisLayanan: selectedPoli!,
                         keluhan: _keluhanController.text.trim(),
                         nomorBPJS: selectedPembayaran == 'BPJS' ? '1234567890' : null,
+                        email: userProfile.email,  // ✅ Tambahkan email dari userProfile
                       );
                       
                       final queueNumber = antrian.queueNumber;

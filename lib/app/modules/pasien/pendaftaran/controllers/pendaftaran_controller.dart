@@ -217,6 +217,7 @@ class PendaftaranController extends GetxController {
         keluhan: keluhanController.text.trim(),
         nomorBPJS: useBPJS.value ? nomorBPJSController.text.trim() : null,
         tanggalLahir: profile.tanggalLahir,
+        email: profile.email,  // ✅ Tambahkan email dari profile
       );
 
       print('[PendaftaranController] ✅ Antrian created: ${newAntrian.queueNumber}');

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class RiwayatKunjunganModel {
   final String? id;
   final String pasienId;
+  final String email;
   final String namaLengkap;
   final String noRekamMedis;
   final String poli;
@@ -20,6 +21,7 @@ class RiwayatKunjunganModel {
   RiwayatKunjunganModel({
     this.id,
     required this.pasienId,
+    required this.email,
     required this.namaLengkap,
     required this.noRekamMedis,
     required this.poli,
@@ -38,6 +40,7 @@ class RiwayatKunjunganModel {
   Map<String, dynamic> toMap() {
     return {
       'pasienId': pasienId,
+      'email': email,
       'namaLengkap': namaLengkap,
       'noRekamMedis': noRekamMedis,
       'poli': poli,
@@ -59,6 +62,7 @@ class RiwayatKunjunganModel {
     return RiwayatKunjunganModel(
       id: doc.id,
       pasienId: data['pasienId'] ?? '',
+      email: data['email'] ?? '',
       namaLengkap: data['namaLengkap'] ?? '',
       noRekamMedis: data['noRekamMedis'] ?? '',
       poli: data['poli'] ?? '',

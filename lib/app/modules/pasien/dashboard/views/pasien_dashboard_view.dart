@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../../../routes/app_pages.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../layanan_lainnya/views/layanan_lainnya_view.dart';
-import '../../notifikasi/views/notifikasi_list_view.dart';
 import '../../pendaftaran/views/pasien_pendaftaran_view.dart';
 import '../../riwayat/views/riwayat_kunjungan_view.dart';
 import '../controllers/pasien_dashboard_controller.dart';
@@ -43,32 +42,39 @@ class PasienDashboardView extends GetView<PasienDashboardController> {
                     color: Color(0xFF02B1BA),
                     size: 28,
                   ),
-                  onPressed: () => Get.to(() => NotifikasiListView()),
+                  onPressed: () => Get.toNamed(Routes.pasienNotifikasi),
                 ),
                 Positioned(
                   right: 8,
                   top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    child: const Center(
-                      child: Text(
-                        '2',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                  child: Obx(() {
+                    if (controller.unreadNotificationCount.value == 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Center(
+                        child: Text(
+                          controller.unreadNotificationCount.value > 99 
+                            ? '99+' 
+                            : controller.unreadNotificationCount.value.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                 ),
               ],
             ),

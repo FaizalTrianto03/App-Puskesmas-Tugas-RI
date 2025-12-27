@@ -66,6 +66,7 @@ class AntrianFirestoreService {
     required String keluhan,
     String? nomorBPJS,
     String? tanggalLahir,  // ✅ Tambahkan parameter
+    required String email,  // ✅ Tambahkan parameter email
   }) async {
     try {
       final userId = _auth.currentUser?.uid;
@@ -96,6 +97,7 @@ class AntrianFirestoreService {
         createdAt: DateTime.now(),
         tanggal: tanggal,
         tanggalLahir: tanggalLahir,  // ✅ Simpan tanggalLahir
+        email: email,  // ✅ Simpan email
       );
 
       print('[AntrianFirestoreService] Data to save: ${antrian.toMap()}');

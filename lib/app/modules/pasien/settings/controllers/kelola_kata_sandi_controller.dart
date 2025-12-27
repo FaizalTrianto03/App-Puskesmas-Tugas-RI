@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 import '../../../../utils/snackbar_helper.dart';
 
@@ -69,6 +70,12 @@ class KelolaKataSandiController extends GetxController {
         return;
       }
       
+      // Check if new password is same as old password
+      if (passwordBaruController.text == passwordLamaController.text) {
+        SnackbarHelper.showError('Password baru tidak boleh sama dengan password lama');
+        return;
+      }
+      
       final user = _auth.currentUser;
       if (user == null || user.email == null) {
         SnackbarHelper.showError('User tidak ditemukan');
@@ -86,8 +93,16 @@ class KelolaKataSandiController extends GetxController {
       // Update to new password
       await user.updatePassword(passwordBaruController.text);
       
-      SnackbarHelper.showSuccess('Password berhasil diubah');
-      Get.back();
+      // Clear saved credentials to force re-login with new password
+      await _clearSavedCredentials();
+      
+      SnackbarHelper.showSuccess('Password berhasil diubah. Silakan login kembali dengan password baru.');
+      
+      // Sign out user to force re-login
+      await _auth.signOut();
+      
+      // Navigate to login page
+      Get.offAllNamed('/pasien-login');
     } on FirebaseAuthException catch (e) {
       if (e.code == 'wrong-password') {
         SnackbarHelper.showError('Password lama salah');
@@ -101,6 +116,18 @@ class KelolaKataSandiController extends GetxController {
       SnackbarHelper.showError('Gagal mengubah password');
     } finally {
       isLoading.value = false;
+    }
+  }
+  
+  Future<void> _clearSavedCredentials() async {
+    try {
+      final box = GetStorage('credentials_box');
+      await box.remove('savedEmail');
+      await box.remove('savedPassword');
+      await box.remove('savedRole');
+      await box.remove('rememberMe');
+    } catch (e) {
+      print('Error clearing saved credentials: $e');
     }
   }
 }

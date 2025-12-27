@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 
 import '../../../../routes/app_pages.dart';
 import '../controllers/staff_selector_controller.dart';
-import 'pasien_login_view.dart';
 
 class StaffSelectorView extends GetView<StaffSelectorController> {
   const StaffSelectorView({Key? key}) : super(key: key);
