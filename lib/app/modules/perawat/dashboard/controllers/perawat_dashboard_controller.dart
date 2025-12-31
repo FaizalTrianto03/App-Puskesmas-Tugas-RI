@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/services/firestore/antrian_firestore_service.dart';
 import '../../../../data/services/auth/session_service.dart';
@@ -287,6 +288,52 @@ class PerawatDashboardController extends GetxController {
         return 'Dibatalkan';
       default:
         return status;
+    }
+  }
+  
+  // ✅ Batalkan antrian dengan kirim notifikasi ke pasien
+  Future<void> batalkanAntrian({
+    required String antrianId,
+    required String alasan,
+  }) async {
+    try {
+      isLoading.value = true;
+      
+      // Show loading dialog
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(),
+        ),
+        barrierDismissible: false,
+      );
+      
+      print('[PerawatDashboardController] Membatalkan antrian: $antrianId');
+      print('[PerawatDashboardController] Alasan: $alasan');
+      
+      final success = await _antrianService.batalkanAntrian(antrianId, alasan);
+      
+      // Close loading dialog
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      
+      if (success) {
+        SnackbarHelper.showSuccess('Antrian berhasil dibatalkan');
+        // Stream akan otomatis update data
+      } else {
+        SnackbarHelper.showError('Gagal membatalkan antrian');
+      }
+    } catch (e) {
+      print('[PerawatDashboardController] ❌ Error cancelling antrian: $e');
+      
+      // Close dialog jika ada
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      
+      SnackbarHelper.showError('Gagal membatalkan antrian: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
     }
   }
 }

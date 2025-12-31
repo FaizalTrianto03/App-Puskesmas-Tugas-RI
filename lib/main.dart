@@ -17,17 +17,21 @@ void main() async {
 
   // Initialize Firebase (hanya jika belum diinisialisasi)
   try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      print('Firebase initialized successfully');
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('✅ Firebase initialized successfully');
+  } on FirebaseException catch (e) {
+    if (e.code == 'duplicate-app') {
+      print('ℹ️ Firebase already initialized - this is OK during hot reload');
     } else {
-      print('Firebase already initialized');
+      print('❌ Firebase error: $e');
+      rethrow;
     }
+  
   } catch (e) {
-    print('Error initializing Firebase: $e');
-    // Firebase kemungkinan sudah terinisialisasi di level platform
+    print('❌ Error initializing Firebase: $e');
+    rethrow;
   }
 
   // Initialize GetStorage

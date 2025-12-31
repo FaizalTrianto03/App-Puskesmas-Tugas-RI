@@ -36,15 +36,21 @@ class NotifikasiController extends GetxController {
     try {
       isLoading.value = true;
       
+      print('[NotifikasiController] 🔔 Starting to load notifications...');
+      
       // Use real-time stream
       _notifikasiSubscription?.cancel();
       _notifikasiSubscription = _notifikasiService.watchNotifikasi().listen((notifikasi) {
+        print('[NotifikasiController] 📬 Received ${notifikasi.length} notifications');
+        notifikasi.forEach((n) {
+          print('[NotifikasiController] - ${n.title}: ${n.message} (read: ${n.isRead})');
+        });
         notificationList.value = notifikasi;
         applyFilter();
       });
       
     } catch (e) {
-      print('Error loading notifications: $e');
+      print('[NotifikasiController] ❌ Error loading notifications: $e');
       notificationList.value = [];
     } finally {
       isLoading.value = false;

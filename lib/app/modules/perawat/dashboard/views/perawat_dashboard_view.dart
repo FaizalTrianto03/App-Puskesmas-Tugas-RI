@@ -960,6 +960,77 @@ class PerawatDashboardView extends GetView<PerawatDashboardController> {
               ),
             ),
           ],
+          // ✅ BUTTON BATALKAN ANTRIAN (untuk semua status kecuali dibatalkan & selesai)
+          if (status != 'dibatalkan' && status != 'selesai') ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () async {
+                  final confirm = await ConfirmationDialog.show(
+                    title: 'Batalkan Antrian?',
+                    message: 'Apakah Anda yakin ingin membatalkan antrian ${antrian['queueNumber']}?',
+                    confirmText: 'Ya, Batalkan',
+                    cancelText: 'Tidak',
+                  );
+                  
+                  if (confirm == true) {
+                    // Minta alasan pembatalan
+                    final alasanController = TextEditingController();
+                    final alasan = await showDialog<String>(
+                      context: Get.context!,
+                      builder: (dialogContext) => AlertDialog(
+                        title: const Text('Alasan Pembatalan'),
+                        content: TextField(
+                          controller: alasanController,
+                          decoration: const InputDecoration(
+                            hintText: 'Masukkan alasan pembatalan...',
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 3,
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(dialogContext, null),
+                            child: const Text('Batal'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(dialogContext, alasanController.text),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                            child: const Text('Batalkan Antrian'),
+                          ),
+                        ],
+                      ),
+                    );
+                    
+                    if (alasan != null && alasan.isNotEmpty) {
+                      controller.batalkanAntrian(
+                        antrianId: antrian['id'],
+                        alasan: alasan,
+                      );
+                    }
+                  }
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Batalkan Antrian',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

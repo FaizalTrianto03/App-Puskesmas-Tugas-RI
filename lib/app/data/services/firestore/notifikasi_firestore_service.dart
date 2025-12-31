@@ -35,15 +35,21 @@ class NotifikasiFirestoreService {
     final userId = _auth.currentUser?.uid;
     if (userId == null) return Stream.value([]);
 
+    // Query sederhana (tanpa orderBy untuk avoid composite index)
     return _notifikasiCollection
         .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .limit(50)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs
+          // Sort di client-side
+          final notifikasi = snapshot.docs
               .map((doc) => NotifikasiModel.fromFirestore(doc))
               .toList();
+          
+          // Sort by createdAt descending
+          notifikasi.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          
+          return notifikasi;
         });
   }
 
@@ -151,6 +157,12 @@ class NotifikasiFirestoreService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
+      print('[NotifikasiService] 📝 Creating notification...');
+      print('[NotifikasiService] userId: $userId');
+      print('[NotifikasiService] type: $type');
+      print('[NotifikasiService] title: $title');
+      print('[NotifikasiService] message: $message');
+      
       final notifikasi = NotifikasiModel(
         userId: userId,
         type: type,
@@ -160,9 +172,10 @@ class NotifikasiFirestoreService {
         metadata: metadata,
       );
 
-      await _notifikasiCollection.add(notifikasi.toMap());
+      final docRef = await _notifikasiCollection.add(notifikasi.toMap());
+      print('[NotifikasiService] ✅ Notification created with ID: ${docRef.id}');
     } catch (e) {
-      print('Error creating notifikasi: $e');
+      print('[NotifikasiService] ❌ Error creating notifikasi: $e');
       rethrow;
     }
   }
