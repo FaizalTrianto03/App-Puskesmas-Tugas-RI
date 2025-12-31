@@ -104,16 +104,48 @@ class StatusAntreanController extends GetxController {
       queuePosition.value = position;
       totalQueue.value = total;
       
-      // Hitung progress percentage
-      // Progress = (total - posisi) / total
-      // Jika posisi 1 dari 10 = (10-1)/10 = 0.9 = 90% progress
-      // Jika posisi 10 dari 10 = (10-10)/10 = 0.0 = 0% progress
-      if (total > 0) {
-        final progress = (total - position) / total;
-        progressPercentage.value = progress.clamp(0.0, 1.0);
-      } else {
-        progressPercentage.value = 0.0;
+      // ✅ HITUNG PROGRESS BERDASARKAN STATUS + POSISI ANTRIAN
+      final status = antrianData.value?.status ?? '';
+      double baseProgress = 0.0;
+      
+      // Base progress berdasarkan status workflow (lebih realistis)
+      switch (status) {
+        case 'menunggu':
+          baseProgress = 0.1; // 10% - Baru daftar, belum verifikasi
+          break;
+        case 'menunggu_verifikasi':
+          baseProgress = 0.2; // 20% - Upload dokumen lengkap
+          break;
+        case 'menunggu_dokter':
+          baseProgress = 0.35; // 35% - Sudah diverifikasi perawat ✅ (lebih rendah)
+          break;
+        case 'sedang_dilayani':
+          baseProgress = 0.75; // 75% - Dokter sedang periksa ✅
+          break;
+        case 'dipanggil':
+          baseProgress = 0.9; // 90% - Dipanggil ke ruangan
+          break;
+        case 'selesai':
+          baseProgress = 1.0; // 100% - Selesai
+          break;
+        default:
+          baseProgress = 0.05; // 5% - Status tidak diketahui
       }
+      
+      // Tambah progress berdasarkan posisi antrian (max 30% dari base)
+      // Semakin sedikit antrian di depan, semakin tinggi progress
+      double positionBonus = 0.0;
+      if (total > 0 && position > 0) {
+        // Formula: (total - position) / total * 0.3
+        // Contoh: Posisi 1 dari 10 = (10-1)/10 * 0.3 = 0.27 (27% bonus)
+        //         Posisi 5 dari 10 = (10-5)/10 * 0.3 = 0.15 (15% bonus)
+        //         Posisi 10 dari 10 = (10-10)/10 * 0.3 = 0.0 (0% bonus)
+        positionBonus = ((total - position) / total) * 0.30;
+      }
+      
+      progressPercentage.value = (baseProgress + positionBonus).clamp(0.0, 1.0);
+      
+      print('[StatusAntreanController] Status: $status, Base: ${(baseProgress*100).toInt()}%, Bonus: ${(positionBonus*100).toInt()}%, Total: ${(progressPercentage.value*100).toInt()}%');
       
       // Hitung estimasi waktu
       if (position > 0) {
@@ -140,9 +172,15 @@ class StatusAntreanController extends GetxController {
     final status = antrianData.value?.status ?? '';
     switch (status) {
       case 'menunggu':
-        return 'Menunggu Dipanggil';
+        return 'Menunggu Verifikasi';
+      case 'menunggu_verifikasi':
+        return 'Menunggu Verifikasi Perawat';
+      case 'menunggu_dokter':
+        return 'Menunggu Dokter'; // ✅ TAMBAH
+      case 'sedang_dilayani':
+        return 'Sedang Dilayani Dokter'; // ✅ TAMBAH
       case 'dipanggil':
-        return 'Sedang Dilayani';
+        return 'Dipanggil - Segera ke Ruangan';
       case 'selesai':
         return 'Selesai';
       case 'dibatalkan':
@@ -157,8 +195,14 @@ class StatusAntreanController extends GetxController {
     switch (status) {
       case 'menunggu':
         return 'orange';
+      case 'menunggu_verifikasi':
+        return 'orange';
+      case 'menunggu_dokter':
+        return 'blue'; // ✅ TAMBAH - Biru untuk menunggu dokter
+      case 'sedang_dilayani':
+        return 'green'; // ✅ TAMBAH - Hijau untuk sedang dilayani
       case 'dipanggil':
-        return 'blue';
+        return 'green';
       case 'selesai':
         return 'gray';
       case 'dibatalkan':

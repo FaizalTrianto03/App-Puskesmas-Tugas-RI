@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../models/antrian_model.dart';
+import 'notifikasi_firestore_service.dart'; // ✅ TAMBAH
 
 class AntrianFirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -10,32 +11,51 @@ class AntrianFirestoreService {
   // Collection reference
   CollectionReference get _antrianCollection => _firestore.collection('antrian');
 
-  // Generate nomor antrian
+  // Generate nomor antrian dengan Firestore Transaction (ATOMIC, NO RACE CONDITION)
   Future<String> _generateQueueNumber(String poli) async {
     final today = DateTime.now();
     final dateStr = '${today.year}-${today.month.toString().padLeft(2,'0')}-${today.day.toString().padLeft(2,'0')}';
     
+    // Prefix berdasarkan poli
+    String prefix = 'A';
+    if (poli == 'Poli Gigi') prefix = 'B';
+    if (poli == 'Poli KIA') prefix = 'C';
+    
+    // Counter document path: queue_counters/{date}_{poli}
+    final counterDocRef = _firestore.collection('queue_counters').doc('${dateStr}_$poli');
+    
     try {
-      // Get count antrian hari ini untuk poli tertentu
-      final querySnapshot = await _antrianCollection
-          .where('jenisLayanan', isEqualTo: poli)
-          .where('tanggal', isEqualTo: dateStr)
-          .get();
+      // ✅ ATOMIC TRANSACTION: Increment counter secara atomic
+      final newCount = await _firestore.runTransaction<int>((transaction) async {
+        final counterDoc = await transaction.get(counterDocRef);
+        
+        int currentCount = 0;
+        if (counterDoc.exists) {
+          currentCount = counterDoc.data()?['count'] ?? 0;
+        }
+        
+        final nextCount = currentCount + 1;
+        
+        // Update atau create counter document
+        transaction.set(counterDocRef, {
+          'count': nextCount,
+          'date': dateStr,
+          'poli': poli,
+          'lastUpdated': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        
+        return nextCount;
+      });
       
-      final count = querySnapshot.docs.length + 1;
+      // Format: A-001, B-002, etc
+      final queueNumber = '$prefix-${newCount.toString().padLeft(3, '0')}';
+      print('✅ Generated queue number (ATOMIC): $queueNumber');
+      return queueNumber;
       
-      // Format: A-001, B-001, etc (A untuk Poli Umum, B untuk Poli Gigi, C untuk Poli KIA)
-      String prefix = 'A';
-      if (poli == 'Poli Gigi') prefix = 'B';
-      if (poli == 'Poli KIA') prefix = 'C';
-      
-      return '$prefix-${count.toString().padLeft(3, '0')}';
     } catch (e) {
+      print('❌ Error generating queue number: $e');
       // Fallback: generate with timestamp
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      String prefix = 'A';
-      if (poli == 'Poli Gigi') prefix = 'B';
-      if (poli == 'Poli KIA') prefix = 'C';
       return '$prefix-${timestamp.toString().substring(8, 11)}';
     }
   }
@@ -129,7 +149,7 @@ class AntrianFirestoreService {
       print('[AntrianFirestoreService] ===== GET ACTIVE ANTRIAN START =====');
       print('[AntrianFirestoreService] userId: $userId');
       print('[AntrianFirestoreService] tanggal: $dateStr');
-      print('[AntrianFirestoreService] looking for status: menunggu or dipanggil');
+      print('[AntrianFirestoreService] looking for status: menunggu, menunggu_verifikasi, menunggu_dokter, sedang_dilayani, dipanggil');
 
       // Coba query sederhana dulu - hanya filter by pasienId dan tanggal
       final querySnapshot = await _antrianCollection
@@ -145,11 +165,15 @@ class AntrianFirestoreService {
         print('[AntrianFirestoreService] Doc ${doc.id}: status=${data['status']}, queueNumber=${data['queueNumber']}');
       }
 
-      // Filter manual by status
+      // ✅ Filter manual by ALL ACTIVE STATUS
       final activeDocs = querySnapshot.docs.where((doc) {
         final data = doc.data() as Map<String, dynamic>;
         final status = data['status'] as String?;
-        return status == 'menunggu' || status == 'dipanggil';
+        return status == 'menunggu' || 
+               status == 'menunggu_verifikasi' || 
+               status == 'menunggu_dokter' || 
+               status == 'sedang_dilayani' || 
+               status == 'dipanggil';
       }).toList();
 
       print('[AntrianFirestoreService] Active docs after filter: ${activeDocs.length}');
@@ -193,22 +217,31 @@ class AntrianFirestoreService {
     
     print('[AntrianFirestoreService] watchActiveAntrian: userId=$userId, tanggal=$dateStr');
 
-    // GUNAKAN TANGGAL STRING untuk query yang lebih stabil
+    // ✅ SIMPLIFIED: Hapus tanggal dari query untuk hindari composite index, filter di client
     return _antrianCollection
         .where('pasienId', isEqualTo: userId)
-        .where('tanggal', isEqualTo: dateStr)  // ✅ Equality filter lebih stabil
-        .where('status', whereIn: ['menunggu', 'dipanggil'])
+        .where('status', whereIn: ['menunggu', 'menunggu_verifikasi', 'menunggu_dokter', 'sedang_dilayani', 'dipanggil'])
         .orderBy('createdAt', descending: true)
-        .limit(1)
+        .limit(5) // Ambil 5 terbaru untuk safety
         .snapshots()
         .map((snapshot) {
           print('[AntrianFirestoreService] watchActiveAntrian snapshot: ${snapshot.docs.length} docs');
-          if (snapshot.docs.isEmpty) {
-            print('[AntrianFirestoreService] watchActiveAntrian: no active antrian');
+          
+          // ✅ Filter manual by tanggal di client side
+          final todayDocs = snapshot.docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            final tanggal = data['tanggal'] as String?;
+            return tanggal == dateStr;
+          }).toList();
+          
+          print('[AntrianFirestoreService] watchActiveAntrian today docs: ${todayDocs.length}');
+          
+          if (todayDocs.isEmpty) {
+            print('[AntrianFirestoreService] watchActiveAntrian: no active antrian today');
             return null;
           }
-          final antrian = AntrianModel.fromFirestore(snapshot.docs.first);
-          print('[AntrianFirestoreService] watchActiveAntrian: found ${antrian.queueNumber}');
+          final antrian = AntrianModel.fromFirestore(todayDocs.first);
+          print('[AntrianFirestoreService] watchActiveAntrian: found ${antrian.queueNumber}, status=${antrian.status}');
           return antrian;
         });
   }
@@ -445,15 +478,14 @@ class AntrianFirestoreService {
 
     print('[AntrianFirestoreService] watchAllAntrianToday: tanggal=$dateStr');
 
-    // GUNAKAN TANGGAL STRING untuk konsistensi
+    // Query sederhana (tanpa orderBy untuk avoid composite index)
     return _antrianCollection
-      .where('tanggal', isEqualTo: dateStr)  // ✅ Equality filter
-      .orderBy('createdAt', descending: true)
+      .where('tanggal', isEqualTo: dateStr)  // ✅ Equality filter only
       .snapshots()
         .map((snapshot) {
           print('[AntrianFirestoreService] watchAllAntrianToday: received ${snapshot.docs.length} antrian');
           
-          return snapshot.docs.map((doc) {
+          final antrianList = snapshot.docs.map((doc) {
             final data = doc.data() as Map<String, dynamic>;
             return {
               'id': doc.id,
@@ -479,8 +511,22 @@ class AntrianFirestoreService {
               'dokterNama': data['dokterNama'],
               'diagnosis': data['diagnosis'],
               'tindakan': data['tindakan'],
+              'createdAt': data['createdAt'], // ✅ Keep for sorting
             };
           }).toList();
+          
+          // ✅ Sort by createdAt descending di client-side
+          antrianList.sort((a, b) {
+            final aTime = a['createdAt'] is Timestamp 
+                ? (a['createdAt'] as Timestamp).toDate()
+                : DateTime.now();
+            final bTime = b['createdAt'] is Timestamp 
+                ? (b['createdAt'] as Timestamp).toDate()
+                : DateTime.now();
+            return bTime.compareTo(aTime); // Descending
+          });
+          
+          return antrianList;
         });
   }
 
@@ -492,6 +538,24 @@ class AntrianFirestoreService {
     String? catatan,
   }) async {
     try {
+      // Get antrian data first untuk ambil pasienId dan queueNumber
+      final antrianDoc = await _antrianCollection.doc(antrianId).get();
+      if (!antrianDoc.exists) {
+        print('Error: Antrian not found');
+        return false;
+      }
+      
+      final antrianData = antrianDoc.data() as Map<String, dynamic>;
+      final pasienId = antrianData['pasienId'] as String?;
+      final queueNumber = antrianData['queueNumber'] as String?;
+      final jenisLayanan = antrianData['jenisLayanan'] as String?;
+      
+      if (pasienId == null) {
+        print('Error: pasienId is null');
+        return false;
+      }
+      
+      // Update status antrian
       await _antrianCollection.doc(antrianId).update({
         'status': 'menunggu_dokter',
         'verifiedBy': perawatId,
@@ -500,6 +564,32 @@ class AntrianFirestoreService {
         'catatanPerawat': catatan,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+      
+      // ✅ KIRIM NOTIFIKASI KE PASIEN
+      try {
+        print('[AntrianService] 🔔 Preparing to send notification to pasienId: $pasienId');
+        print('[AntrianService] 🔔 Queue: $queueNumber, Layanan: $jenisLayanan, Perawat: $perawatName');
+        
+        final notifikasiService = NotifikasiFirestoreService();
+        await notifikasiService.createNotifikasi(
+          userId: pasienId,
+          type: 'antrian_verified',
+          title: '✅ Antrian Terverifikasi',
+          message: 'Antrian Anda ($queueNumber - $jenisLayanan) telah diverifikasi oleh $perawatName. Silakan menunggu dokter memanggil.',
+          metadata: {
+            'antrianId': antrianId,
+            'queueNumber': queueNumber ?? '',
+            'jenisLayanan': jenisLayanan ?? '',
+            'perawatName': perawatName,
+            'verifiedAt': DateTime.now().toIso8601String(),
+          },
+        );
+        print('[AntrianService] ✅ Notifikasi verifikasi sent to $pasienId');
+      } catch (notifError) {
+        print('[AntrianService] ⚠️ Failed to send notification: $notifError');
+        // Tetap return true karena verifikasi berhasil
+      }
+      
       return true;
     } catch (e) {
       print('Error verifikasi antrian: $e');
@@ -510,14 +600,58 @@ class AntrianFirestoreService {
   // Batalkan antrian (untuk perawat)
   Future<bool> batalkanAntrian(String antrianId, String alasan) async {
     try {
+      // Get antrian data first untuk ambil pasienId dan queueNumber
+      final antrianDoc = await _antrianCollection.doc(antrianId).get();
+      if (!antrianDoc.exists) {
+        print('[AntrianService] Error: Antrian not found');
+        return false;
+      }
+      
+      final antrianData = antrianDoc.data() as Map<String, dynamic>;
+      final pasienId = antrianData['pasienId'] as String?;
+      final queueNumber = antrianData['queueNumber'] as String?;
+      final jenisLayanan = antrianData['jenisLayanan'] as String?;
+      
+      if (pasienId == null) {
+        print('[AntrianService] Error: pasienId is null');
+        return false;
+      }
+      
+      // Update status antrian
       await _antrianCollection.doc(antrianId).update({
         'status': 'dibatalkan',
         'alasanBatal': alasan,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+      
+      // ✅ KIRIM NOTIFIKASI KE PASIEN
+      try {
+        print('[AntrianService] 🔔 Preparing to send cancellation notification to pasienId: $pasienId');
+        print('[AntrianService] 🔔 Queue: $queueNumber, Layanan: $jenisLayanan, Alasan: $alasan');
+        
+        final notifikasiService = NotifikasiFirestoreService();
+        await notifikasiService.createNotifikasi(
+          userId: pasienId,
+          type: 'antrian_cancelled',
+          title: '❌ Antrian Dibatalkan',
+          message: 'Maaf, antrian Anda ($queueNumber - $jenisLayanan) telah dibatalkan. Alasan: $alasan',
+          metadata: {
+            'antrianId': antrianId,
+            'queueNumber': queueNumber ?? '',
+            'jenisLayanan': jenisLayanan ?? '',
+            'alasan': alasan,
+            'cancelledAt': DateTime.now().toIso8601String(),
+          },
+        );
+        print('[AntrianService] ✅ Notifikasi pembatalan sent to $pasienId');
+      } catch (notifError) {
+        print('[AntrianService] ⚠️ Failed to send cancellation notification: $notifError');
+        // Tetap return true karena pembatalan berhasil
+      }
+      
       return true;
     } catch (e) {
-      print('Error batalkan antrian: $e');
+      print('[AntrianService] Error batalkan antrian: $e');
       return false;
     }
   }

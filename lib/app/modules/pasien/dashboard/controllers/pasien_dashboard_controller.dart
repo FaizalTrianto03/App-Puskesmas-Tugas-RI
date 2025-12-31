@@ -27,6 +27,7 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
   
   StreamSubscription? _profileSubscription;
   StreamSubscription? _unreadNotificationSubscription;
+  StreamSubscription? _activeAntrianSubscription; // ✅ TAMBAH: Listener untuk antrian aktif
   
   // UI State for hover and press effects
   final isHoverDaftarBaru = false.obs;
@@ -46,6 +47,7 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
     WidgetsBinding.instance.addObserver(this);
     watchUserProfile();
     watchUnreadNotificationCount();
+    watchActiveAntrianRealtime(); // ✅ TAMBAH: Real-time listener untuk antrian
     _initQueueState();
   }
 
@@ -64,6 +66,7 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
     WidgetsBinding.instance.removeObserver(this);
     _profileSubscription?.cancel();
     _unreadNotificationSubscription?.cancel();
+    _activeAntrianSubscription?.cancel(); // ✅ TAMBAH: Cancel listener antrian
     super.onClose();
   }
 
@@ -133,6 +136,36 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
       onError: (e) {
         print('[PasienDashboardController] watchUnreadNotificationCount error: $e');
         unreadNotificationCount.value = 0;
+      }
+    );
+  }
+  
+  // ✅ TAMBAH: Watch active antrian secara real-time
+  void watchActiveAntrianRealtime() {
+    print('[PasienDashboardController] ===== watchActiveAntrianRealtime: SETUP =====');
+    _activeAntrianSubscription?.cancel();
+    _activeAntrianSubscription = _antrianService.watchActiveAntrian().listen(
+      (antrian) {
+        print('[PasienDashboardController] 🔔 REAL-TIME UPDATE: antrian = ${antrian?.toMap()}');
+        
+        if (antrian != null) {
+          print('[PasienDashboardController] ✅ Active antrian: ${antrian.queueNumber}, status: ${antrian.status}');
+          hasActiveQueue.value = true;
+          queueNumber.value = antrian.queueNumber;
+          jenisLayanan.value = antrian.jenisLayanan;
+          _calculateEstimatedTime(antrian.jenisLayanan);
+        } else {
+          print('[PasienDashboardController] ❌ No active antrian');
+          hasActiveQueue.value = false;
+          queueNumber.value = '';
+          jenisLayanan.value = '';
+          estimatedTime.value = '';
+        }
+      },
+      onError: (e) {
+        print('[PasienDashboardController] ❌ watchActiveAntrianRealtime error: $e');
+        // Fallback ke manual check
+        checkActiveQueue();
       }
     );
   }
