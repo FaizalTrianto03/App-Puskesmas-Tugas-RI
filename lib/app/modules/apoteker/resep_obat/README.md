@@ -42,9 +42,16 @@ resep_obat/
   - Aturan pakai
   - Stok tersedia
 - **Actions** (untuk resep menunggu):
-  - Konfirmasi Penyerahan (hijau)
+  - **Konfirmasi Penyerahan dengan Dialog Detail**:
+    - Menampilkan daftar lengkap obat yang akan diserahkan
+    - Field catatan opsional untuk dokumentasi tambahan
+    - Validasi session apoteker
+    - Konfirmasi ganda sebelum penyerahan
   - Batalkan Resep (merah outline)
-- **Info Penyerahan** (untuk resep selesai): Tanggal penyerahan
+- **Info Penyerahan** (untuk resep selesai): 
+  - Tanggal dan waktu penyerahan
+  - Nama apoteker yang menyerahkan
+  - Catatan penyerahan (jika ada)
 
 **Interaktivitas:**
 - Hover & scale effect pada tombol konfirmasi
@@ -58,6 +65,7 @@ resep_obat/
 resepBelumSelesai: List resep dengan status "Menunggu"
 resepSelesai: List resep dengan status "Selesai"
 selectedFilter: Filter yang sedang aktif
+catatanController: TextEditingController untuk catatan penyerahan
 ```
 
 ### Computed Properties
@@ -70,7 +78,10 @@ countSelesaiHariIni: Jumlah resep selesai hari ini
 ### Methods
 ```dart
 changeFilter(String filter): Mengubah filter aktif
-konfirmasiPenyerahan(String resepId): Konfirmasi penyerahan obat
+konfirmasiPenyerahan(String resepId, String namaPasien): 
+  - Validasi session apoteker
+  - Konfirmasi penyerahan obat dengan data apoteker dan catatan
+  - Menampilkan feedback ke user
 batalkanResep(String resepId): Membatalkan resep
 ```
 
@@ -89,7 +100,10 @@ batalkanResep(String resepId): Membatalkan resep
   'status': String,          // 'Menunggu' atau 'Selesai'
   'statusColor': Color,      // Warna status (Orange/Green)
   'jumlahObat': int,         // Jumlah jenis obat
-  'daftarObat': List<Map>    // List obat dalam resep
+  'daftarObat': List<Map>,   // List obat dalam resep
+  'apotekerId': String?,     // ID apoteker yang menyerahkan
+  'apotekerName': String?,   // Nama apoteker yang menyerahkan
+  'catatanPenyerahan': String? // Catatan tambahan saat penyerahan
 }
 ```
 
@@ -137,10 +151,29 @@ Get.to(
    - Cek stok tersedia untuk setiap obat
    - Siapkan obat sesuai jumlah dan aturan pakai
 
-3. **Menyerahkan Obat**
+3. **Menyerahkan Obat (FITUR BARU - Enhanced)**
    - Tap tombol "Konfirmasi Penyerahan"
-   - Konfirmasi dialog muncul
+   - Dialog konfirmasi detail muncul dengan:
+     - Daftar lengkap obat yang diserahkan
+     - Field catatan opsional untuk dokumentasi
+   - Isi catatan jika diperlukan (opsional):
+     - Contoh: "Pasien sudah diberi edukasi tentang aturan minum obat"
+     - Contoh: "Pasien menolak obat X, hanya mengambil obat Y"
+   - Sistem memvalidasi session apoteker
+   - Konfirmasi untuk melanjutkan penyerahan
+   - Data tersimpan dengan:
+     - Waktu penyerahan
+     - Nama apoteker yang menyerahkan
+     - Catatan penyerahan (jika ada)
    - Sistem memindahkan resep ke list "Selesai"
+   - Notifikasi sukses ditampilkan
+
+4. **Melihat Riwayat Penyerahan**
+   - Filter "Selesai" untuk melihat resep yang sudah diserahkan
+   - Detail penyerahan mencakup:
+     - Tanggal dan waktu lengkap
+     - Nama apoteker
+     - Catatan penyerahan (jika ada)
    - Snackbar success muncul
 
 4. **Membatalkan Resep** (jika pasien tidak jadi ambil)
