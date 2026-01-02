@@ -86,9 +86,42 @@ class ResepObatService {
     return await updateResepStatus(resepId, 'Diproses');
   }
 
-  // Selesaikan resep (ubah status ke Selesai)
-  Future<bool> selesaikanResep(String resepId) async {
-    return await updateResepStatus(resepId, 'Selesai');
+  // Selesaikan resep (ubah status ke Selesai) dengan informasi apoteker
+  Future<bool> selesaikanResep(
+    String resepId, {
+    String? apotekerId,
+    String? apotekerName,
+    String? catatan,
+  }) async {
+    try {
+      final allResep = getAllResep();
+      final index = allResep.indexWhere((resep) => resep['id'] == resepId);
+
+      if (index == -1) return false;
+
+      // Update status dan data terkait
+      allResep[index]['status'] = 'Selesai';
+      allResep[index]['statusColor'] = const Color(0xFF4CAF50).value;
+      allResep[index]['tanggalSerah'] = DateTime.now().toString().split('.')[0];
+
+      // Simpan informasi apoteker yang menyerahkan
+      if (apotekerId != null) {
+        allResep[index]['apotekerId'] = apotekerId;
+      }
+      if (apotekerName != null) {
+        allResep[index]['apotekerName'] = apotekerName;
+      }
+
+      // Simpan catatan jika ada
+      if (catatan != null && catatan.isNotEmpty) {
+        allResep[index]['catatanPenyerahan'] = catatan;
+      }
+
+      await _box.write('resep_list', allResep);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   // Batalkan resep (ubah status ke Batal)

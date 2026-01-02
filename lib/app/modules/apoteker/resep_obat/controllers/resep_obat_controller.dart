@@ -9,6 +9,9 @@ class ResepObatController extends GetxController {
   final ResepObatService _resepObatService = ResepObatService();
   final SessionService _sessionService = Get.find<SessionService>();
 
+  // Text controller for catatan
+  final catatanController = TextEditingController();
+
   // Observable list untuk resep yang belum diserahkan
   final resepBelumSelesai = <Map<String, dynamic>>[].obs;
 
@@ -45,34 +48,69 @@ class ResepObatController extends GetxController {
   }
 
   // Konfirmasi penyerahan obat
-  void konfirmasiPenyerahan(String resepId) async {
-    isLoading.value = true;
+  Future<void> konfirmasiPenyerahan(String resepId, String namaPasien) async {
+    final apotekerId = _sessionService.getUserId();
+    final apotekerName = _sessionService.getNamaLengkap();
 
-    final success = await _resepObatService.selesaikanResep(resepId);
-
-    if (success) {
-      await loadResepData(); // Reload data from service
-
-      Get.back();
+    if (apotekerId == null || apotekerName == null) {
       Get.snackbar(
-        'Berhasil',
-        'Resep telah diserahkan kepada pasien',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: const Color(0xFF4CAF50),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    } else {
-      Get.snackbar(
-        'Gagal',
-        'Terjadi kesalahan saat menyimpan data',
+        'Error',
+        'Sesi tidak valid. Silakan login kembali.',
         snackPosition: SnackPosition.TOP,
         backgroundColor: const Color(0xFFFF4242),
         colorText: Colors.white,
       );
+      return;
     }
 
-    isLoading.value = false;
+    isLoading.value = true;
+
+    try {
+      final success = await _resepObatService.selesaikanResep(
+        resepId,
+        apotekerId: apotekerId,
+        apotekerName: apotekerName,
+        catatan:
+            catatanController.text.trim().isEmpty
+                ? null
+                : catatanController.text.trim(),
+      );
+
+      catatanController.clear();
+
+      if (success) {
+        await loadResepData(); // Reload data from service
+
+        Get.back(); // Close detail view
+        Get.snackbar(
+          'Berhasil',
+          'Obat telah diserahkan kepada $namaPasien',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: const Color(0xFF4CAF50),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.check_circle, color: Colors.white),
+        );
+      } else {
+        Get.snackbar(
+          'Gagal',
+          'Terjadi kesalahan saat menyimpan data',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: const Color(0xFFFF4242),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Terjadi kesalahan: ${e.toString()}',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: const Color(0xFFFF4242),
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   // Batalkan resep (jika pasien tidak jadi ambil)
@@ -155,6 +193,7 @@ class ResepObatController extends GetxController {
 
   @override
   void onClose() {
+    catatanController.dispose();
     super.onClose();
   }
 }
