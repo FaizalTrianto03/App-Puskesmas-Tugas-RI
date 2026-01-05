@@ -252,3 +252,14 @@ assets/
 - ✅ Form Validation & Error Handling - Field-level error messages, general validation notification, email/NIK uniqueness check, password confirmation, staff NIK validation
 - ✅ Data Management - Centralized PemeriksaanService untuk patient & examination data, dynamic doctor names dari logged-in user, auto-populate doctor field on form submit
 - ✅ UI/UX Refinements - Loading states, success/error notifications dengan icon, smooth navigation flow (auto-login after registration), clean architecture pattern (MVC), compact form sections dengan QuarterCircleBackground consistency, status-based UI rendering
+
+---
+
+## 📥 Download APK
+
+Aplikasi Puskesmas Dau versi 1.0.0 sudah dapat diunduh dan digunakan!
+
+**Download Link:**  
+[📱 Download PuskesmasDau.apk v1.0.0](https://github.com/FaizalTrianto03/App-Puskesmas-Tugas-RI/releases/download/v1.0.0/PuskesmasDau.apk)
+
+> **Catatan:** File APK berukuran sekitar 60-70 MB. Pastikan perangkat Android Anda sudah mengizinkan instalasi dari sumber tidak dikenal.
