@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../data/services/notification/fcm_service.dart';
 import '../../../../data/services/storage_service.dart';
 import '../../../../routes/app_pages.dart';
 import '../../../../utils/snackbar_helper.dart';
@@ -86,16 +87,7 @@ class PasienRegisterController extends GetxController {
 
   // Validasi Email
   String? validateEmail(String? value) {
-    // Basic email validation
-    final basicError = ValidationHelper.validateEmail(value);
-    if (basicError != null) return basicError;
-
-    // Additional validation: must be Gmail for patients
-    if (value != null && !value.toLowerCase().endsWith('@gmail.com')) {
-      return 'Email harus menggunakan Gmail (@gmail.com)';
-    }
-
-    return null;
+    return ValidationHelper.validateEmail(value);
   }
 
   // Validasi Password
@@ -123,9 +115,6 @@ class PasienRegisterController extends GetxController {
 
   // Register Function
   Future<void> register() async {
-    print('[PasienRegisterController] register() called');
-    print('[PasienRegisterController] isLoading before: ${isLoading.value}');
-
     // Reset loading state at the beginning
     isLoading.value = false;
 
@@ -172,26 +161,31 @@ class PasienRegisterController extends GetxController {
           jenisKelaminError.value ??
           'Silakan isi semua field sesuai ketentuan';
 
-      print('[PasienRegisterController] Validation failed: $errorMessage');
       SnackbarHelper.showError(errorMessage);
       // Ensure loading state is false when validation fails
       isLoading.value = false;
-      print(
-        '[PasienRegisterController] isLoading after validation fail: ${isLoading.value}',
-      );
       return;
     }
 
     try {
-      print(
-        '[PasienRegisterController] Validation passed, starting registration...',
-      );
       isLoading.value = true;
-      print(
-        '[PasienRegisterController] isLoading set to true: ${isLoading.value}',
-      );
 
       // Register user using AuthService with self-registration
+      // Convert tanggal lahir from dd-MM-yyyy to ISO format
+      DateTime? parsedDate;
+      try {
+        final parts = tanggalLahirController.text.trim().split('-');
+        if (parts.length == 3) {
+          parsedDate = DateTime(
+            int.parse(parts[2]), // year
+            int.parse(parts[1]), // month
+            int.parse(parts[0]), // day
+          );
+        }
+      } catch (e) {
+        // Keep null if parsing fails
+      }
+      
       final userData = await _storage.auth.registerUser(
         email: emailController.text.trim().toLowerCase(),
         password: passwordController.text,
@@ -200,7 +194,7 @@ class PasienRegisterController extends GetxController {
         nik: nikController.text.trim(),
         noHp: noHpController.text.trim(),
         jenisKelamin: selectedJenisKelamin.value!,
-        tanggalLahir: tanggalLahirController.text.trim(),
+        tanggalLahir: parsedDate?.toIso8601String().split('T')[0] ?? '',
         alamat: alamatController.text.trim(),
         additionalData: {
           'tempatLahir': tempatLahirController.text.trim(),
@@ -221,6 +215,9 @@ class PasienRegisterController extends GetxController {
         );
 
         if (loginResult != null) {
+          // Setup FCM topics for new registration (always enables notifications)
+          await FCMService.to.setupUserTopicsOnRegistration('pasien');
+          
           isLoading.value = false;
           _clearForm();
 

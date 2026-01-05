@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../../../widgets/custom_date_picker_modal.dart';
 import '../../../../widgets/custom_text_field.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../controllers/kelola_data_diri_controller.dart';
@@ -122,22 +124,49 @@ class KelolaDataDiriView extends GetView<KelolaDataDiriController> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      CustomTextField(
-                        controller: controller.nikController,
-                        hintText: 'Masukkan 16 digit NIK',
-                        keyboardType: TextInputType.number,
-                        prefixIcon: const Icon(Icons.badge_outlined, color: Colors.grey),
-                        backgroundColor: Colors.white,
-                        textColor: Colors.black87,
-                        hintColor: Colors.grey,
-                        borderColor: const Color(0xFF02B1BA),
-                        borderWidth: 1,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'NIK harus diisi';
-                          }
-                          return null;
-                        },
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF02B1BA), width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.only(left: 12, right: 8),
+                              child: Icon(Icons.badge_outlined, color: Colors.grey, size: 20),
+                            ),
+                            Expanded(
+                              child: TextFormField(
+                                controller: controller.nikController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(16),
+                                ],
+                                decoration: const InputDecoration(
+                                  hintText: 'Masukkan 16 digit NIK',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'NIK harus diisi';
+                                  }
+                                  if (value.length != 16) {
+                                    return 'NIK harus 16 digit';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
                       
@@ -194,22 +223,68 @@ class KelolaDataDiriView extends GetView<KelolaDataDiriController> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      CustomTextField(
-                        controller: controller.noHpController,
-                        hintText: 'Masukkan nomor telepon',
-                        keyboardType: TextInputType.phone,
-                        prefixIcon: const Icon(Icons.phone_outlined, color: Colors.grey),
-                        backgroundColor: Colors.white,
-                        textColor: Colors.black87,
-                        hintColor: Colors.grey,
-                        borderColor: const Color(0xFF02B1BA),
-                        borderWidth: 1,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Nomor HP harus diisi';
-                          }
-                          return null;
-                        },
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF02B1BA), width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 12),
+                            const Icon(Icons.phone_outlined, color: Colors.grey, size: 20),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                              child: const Text(
+                                '+62',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 24,
+                              color: Colors.grey.shade300,
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: controller.noHpController,
+                                keyboardType: TextInputType.phone,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                onChanged: (value) {
+                                  // Auto-remove 0, +, atau 62 di awal
+                                  if (value.startsWith('0')) {
+                                    controller.noHpController.text = value.substring(1);
+                                    controller.noHpController.selection = TextSelection.fromPosition(
+                                      TextPosition(offset: controller.noHpController.text.length),
+                                    );
+                                  } else if (value.startsWith('62')) {
+                                    controller.noHpController.text = value.substring(2);
+                                    controller.noHpController.selection = TextSelection.fromPosition(
+                                      TextPosition(offset: controller.noHpController.text.length),
+                                    );
+                                  }
+                                },
+                                decoration: const InputDecoration(
+                                  hintText: '8123456789',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
                       
@@ -232,21 +307,18 @@ class KelolaDataDiriView extends GetView<KelolaDataDiriController> {
                       const SizedBox(height: 8),
                       CustomTextField(
                         controller: controller.emailController,
-                        hintText: 'Masukkan email',
+                        hintText: 'Email tidak dapat diubah',
                         keyboardType: TextInputType.emailAddress,
+                        enabled: false,
                         prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
-                        backgroundColor: Colors.white,
-                        textColor: Colors.black87,
+                        backgroundColor: Colors.grey.shade100,
+                        textColor: Colors.black54,
                         hintColor: Colors.grey,
-                        borderColor: const Color(0xFF02B1BA),
+                        borderColor: Colors.grey.shade300,
                         borderWidth: 1,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Email harus diisi';
-                          }
-                          final emailRegex = RegExp(r'^[\w-\.]+@gmail\.com$');
-                          if (!emailRegex.hasMatch(value)) {
-                            return 'Email harus menggunakan Gmail (@gmail.com)';
                           }
                           return null;
                         },
@@ -381,21 +453,11 @@ class KelolaDataDiriView extends GetView<KelolaDataDiriController> {
                                 const SizedBox(height: 8),
                                 InkWell(
                                   onTap: () async {
-                                    final DateTime? picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: DateTime(2003, 9, 9),
-                                      firstDate: DateTime(1950),
-                                      lastDate: DateTime.now(),
-                                      builder: (context, child) {
-                                        return Theme(
-                                          data: Theme.of(context).copyWith(
-                                            colorScheme: const ColorScheme.light(
-                                              primary: Color(0xFF02B1BA),
-                                            ),
-                                          ),
-                                          child: child!,
-                                        );
-                                      },
+                                    final picked = await CustomDatePickerModal.show(
+                                      context,
+                                      initialDate: controller.tanggalLahir.value.isNotEmpty
+                                        ? _parseDate(controller.tanggalLahir.value)
+                                        : DateTime(2003, 1, 1),
                                     );
                                     if (picked != null) {
                                       controller.tanggalLahir.value = '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
@@ -485,5 +547,22 @@ class KelolaDataDiriView extends GetView<KelolaDataDiriController> {
         ),
       ),
     );
+  }
+
+  // Helper untuk parse tanggal format dd/mm/yyyy
+  DateTime _parseDate(String dateStr) {
+    try {
+      final parts = dateStr.split('/');
+      if (parts.length == 3) {
+        return DateTime(
+          int.parse(parts[2]), // year
+          int.parse(parts[1]), // month
+          int.parse(parts[0]), // day
+        );
+      }
+    } catch (e) {
+      // Fallback jika parsing gagal
+    }
+    return DateTime(2003, 1, 1);
   }
 }

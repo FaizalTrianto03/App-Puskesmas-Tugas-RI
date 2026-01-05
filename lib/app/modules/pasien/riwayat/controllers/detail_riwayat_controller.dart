@@ -29,7 +29,6 @@ class DetailRiwayatController extends GetxController {
       final data = await _riwayatService.getRiwayatById(riwayatId);
       riwayat.value = data;
     } catch (e) {
-      print('Error loading riwayat detail: $e');
     } finally {
       isLoading.value = false;
     }

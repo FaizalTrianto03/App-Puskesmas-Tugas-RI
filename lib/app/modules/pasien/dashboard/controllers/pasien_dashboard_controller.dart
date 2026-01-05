@@ -4,14 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../data/services/firestore/antrian_firestore_service.dart';
-import '../../../../data/services/firestore/notifikasi_firestore_service.dart';
 import '../../../../data/services/firestore/user_profile_firestore_service.dart';
 import '../../../../routes/app_pages.dart';
 
 class PasienDashboardController extends GetxController with WidgetsBindingObserver {
   final AntrianFirestoreService _antrianService = AntrianFirestoreService();
   final UserProfileFirestoreService _profileService = UserProfileFirestoreService();
-  final NotifikasiFirestoreService _notifikasiService = NotifikasiFirestoreService();
   
   // Observable states
   final userName = ''.obs;
@@ -23,10 +21,14 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
   final estimatedTime = ''.obs;
   final isLoading = false.obs;
   final isRefreshing = false.obs;
-  final unreadNotificationCount = 0.obs;
+  
+  // ✅ TAMBAH: Status dan timeline info untuk preview di dashboard
+  final currentStatus = ''.obs; // Status raw dari Firestore
+  final currentStatusText = ''.obs; // Status yang user-friendly
+  final currentTimelineStage = ''.obs; // 'perawat', 'dokter', 'apoteker', dll
+  final currentTimelineDescription = ''.obs; // Deskripsi detail untuk preview
   
   StreamSubscription? _profileSubscription;
-  StreamSubscription? _unreadNotificationSubscription;
   StreamSubscription? _activeAntrianSubscription; // ✅ TAMBAH: Listener untuk antrian aktif
   
   // UI State for hover and press effects
@@ -46,7 +48,6 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
     watchUserProfile();
-    watchUnreadNotificationCount();
     watchActiveAntrianRealtime(); // ✅ TAMBAH: Real-time listener untuk antrian
     _initQueueState();
   }
@@ -55,7 +56,6 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
   void onReady() {
     super.onReady();
     // Force refetch data setiap kali halaman dashboard muncul/ready
-    print('[PasienDashboardController] ===== onReady: FORCE REFETCH =====');
     Future.microtask(() async {
       await refreshData();
     });
@@ -65,7 +65,6 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
   void onClose() {
     WidgetsBinding.instance.removeObserver(this);
     _profileSubscription?.cancel();
-    _unreadNotificationSubscription?.cancel();
     _activeAntrianSubscription?.cancel(); // ✅ TAMBAH: Cancel listener antrian
     super.onClose();
   }
@@ -75,20 +74,17 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       // Refetch data setiap kali app kembali ke foreground
-      print('[PasienDashboardController] App resumed: force refetch data');
       refreshData();
     }
   }
 
   Future<void> _initQueueState() async {
-    print('[PasienDashboardController] ===== _initQueueState: START =====');
     isLoading.value = true;
     
     // Load langsung dari Firestore, simpan di state
     await checkActiveQueue();
     
     isLoading.value = false;
-    print('[PasienDashboardController] ===== _initQueueState: END ===== hasActiveQueue=${hasActiveQueue.value}, queueNumber=${queueNumber.value}');
   }
   
   void watchUserProfile() {
@@ -127,78 +123,141 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
     }
   }
   
-  void watchUnreadNotificationCount() {
-    _unreadNotificationSubscription?.cancel();
-    _unreadNotificationSubscription = _notifikasiService.watchUnreadCount().listen(
-      (count) {
-        unreadNotificationCount.value = count;
-      },
-      onError: (e) {
-        print('[PasienDashboardController] watchUnreadNotificationCount error: $e');
-        unreadNotificationCount.value = 0;
-      }
-    );
-  }
-  
   // ✅ TAMBAH: Watch active antrian secara real-time
   void watchActiveAntrianRealtime() {
-    print('[PasienDashboardController] ===== watchActiveAntrianRealtime: SETUP =====');
     _activeAntrianSubscription?.cancel();
     _activeAntrianSubscription = _antrianService.watchActiveAntrian().listen(
       (antrian) {
-        print('[PasienDashboardController] 🔔 REAL-TIME UPDATE: antrian = ${antrian?.toMap()}');
-        
         if (antrian != null) {
-          print('[PasienDashboardController] ✅ Active antrian: ${antrian.queueNumber}, status: ${antrian.status}');
           hasActiveQueue.value = true;
           queueNumber.value = antrian.queueNumber;
           jenisLayanan.value = antrian.jenisLayanan;
+          currentStatus.value = antrian.status;
+          _updateTimelineInfo(antrian.status);
           _calculateEstimatedTime(antrian.jenisLayanan);
         } else {
-          print('[PasienDashboardController] ❌ No active antrian');
           hasActiveQueue.value = false;
           queueNumber.value = '';
           jenisLayanan.value = '';
           estimatedTime.value = '';
+          currentStatus.value = '';
+          currentStatusText.value = '';
+          currentTimelineStage.value = '';
+          currentTimelineDescription.value = '';
         }
       },
       onError: (e) {
-        print('[PasienDashboardController] ❌ watchActiveAntrianRealtime error: $e');
         // Fallback ke manual check
         checkActiveQueue();
       }
     );
   }
   
+  // ✅ TAMBAH: Update timeline info berdasarkan status
+  void _updateTimelineInfo(String status) {
+    // Status text yang user-friendly
+    switch (status) {
+      case 'menunggu':
+      case 'menunggu_verifikasi':
+        currentStatusText.value = 'Menunggu Verifikasi';
+        currentTimelineStage.value = 'perawat';
+        currentTimelineDescription.value = 'Antrian sedang diverifikasi perawat';
+        break;
+      case 'menunggu_perawat':
+        currentStatusText.value = 'Menunggu Perawat';
+        currentTimelineStage.value = 'perawat';
+        currentTimelineDescription.value = 'Menunggu giliran pemeriksaan awal';
+        break;
+      case 'dilayani_perawat':
+        currentStatusText.value = 'Diperiksa Perawat';
+        currentTimelineStage.value = 'perawat';
+        currentTimelineDescription.value = 'Sedang diperiksa oleh perawat';
+        break;
+      case 'menunggu_dokter':
+        currentStatusText.value = 'Menunggu Dokter';
+        currentTimelineStage.value = 'dokter';
+        currentTimelineDescription.value = 'Menunggu giliran pemeriksaan dokter';
+        break;
+      case 'sedang_dilayani':
+      case 'dilayani_dokter':
+        currentStatusText.value = 'Diperiksa Dokter';
+        currentTimelineStage.value = 'dokter';
+        currentTimelineDescription.value = 'Sedang diperiksa oleh dokter';
+        break;
+      case 'selesai_diperiksa':
+        currentStatusText.value = 'Selesai Diperiksa';
+        currentTimelineStage.value = 'apoteker';
+        currentTimelineDescription.value = 'Menunggu penyiapan obat';
+        break;
+      case 'menunggu_apoteker':
+        currentStatusText.value = 'Menunggu Obat';
+        currentTimelineStage.value = 'apoteker';
+        currentTimelineDescription.value = 'Obat sedang disiapkan apoteker';
+        break;
+      case 'dilayani_apoteker':
+        currentStatusText.value = 'Obat Disiapkan';
+        currentTimelineStage.value = 'apoteker';
+        currentTimelineDescription.value = 'Apoteker sedang menyiapkan obat';
+        break;
+      case 'siap_ambil_obat':
+        currentStatusText.value = 'Obat Siap';
+        currentTimelineStage.value = 'pembayaran';
+        currentTimelineDescription.value = 'Silakan bayar dan ambil obat';
+        break;
+      case 'pending':
+        currentStatusText.value = 'Tertunda';
+        currentTimelineStage.value = 'pending';
+        currentTimelineDescription.value = 'Antrian tertunda - Harap tunggu';
+        break;
+      case 'dilewati':
+        currentStatusText.value = 'Dilewati';
+        currentTimelineStage.value = 'dilewati';
+        currentTimelineDescription.value = 'Antrian dilewati sementara';
+        break;
+      case 'dipanggil':
+        currentStatusText.value = 'Dipanggil';
+        currentTimelineStage.value = 'dipanggil';
+        currentTimelineDescription.value = 'Segera ke ruangan!';
+        break;
+      default:
+        currentStatusText.value = 'Dalam Proses';
+        currentTimelineStage.value = '';
+        currentTimelineDescription.value = 'Antrian sedang diproses';
+    }
+  }
+  
   Future<void> checkActiveQueue() async {
     // Refresh active queue manually - SELALU ambil data REAL dari Firestore
     try {
-      print('[PasienDashboardController] ===== checkActiveQueue: START =====');
       final antrian = await _antrianService.getActiveAntrian();
-      print('[PasienDashboardController] checkActiveQueue: result = ${antrian?.toMap()}');
       
       if (antrian != null) {
-        print('[PasienDashboardController] ✅ FOUND: ${antrian.queueNumber}, ${antrian.jenisLayanan}');
         hasActiveQueue.value = true;
         queueNumber.value = antrian.queueNumber;
         jenisLayanan.value = antrian.jenisLayanan;
+        currentStatus.value = antrian.status;
+        _updateTimelineInfo(antrian.status);
         await _calculateEstimatedTime(antrian.jenisLayanan);
-        print('[PasienDashboardController] State updated: hasActiveQueue=${hasActiveQueue.value}, queueNumber=${queueNumber.value}');
       } else {
-        print('[PasienDashboardController] ❌ NO ACTIVE ANTRIAN');
         hasActiveQueue.value = false;
         queueNumber.value = '';
         jenisLayanan.value = '';
         estimatedTime.value = '';
+        currentStatus.value = '';
+        currentStatusText.value = '';
+        currentTimelineStage.value = '';
+        currentTimelineDescription.value = '';
       }
-      print('[PasienDashboardController] ===== checkActiveQueue: END =====');
     } catch (e) {
-      print('[PasienDashboardController] ❌ checkActiveQueue ERROR: $e');
       // Jika error, set state kosong
       hasActiveQueue.value = false;
       queueNumber.value = '';
       jenisLayanan.value = '';
       estimatedTime.value = '';
+      currentStatus.value = '';
+      currentStatusText.value = '';
+      currentTimelineStage.value = '';
+      currentTimelineDescription.value = '';
     }
   }
 
@@ -228,7 +287,6 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
   
   Future<void> refreshData() async {
     // Method untuk pull-to-refresh
-    print('[PasienDashboardController] ===== refreshData: START =====');
     isRefreshing.value = true;
     
     try {
@@ -237,10 +295,7 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
       
       // Refresh antrian - ambil data REAL dari Firestore
       await checkActiveQueue();
-      
-      print('[PasienDashboardController] ===== refreshData: SUCCESS ===== hasActiveQueue=${hasActiveQueue.value}');
     } catch (e) {
-      print('[PasienDashboardController] ===== refreshData: ERROR ===== $e');
       Get.snackbar(
         'Error',
         'Gagal memuat data. Silakan coba lagi.',
@@ -276,8 +331,18 @@ class PasienDashboardController extends GetxController with WidgetsBindingObserv
     Get.toNamed(Routes.pasienSettings);
   }
   
-  void goToNotifikasi() {
-    Get.toNamed(Routes.pasienNotifikasi);
+  void showActiveQueueWarning() {
+    Get.snackbar(
+      'Tidak Dapat Diproses',
+      'Maaf, Anda masih memiliki antrian aktif yang sedang diproses. Tindakan tidak dapat diproses.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFFFF4242),
+      colorText: Colors.white,
+      icon: const Icon(Icons.block, color: Colors.white),
+      duration: const Duration(seconds: 3),
+      margin: const EdgeInsets.all(16),
+      borderRadius: 12,
+    );
   }
   
   Future<void> logout() async {

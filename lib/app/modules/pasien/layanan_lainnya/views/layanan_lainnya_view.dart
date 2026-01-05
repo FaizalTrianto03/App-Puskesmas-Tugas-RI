@@ -15,20 +15,19 @@ class LayananLainnyaView extends GetView<LayananLainnyaController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        backgroundColor: const Color(0xFF02B1BA),
+        elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: const Text(
           'Layanan Lainnya',
           style: TextStyle(
-            color: Color(0xFF02B1BA),
+            color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -43,7 +42,7 @@ class LayananLainnyaView extends GetView<LayananLainnyaController> {
               Obx(() => _buildMenuButton(
                 context,
                 icon: Icons.location_on,
-                title: 'Lokasi Puskesmas',
+                title: 'Informasi Puskesmas',
                 isHover: controller.isHoverLokasi.value,
                 isPressed: controller.isPressedLokasi.value,
                 onHoverChange: controller.setHoverLokasi,

@@ -48,7 +48,6 @@ class PasienProfileController extends GetxController {
       },
       onError: (error) {
         isLoading.value = false;
-        print('Error watching profile: $error');
         // Set default values on error
         userName.value = 'Pasien';
         userNIK.value = '-';
@@ -67,7 +66,6 @@ class PasienProfileController extends GetxController {
         userRekamMedis.value = profile.noRekamMedis ?? '-';
       }
     } catch (e) {
-      print('Error loading profile: $e');
     } finally {
       isLoading.value = false;
     }

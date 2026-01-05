@@ -27,7 +27,7 @@ class PasienSettingsController extends GetxController {
         userEmail.value = profile.email;
       }
     } catch (e) {
-      print('Error loading user data: $e');
+      // Silent error
     }
   }
 

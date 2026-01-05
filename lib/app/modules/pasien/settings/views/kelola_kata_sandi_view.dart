@@ -1,37 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/custom_text_field.dart';
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/kelola_kata_sandi_controller.dart';
 
-class KelolaKataSandiView extends StatefulWidget {
+class KelolaKataSandiView extends GetView<KelolaKataSandiController> {
   const KelolaKataSandiView({Key? key}) : super(key: key);
 
   @override
-  State<KelolaKataSandiView> createState() => _KelolaKataSandiViewState();
-}
-
-class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
-  final _formKey = GlobalKey<FormState>();
-  final _passwordLamaController = TextEditingController();
-  final _passwordBaruController = TextEditingController();
-  final _konfirmasiController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  bool _obscurePasswordLama = true;
-  bool _obscurePasswordBaru = true;
-  bool _obscureKonfirmasi = true;
-
-  @override
-  void dispose() {
-    _passwordLamaController.dispose();
-    _passwordBaruController.dispose();
-    _konfirmasiController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Ensure controller is available
+    Get.lazyPut(() => KelolaKataSandiController());
+    
+    final _formKey = GlobalKey<FormState>();
+    final ScrollController _scrollController = ScrollController();
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFF5F5F5),
@@ -139,21 +122,10 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _passwordLamaController,
+                        controller: controller.passwordLamaController,
                         hintText: 'Masukkan kata sandi lama',
-                        obscureText: _obscurePasswordLama,
+                        obscureText: true,
                         prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePasswordLama ? Icons.visibility_off : Icons.visibility,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePasswordLama = !_obscurePasswordLama;
-                            });
-                          },
-                        ),
                         backgroundColor: Colors.white,
                         textColor: Colors.black87,
                         hintColor: Colors.grey,
@@ -186,21 +158,10 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _passwordBaruController,
+                        controller: controller.passwordBaruController,
                         hintText: 'Masukkan kata sandi baru',
-                        obscureText: _obscurePasswordBaru,
+                        obscureText: true,
                         prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePasswordBaru ? Icons.visibility_off : Icons.visibility,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePasswordBaru = !_obscurePasswordBaru;
-                            });
-                          },
-                        ),
                         backgroundColor: Colors.white,
                         textColor: Colors.black87,
                         hintColor: Colors.grey,
@@ -210,8 +171,8 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                           if (value == null || value.isEmpty) {
                             return 'Kata sandi baru harus diisi';
                           }
-                          if (value.length < 8) {
-                            return 'Kata sandi minimal 8 karakter';
+                          if (value.length < 6) {
+                            return 'Kata sandi minimal 6 karakter';
                           }
                           return null;
                         },
@@ -236,21 +197,10 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _konfirmasiController,
+                        controller: controller.konfirmasiPasswordController,
                         hintText: 'Ulangi kata sandi baru',
-                        obscureText: _obscureKonfirmasi,
+                        obscureText: true,
                         prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureKonfirmasi ? Icons.visibility_off : Icons.visibility,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureKonfirmasi = !_obscureKonfirmasi;
-                            });
-                          },
-                        ),
                         backgroundColor: Colors.white,
                         textColor: Colors.black87,
                         hintColor: Colors.grey,
@@ -260,7 +210,7 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                           if (value == null || value.isEmpty) {
                             return 'Konfirmasi kata sandi harus diisi';
                           }
-                          if (value != _passwordBaruController.text) {
+                          if (value != controller.passwordBaruController.text) {
                             return 'Kata sandi tidak cocok';
                           }
                           return null;
@@ -269,14 +219,14 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                       
                       const SizedBox(height: 32),
                       
-                      ElevatedButton(
-                        onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                            Navigator.pop(context);
-                            await Future.delayed(const Duration(milliseconds: 100));
-                            SnackbarHelper.showSuccess('Kata sandi berhasil diubah');
-                          }
-                        },
+                      Obx(() => ElevatedButton(
+                        onPressed: controller.isLoading.value 
+                          ? null 
+                          : () async {
+                              if (_formKey.currentState!.validate()) {
+                                await controller.updatePassword();
+                              }
+                            },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF02B1BA),
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -285,15 +235,24 @@ class _KelolaKataSandiViewState extends State<KelolaKataSandiView> {
                           ),
                           elevation: 0,
                         ),
-                        child: const Text(
-                          'Simpan Perubahan',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                        child: controller.isLoading.value
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Simpan Perubahan',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                      )),
                       const SizedBox(height: 16),
                     ],
                   ),
