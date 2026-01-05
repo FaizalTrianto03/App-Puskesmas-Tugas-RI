@@ -83,20 +83,19 @@ class JadwalPraktekView extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        backgroundColor: const Color(0xFF02B1BA),
+        elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
         ),
         title: const Text(
           'Jadwal Praktek',
           style: TextStyle(
-            color: Color(0xFF02B1BA),
+            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),

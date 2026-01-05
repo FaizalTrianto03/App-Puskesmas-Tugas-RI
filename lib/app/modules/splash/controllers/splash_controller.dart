@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:get/get.dart';
 
 import '../../../data/services/auth/session_service.dart';
@@ -5,6 +6,7 @@ import '../../../routes/app_pages.dart';
 
 class SplashController extends GetxController {
   late final SessionService _sessionService;
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void onInit() {
@@ -14,11 +16,20 @@ class SplashController extends GetxController {
     } catch (e) {
       _sessionService = SessionService();
     }
+    _playIntroAudio();
     _checkSessionAndNavigate();
   }
 
+  Future<void> _playIntroAudio() async {
+    try {
+      await _audioPlayer.play(AssetSource('audio/Puskesmas_Dau_App_Intro.mp3'));
+    } catch (e) {
+    }
+  }
+
   void _checkSessionAndNavigate() async {
-    await Future.delayed(const Duration(seconds: 2));
+    // Delay 7 detik untuk audio intro
+    await Future.delayed(const Duration(seconds: 7));
     
     try {
       final isLoggedIn = _sessionService.isLoggedIn();
@@ -57,5 +68,11 @@ class SplashController extends GetxController {
       // Jika terjadi error, arahkan ke login pasien
       Get.offAllNamed(Routes.pasienLogin);
     }
+  }
+
+  @override
+  void onClose() {
+    _audioPlayer.dispose();
+    super.onClose();
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../routes/app_pages.dart';
+import '../../../data/services/auth/auth_service.dart';
 import '../../../utils/snackbar_helper.dart';
 import '../../../utils/colors.dart';
 import '../../../utils/text_styles.dart';
@@ -18,6 +18,7 @@ class LupaKataSandiEmailView extends StatefulWidget {
 class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
   final _emailController = TextEditingController();
   bool _isLoading = false;
+  final _authService = AuthService();
 
   @override
   void initState() {
@@ -31,7 +32,7 @@ class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
     super.dispose();
   }
 
-  void _handleKirimOTP() async {
+  void _handleKirimLink() async {
     if (_isLoading) return;
     
     // Validasi email harus diisi
@@ -56,20 +57,116 @@ class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
     // Show loading
     setState(() => _isLoading = true);
     
-    // Simulate sending OTP
-    await Future.delayed(const Duration(seconds: 2));
-    
-    setState(() => _isLoading = false);
-    
-    // Navigasi ke halaman reset (OTP + Password baru jadi satu)
-    Get.toNamed(
-      Routes.lupaKataSandiReset,
-      arguments: {'email': _emailController.text.trim()},
-    );
+    try {
+      // Send Firebase password reset email
+      await _authService.sendPasswordResetEmail(_emailController.text.trim());
+      
+      setState(() => _isLoading = false);
+      
+      // Show success dialog
+      _showSuccessDialog();
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showErrorSnackBar(e.toString().replaceFirst('Exception: ', ''));
+    }
   }
 
   void _showErrorSnackBar(String message) {
     SnackbarHelper.showError(message);
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Success Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4CAF50).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.mark_email_read,
+                  color: Color(0xFF4CAF50),
+                  size: 50,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Title
+              Text(
+                'Email Terkirim!',
+                style: AppTextStyles.h2.copyWith(
+                  color: const Color(0xFF02B1BA),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Message
+              Text(
+                'Link reset kata sandi telah dikirim ke email Anda. Silakan cek inbox atau folder spam untuk melanjutkan proses reset kata sandi.',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: Colors.black87,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Kembali ke halaman login
+                    Get.until((route) => route.isFirst);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF02B1BA),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Kembali ke Login',
+                    style: AppTextStyles.button.copyWith(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -86,12 +183,16 @@ class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
             ],
           ),
         ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 40.0,
+            left: 24.0,
+            right: 24.0,
+            bottom: MediaQuery.of(context).padding.bottom + 40.0,
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
                 // Icon ilustrasi dengan container background
                 Center(
                   child: Container(
@@ -120,7 +221,7 @@ class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
                 const SizedBox(height: 12),
                 // Deskripsi
                 Text(
-                  'Masukkan email yang terdaftar. Kami akan mengirimkan kode OTP untuk verifikasi akun Anda.',
+                  'Masukkan email yang terdaftar. Kami akan mengirimkan link untuk mereset kata sandi Anda.',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.white,
@@ -164,15 +265,15 @@ class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
                         borderWidth: 0,
                       ),
                       const SizedBox(height: 270),
-                // Tombol Kirim Kode OTP
+                // Tombol Kirim Link Reset
                 Semantics(
                   button: true,
-                  label: 'Tombol kirim kode OTP',
+                  label: 'Tombol kirim link reset',
                   enabled: !_isLoading,
                   child: CustomButton(
-                    text: 'Kirim Kode OTP',
+                    text: 'Kirim Link Reset',
                     isLoading: _isLoading,
-                    onPressed: _isLoading ? null : _handleKirimOTP,
+                    onPressed: _isLoading ? null : _handleKirimLink,
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -206,7 +307,6 @@ class _LupaKataSandiEmailViewState extends State<LupaKataSandiEmailView> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }

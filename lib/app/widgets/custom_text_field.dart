@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../utils/colors.dart';
 import '../utils/text_styles.dart';
@@ -21,9 +22,10 @@ class CustomTextField extends StatefulWidget {
   final double borderRadius;
   final bool enabled;
   final int? maxLines;
+  final List<TextInputFormatter>? inputFormatters;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     this.hintText,
     this.labelText,
     this.controller,
@@ -41,7 +43,8 @@ class CustomTextField extends StatefulWidget {
     this.borderRadius = 12.0,
     this.enabled = true,
     this.maxLines = 1,
-  }) : super(key: key);
+    this.inputFormatters,
+  });
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -83,6 +86,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       enabled: widget.enabled,
       maxLines: widget.maxLines,
       focusNode: _focusNode,
+      inputFormatters: widget.inputFormatters,
       style: AppTextStyles.bodyMedium.copyWith(
         color: widget.textColor,
       ),

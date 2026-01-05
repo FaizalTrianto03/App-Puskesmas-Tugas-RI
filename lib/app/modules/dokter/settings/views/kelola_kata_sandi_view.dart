@@ -17,18 +17,20 @@ class KelolaKataSandiView extends GetView<KelolaKataSandiController> {
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
         ),
-        title: Text(
+        title: const Text(
           'Kelola Kata Sandi',
-          style: AppTextStyles.h4.copyWith(
-            color: AppColors.primary,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
         ),

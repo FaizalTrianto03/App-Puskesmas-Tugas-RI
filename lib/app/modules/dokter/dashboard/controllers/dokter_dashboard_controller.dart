@@ -1,38 +1,54 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../utils/auth_helper.dart';
-import '../../../../data/services/pemeriksaan/pemeriksaan_service.dart';
-import '../../../../data/services/antrian/antrian_service.dart';
+import '../../../../data/services/firestore/antrian_firestore_service.dart';
 import '../../../../data/services/auth/session_service.dart';
-import '../../../../routes/app_pages.dart';
+import '../../../../utils/auth_helper.dart';
 import '../../../../utils/snackbar_helper.dart';
+import '../../../../routes/app_pages.dart';
 import '../../pemeriksaan/views/form_pemeriksaan_view.dart';
 
 class DokterDashboardController extends GetxController {
-  final PemeriksaanService _pemeriksaanService = PemeriksaanService();
-  final AntreanService _antreanService = Get.find<AntreanService>();
+  final AntrianFirestoreService _antrianService = AntrianFirestoreService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final SessionService _sessionService = Get.find<SessionService>();
+
+  StreamSubscription? _antrianSubscription;
 
   final userName = ''.obs;
   final userRole = ''.obs;
+  final dokterId = ''.obs;
 
   final antrianList = <Map<String, dynamic>>[].obs;
   final isLoading = false.obs;
-  
+
   final currentTabIndex = 0.obs;
+  
+  // Search functionality
+  late final TextEditingController searchController;
+  final searchQuery = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
+    searchController = TextEditingController();
     loadUserData();
-    _pemeriksaanService.initializeDummyData();
-    loadAntrianTerverifikasi();
+    _startAntrianListener();
   }
 
   @override
   void onReady() {
     super.onReady();
-    // Refresh data setiap kali view siap ditampilkan
-    loadAntrianTerverifikasi();
+    forceReloadAntrian();
+  }
+
+  @override
+  void onClose() {
+    _antrianSubscription?.cancel();
+    searchController.dispose();
+    super.onClose();
   }
 
   void changeTab(int index) {
@@ -44,52 +60,165 @@ class DokterDashboardController extends GetxController {
     if (userData != null) {
       userName.value = userData['namaLengkap'] ?? '';
       userRole.value = _formatRole(userData['role'] ?? '');
+      dokterId.value = userData['uid'] ?? '';
     }
   }
 
-  void loadAntrianTerverifikasi() {
-    isLoading.value = true;
+  /// Force reload - cancel stream lama dan mulai baru
+  Future<void> forceReloadAntrian() async {
+    await _antrianSubscription?.cancel();
+    _antrianSubscription = null;
     
-    antrianList.value = _antreanService.getAntrianByStatus('menunggu_dokter')
-      ..sort((a, b) {
-        final dateA = DateTime.parse(a['verifiedAt']);
-        final dateB = DateTime.parse(b['verifiedAt']);
-        return dateA.compareTo(dateB);
-      });
+    await loadAntrian();
+    _startAntrianListener();
+  }
 
-    isLoading.value = false;
+  void _startAntrianListener() {
+    _antrianSubscription?.cancel();
+
+    final today = DateTime.now();
+    final startOfDay = DateTime(today.year, today.month, today.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+
+    // Listen to antrian for today that are assigned to this dokter OR waiting for dokter
+    _antrianSubscription = _firestore
+        .collection('antrian')
+        .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .where('createdAt', isLessThan: Timestamp.fromDate(endOfDay))
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .listen(
+      (snapshot) {
+        final currentDokterId = _sessionService.getFirebaseUid() ?? dokterId.value;
+        
+        antrianList.value = snapshot.docs.map((doc) {
+          final data = doc.data();
+          return {
+            'id': doc.id,
+            ...data,
+          };
+        }).where((antrian) {
+          final status = antrian['status'] ?? '';
+          final antrianDokterId = antrian['dokterId'] ?? '';
+          
+          // Show antrian that:
+          // 1. Status is menunggu_dokter (waiting for any dokter) AND assigned to this dokter
+          // 2. Status is sedang_dilayani AND assigned to this dokter
+          // 3. Status is selesai_diperiksa AND assigned to this dokter
+          // 4. Status is siap_ambil_obat AND assigned to this dokter
+          // 5. Status is selesai AND assigned to this dokter
+          
+          if (status == 'menunggu_dokter' && antrianDokterId == currentDokterId) {
+            return true;
+          }
+          if (status == 'sedang_dilayani' && antrianDokterId == currentDokterId) {
+            return true;
+          }
+          if (['selesai_diperiksa', 'siap_ambil_obat', 'selesai'].contains(status) && 
+              antrianDokterId == currentDokterId) {
+            return true;
+          }
+          return false;
+        }).toList();
+        
+        isLoading.value = false;
+      },
+      onError: (error) {
+        SnackbarHelper.showError('Gagal memuat data antrian');
+        isLoading.value = false;
+      },
+    );
+  }
+
+  Future<void> loadAntrian() async {
+    isLoading.value = true;
+
+    try {
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+      final currentDokterId = _sessionService.getFirebaseUid() ?? dokterId.value;
+
+      final snapshot = await _firestore
+          .collection('antrian')
+          .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('createdAt', isLessThan: Timestamp.fromDate(endOfDay))
+          .orderBy('createdAt', descending: false)
+          .get();
+
+      antrianList.value = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          ...data,
+        };
+      }).where((antrian) {
+        final status = antrian['status'] ?? '';
+        final antrianDokterId = antrian['dokterId'] ?? '';
+
+        if (status == 'menunggu_dokter' && antrianDokterId == currentDokterId) {
+          return true;
+        }
+        if (status == 'sedang_dilayani' && antrianDokterId == currentDokterId) {
+          return true;
+        }
+        if (['selesai_diperiksa', 'siap_ambil_obat', 'selesai'].contains(status) && 
+            antrianDokterId == currentDokterId) {
+          return true;
+        }
+        return false;
+      }).toList();
+    } catch (e) {
+      SnackbarHelper.showError('Gagal memuat data antrian');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   List<Map<String, dynamic>> get antrianMenunggu {
-    return antrianList
-        .where((a) => a['status'] == 'menunggu_dokter')
-        .toList();
+    return _applySearchFilter(
+      antrianList.where((a) => a['status'] == 'menunggu_dokter').toList()
+    );
   }
 
   List<Map<String, dynamic>> get antrianSedangDilayani {
-    final dokterId = _sessionService.getUserId();
-    return _antreanService.getAllAntrian()
-        .where((a) => 
-            a['status'] == 'sedang_dilayani' && 
-            a['dokterId'] == dokterId)
-        .toList();
+    return _applySearchFilter(
+      antrianList.where((a) => a['status'] == 'sedang_dilayani').toList()
+    );
   }
 
   List<Map<String, dynamic>> get antrianSelesai {
-    final dokterId = _sessionService.getUserId();
-    return _antreanService.getAllAntrian()
-        .where((a) => 
-            a['status'] == 'selesai' && 
-            a['dokterId'] == dokterId)
-        .toList();
+    return _applySearchFilter(
+      antrianList.where((a) => ['selesai_diperiksa', 'siap_ambil_obat', 'selesai'].contains(a['status'])).toList()
+    );
+  }
+  
+  /// Apply search filter
+  List<Map<String, dynamic>> _applySearchFilter(List<Map<String, dynamic>> list) {
+    if (searchQuery.value.isEmpty) return list;
+    
+    final query = searchQuery.value.toLowerCase();
+    return list.where((item) {
+      return (item['namaLengkap']?.toString().toLowerCase() ?? '').contains(query) ||
+             (item['noRekamMedis']?.toString().toLowerCase() ?? '').contains(query) ||
+             (item['queueNumber']?.toString().toLowerCase() ?? '').contains(query) ||
+             (item['keluhan']?.toString().toLowerCase() ?? '').contains(query);
+    }).toList();
+  }
+  
+  /// Clear search
+  void clearSearch() {
+    searchQuery.value = '';
+    searchController.clear();
   }
 
   Future<void> mulaiPelayanan(Map<String, dynamic> antrian) async {
-    final dokterId = _sessionService.getUserId();
+    // Gunakan firebaseUid, fallback ke userId untuk backward compatibility
+    final currentDokterId = _sessionService.getFirebaseUid() ?? _sessionService.getUserId();
     final dokterName = _sessionService.getNamaLengkap();
 
-    if (dokterId == null || dokterName == null) {
-      SnackbarHelper.showError('Sesi tidak valid');
+    if (currentDokterId == null || dokterName == null) {
+      SnackbarHelper.showError('Sesi tidak valid, silakan login ulang');
       return;
     }
 
@@ -100,44 +229,20 @@ class DokterDashboardController extends GetxController {
 
     isLoading.value = true;
 
-    final success = await _antreanService.assignDokter(
-      antrianId: antrian['id'],
-      dokterId: dokterId,
-      dokterName: dokterName,
-    );
+    try {
+      await _firestore.collection('antrian').doc(antrian['id']).update({
+        'status': 'sedang_dilayani',
+        'dokterData.dokterId': currentDokterId,
+        'dokterData.dokterNama': dokterName,
+        'dokterData.startedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
-    isLoading.value = false;
-
-    if (success) {
       SnackbarHelper.showSuccess('Pasien ${antrian['namaLengkap']} mulai dilayani');
-      loadAntrianTerverifikasi();
-    } else {
+    } catch (e) {
       SnackbarHelper.showError('Gagal memulai pelayanan');
-    }
-  }
-
-  Future<void> selesaiPelayanan({
-    required String antrianId,
-    required String diagnosis,
-    String? tindakan,
-    String? resep,
-  }) async {
-    isLoading.value = true;
-
-    final success = await _antreanService.selesaiPelayanan(
-      antrianId: antrianId,
-      diagnosis: diagnosis,
-      tindakan: tindakan,
-      resep: resep,
-    );
-
-    isLoading.value = false;
-
-    if (success) {
-      SnackbarHelper.showSuccess('Pelayanan selesai');
-      loadAntrianTerverifikasi();
-    } else {
-      SnackbarHelper.showError('Gagal menyelesaikan pelayanan');
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -154,7 +259,7 @@ class DokterDashboardController extends GetxController {
   }
 
   void refreshData() {
-    loadAntrianTerverifikasi();
+    forceReloadAntrian();
   }
 
   void navigateToFormPemeriksaan(Map<String, dynamic> antrian) {

@@ -10,12 +10,14 @@ class SessionService {
   // Session Management
   Future<void> saveUserSession({
     required String userId,
+    required String firebaseUid,
     required String namaLengkap,
     required String email,
     required String role,
   }) async {
     await _box.write('isLoggedIn', true);
     await _box.write('userId', userId);
+    await _box.write('firebaseUid', firebaseUid);
     await _box.write('namaLengkap', namaLengkap);
     await _box.write('email', email);
     await _box.write('role', role);
@@ -27,6 +29,11 @@ class SessionService {
 
   String? getUserId() {
     return _box.read('userId');
+  }
+
+  /// Get Firebase UID - ini yang digunakan untuk match dengan data antrian
+  String? getFirebaseUid() {
+    return _box.read('firebaseUid');
   }
 
   String? getNamaLengkap() {
@@ -44,6 +51,7 @@ class SessionService {
   Future<void> clearSession() async {
     await _box.remove('isLoggedIn');
     await _box.remove('userId');
+    await _box.remove('firebaseUid');
     await _box.remove('namaLengkap');
     await _box.remove('email');
     await _box.remove('role');
@@ -55,6 +63,7 @@ class SessionService {
     
     return {
       'userId': getUserId(),
+      'firebaseUid': getFirebaseUid(),
       'namaLengkap': getNamaLengkap(),
       'email': getEmail(),
       'role': getRole(),

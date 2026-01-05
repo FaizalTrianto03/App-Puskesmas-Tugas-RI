@@ -5,39 +5,39 @@ import '../../../../utils/snackbar_helper.dart';
 
 class DokterSettingsController extends GetxController {
   final userName = ''.obs;
-  final userRole = ''.obs;
   final userEmail = ''.obs;
-
+  final userRole = 'Dokter'.obs;
+  
   @override
   void onInit() {
     super.onInit();
     loadUserData();
   }
-
+  
   Future<void> loadUserData() async {
     final userData = await AuthHelper.currentUserData;
     if (userData != null) {
-      userName.value = userData['namaLengkap'] ?? '';
-      userRole.value = _formatRole(userData['role'] ?? '');
-      userEmail.value = userData['email'] ?? '';
+      userName.value = userData['namaLengkap'] ?? 'Dokter';
+      userEmail.value = userData['email'] ?? '-';
+      userRole.value = _getRoleDisplay(userData['role']);
     }
   }
-
-  String _formatRole(String role) {
-    switch (role.toLowerCase()) {
+  
+  String _getRoleDisplay(String? role) {
+    switch (role) {
+      case 'admin':
+        return 'Administrator';
       case 'dokter':
         return 'Dokter';
-      case 'admin':
-        return 'Admin';
       case 'perawat':
         return 'Perawat';
       case 'apoteker':
         return 'Apoteker';
       default:
-        return 'Pasien';
+        return 'User';
     }
   }
-
+  
   Future<void> logout() async {
     await AuthHelper.logout();
     Get.offAllNamed(Routes.splash);

@@ -12,6 +12,8 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
+        // Enable core library desugaring for flutter_local_notifications
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -25,10 +27,11 @@ android {
         applicationId = "com.example.app_puskesmas_tugas_ri"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23  // Required for Firebase Auth 24.0.1
+        minSdk = flutter.minSdkVersion  // Required for desugaring and Firebase
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -41,6 +44,9 @@ android {
 }
 
 dependencies {
+    // Core library desugaring for flutter_local_notifications
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
 
@@ -48,6 +54,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-messaging")
 }
 
 flutter {

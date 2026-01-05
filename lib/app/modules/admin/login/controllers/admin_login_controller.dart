@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/services/storage_service.dart';
+import '../../../../data/services/notification/fcm_service.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../utils/validation_helper.dart';
 import '../../../../routes/app_pages.dart';
@@ -47,7 +48,6 @@ class AdminLoginController extends GetxController {
         }
       }
     } catch (e) {
-      print('Auto-login error: $e');
     }
   }
 
@@ -94,6 +94,9 @@ class AdminLoginController extends GetxController {
       );
 
       if (userData != null) {
+        // Setup FCM topics for notifications (preserves existing subscription status)
+        await FCMService.to.setupUserTopicsOnLogin(selectedRole.value);
+        
         SnackbarHelper.showSuccess('Selamat datang, ${userData['namaLengkap']}!');
 
         // Clear fields

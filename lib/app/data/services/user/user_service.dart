@@ -18,7 +18,6 @@ class UserService {
         return data;
       }).toList();
     } catch (e) {
-      print('Error getting all users: $e');
       return [];
     }
   }
@@ -37,7 +36,6 @@ class UserService {
       data['id'] = snapshot.docs.first.id;
       return data;
     } catch (e) {
-      print('Error finding user by email: $e');
       return null;
     }
   }
@@ -51,7 +49,6 @@ class UserService {
       data['id'] = doc.id;
       return data;
     } catch (e) {
-      print('Error finding user by id: $e');
       return null;
     }
   }
@@ -69,7 +66,6 @@ class UserService {
         return data;
       }).toList();
     } catch (e) {
-      print('Error getting users by role: $e');
       return [];
     }
   }
@@ -88,7 +84,6 @@ class UserService {
       
       return snapshot.docs.isNotEmpty;
     } catch (e) {
-      print('Error checking email exists: $e');
       return false;
     }
   }
@@ -106,7 +101,6 @@ class UserService {
       
       return snapshot.docs.isNotEmpty;
     } catch (e) {
-      print('Error checking NIK exists: $e');
       return false;
     }
   }
@@ -117,13 +111,12 @@ class UserService {
       // Remove id if exists (Firestore will generate)
       newUser.remove('id');
       
-      // Add timestamp
-      newUser['createdAt'] = FieldValue.serverTimestamp();
+      // Add timestamp as ISO string
+      newUser['createdAt'] = DateTime.now().toIso8601String();
       
       final docRef = await _firestore.collection('users').add(newUser);
       return docRef.id;
     } catch (e) {
-      print('Error adding user: $e');
       return null;
     }
   }
@@ -131,19 +124,27 @@ class UserService {
   // UPDATE
   Future<bool> updateUser(String userId, Map<String, dynamic> updates) async {
     try {
+      // Check if document exists first
+      final doc = await _firestore.collection('users').doc(userId).get();
+      
+      if (!doc.exists) {
+        return false;
+      }
+      
       // Remove id from updates if exists
       updates.remove('id');
       
-      // Add update timestamp
-      updates['updatedAt'] = FieldValue.serverTimestamp();
+      // Add update timestamp as ISO string (not FieldValue to avoid type issues)
+      updates['updatedAt'] = DateTime.now().toIso8601String();
       
-      await _firestore.collection('users').doc(userId).update(updates);
+      // Update Firestore using set with merge
+      await _firestore.collection('users').doc(userId).set(updates, SetOptions(merge: true));
       
       // Update session if logged in user is being edited
       final sessionBox = GetStorage('session_box');
       final sessionUserId = sessionBox.read('userId');
       if (sessionUserId == userId) {
-        // Update relevant session fields
+        // Update relevant session fields using the original updates (without FieldValue)
         if (updates.containsKey('namaLengkap')) {
           await sessionBox.write('namaLengkap', updates['namaLengkap']);
         }
@@ -157,8 +158,7 @@ class UserService {
       
       return true;
     } catch (e) {
-      print('Error updating user: $e');
-      return false;
+      rethrow;
     }
   }
 
@@ -168,7 +168,6 @@ class UserService {
       await _firestore.collection('users').doc(userId).delete();
       return true;
     } catch (e) {
-      print('Error deleting user: $e');
       return false;
     }
   }
@@ -202,7 +201,6 @@ class UserService {
       final nextNumber = users.length + 1;
       return '$prefix${nextNumber.toString().padLeft(3, '0')}';
     } catch (e) {
-      print('Error generating user ID: $e');
       return 'USR001';
     }
   }
@@ -215,7 +213,6 @@ class UserService {
       if (userId == null) return null;
       return await findUserById(userId);
     } catch (e) {
-      print('Error getting current user data: $e');
       return null;
     }
   }
@@ -234,7 +231,6 @@ class UserService {
         await sessionBox.write('role', user['role']);
       }
     } catch (e) {
-      print('Error syncing session: $e');
     }
   }
 }
