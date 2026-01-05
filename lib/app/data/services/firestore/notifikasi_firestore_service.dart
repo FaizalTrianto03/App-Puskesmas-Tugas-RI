@@ -9,7 +9,6 @@ class NotifikasiFirestoreService {
 
   CollectionReference get _notifikasiCollection => _firestore.collection('notifikasi');
 
-  // Get all notifikasi pasien
   Future<List<NotifikasiModel>> getNotifikasi() async {
     try {
       final userId = _auth.currentUser?.uid;
@@ -25,35 +24,29 @@ class NotifikasiFirestoreService {
           .map((doc) => NotifikasiModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print('Error getting notifikasi: $e');
       return [];
     }
   }
 
-  // Stream untuk real-time notifikasi
   Stream<List<NotifikasiModel>> watchNotifikasi() {
     final userId = _auth.currentUser?.uid;
     if (userId == null) return Stream.value([]);
 
-    // Query sederhana (tanpa orderBy untuk avoid composite index)
     return _notifikasiCollection
         .where('userId', isEqualTo: userId)
         .limit(50)
         .snapshots()
         .map((snapshot) {
-          // Sort di client-side
           final notifikasi = snapshot.docs
               .map((doc) => NotifikasiModel.fromFirestore(doc))
               .toList();
           
-          // Sort by createdAt descending
           notifikasi.sort((a, b) => b.createdAt.compareTo(a.createdAt));
           
           return notifikasi;
         });
   }
 
-  // Get notifikasi by type
   Future<List<NotifikasiModel>> getNotifikasiByType(String type) async {
     try {
       final userId = _auth.currentUser?.uid;
@@ -69,24 +62,20 @@ class NotifikasiFirestoreService {
           .map((doc) => NotifikasiModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print('Error getting notifikasi by type: $e');
       return [];
     }
   }
 
-  // Mark notifikasi as read
   Future<void> markAsRead(String notifikasiId) async {
     try {
       await _notifikasiCollection.doc(notifikasiId).update({
         'isRead': true,
       });
     } catch (e) {
-      print('Error marking notifikasi as read: $e');
       rethrow;
     }
   }
 
-  // Mark all as read
   Future<void> markAllAsRead() async {
     try {
       final userId = _auth.currentUser?.uid;
@@ -103,12 +92,10 @@ class NotifikasiFirestoreService {
       }
       await batch.commit();
     } catch (e) {
-      print('Error marking all as read: $e');
       rethrow;
     }
   }
 
-  // Get unread count
   Future<int> getUnreadCount() async {
     try {
       final userId = _auth.currentUser?.uid;
@@ -121,12 +108,10 @@ class NotifikasiFirestoreService {
 
       return querySnapshot.docs.length;
     } catch (e) {
-      print('Error getting unread count: $e');
       return 0;
     }
   }
 
-  // Stream unread count
   Stream<int> watchUnreadCount() {
     final userId = _auth.currentUser?.uid;
     if (userId == null) return Stream.value(0);
@@ -138,17 +123,14 @@ class NotifikasiFirestoreService {
         .map((snapshot) => snapshot.docs.length);
   }
 
-  // Delete notifikasi
   Future<void> deleteNotifikasi(String notifikasiId) async {
     try {
       await _notifikasiCollection.doc(notifikasiId).delete();
     } catch (e) {
-      print('Error deleting notifikasi: $e');
       rethrow;
     }
   }
 
-  // Create notifikasi (biasanya dari sistem/admin)
   Future<void> createNotifikasi({
     required String userId,
     required String type,
@@ -157,12 +139,6 @@ class NotifikasiFirestoreService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      print('[NotifikasiService] 📝 Creating notification...');
-      print('[NotifikasiService] userId: $userId');
-      print('[NotifikasiService] type: $type');
-      print('[NotifikasiService] title: $title');
-      print('[NotifikasiService] message: $message');
-      
       final notifikasi = NotifikasiModel(
         userId: userId,
         type: type,
@@ -172,11 +148,115 @@ class NotifikasiFirestoreService {
         metadata: metadata,
       );
 
-      final docRef = await _notifikasiCollection.add(notifikasi.toMap());
-      print('[NotifikasiService] ✅ Notification created with ID: ${docRef.id}');
+      await _notifikasiCollection.add(notifikasi.toMap());
     } catch (e) {
-      print('[NotifikasiService] ❌ Error creating notifikasi: $e');
       rethrow;
     }
   }
+
+  /// Watch notifications for a specific user (for non-current user)
+  Stream<List<NotifikasiModel>> watchNotifikasiForUser(String userId) {
+    return _notifikasiCollection
+        .where('userId', isEqualTo: userId)
+        .limit(50)
+        .snapshots()
+        .map((snapshot) {
+          final notifikasi = snapshot.docs
+              .map((doc) => NotifikasiModel.fromFirestore(doc))
+              .toList();
+          
+          notifikasi.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          
+          return notifikasi;
+        });
+  }
+
+  /// Get unread count for a specific user
+  Stream<int> watchUnreadCountForUser(String userId) {
+    return _notifikasiCollection
+        .where('userId', isEqualTo: userId)
+        .where('isRead', isEqualTo: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  /// Create notification for multiple users (batch)
+  Future<void> createNotifikasiForUsers({
+    required List<String> userIds,
+    required String type,
+    required String title,
+    required String message,
+    Map<String, dynamic>? metadata,
+  }) async {
+    try {
+      final batch = _firestore.batch();
+      
+      for (final userId in userIds) {
+        final notifikasi = NotifikasiModel(
+          userId: userId,
+          type: type,
+          title: title,
+          message: message,
+          createdAt: DateTime.now(),
+          metadata: metadata,
+        );
+        
+        final docRef = _notifikasiCollection.doc();
+        batch.set(docRef, notifikasi.toMap());
+      }
+      
+      await batch.commit();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Delete all notifications for a user
+  Future<void> deleteAllNotifikasi() async {
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) return;
+
+      final querySnapshot = await _notifikasiCollection
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final batch = _firestore.batch();
+      for (var doc in querySnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Get notifications with pagination
+  Future<List<NotifikasiModel>> getNotifikasiPaginated({
+    int limit = 20,
+    DocumentSnapshot? lastDocument,
+  }) async {
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) return [];
+
+      Query query = _notifikasiCollection
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+
+      if (lastDocument != null) {
+        query = query.startAfterDocument(lastDocument);
+      }
+
+      final querySnapshot = await query.get();
+
+      return querySnapshot.docs
+          .map((doc) => NotifikasiModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
 }
+

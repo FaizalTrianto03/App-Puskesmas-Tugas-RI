@@ -127,9 +127,10 @@ class AuthService {
         throw Exception('Login gagal');
       }
 
-      // Save session
+      // Save session - gunakan firebaseUid untuk matching dengan antrian
       await _sessionService.saveUserSession(
         userId: userData['id'],
+        firebaseUid: userData['firebaseUid'] ?? userCredential.user!.uid,
         namaLengkap: userData['namaLengkap'],
         email: userData['email'],
         role: userData['role'],
@@ -141,6 +142,13 @@ class AuthService {
       } else {
         await _clearCredentials();
       }
+
+      // Auto-initialize notification subscription if not exists (null)
+      // Only create if field doesn't exist, don't override existing true/false values
+      await _initializeNotificationFieldsIfNeeded(
+        userCredential.user!.uid,
+        userData['role'],
+      );
 
       return userData;
     } on FirebaseAuthException catch (e) {
@@ -155,8 +163,12 @@ class AuthService {
           throw Exception('Akun telah dinonaktifkan');
         case 'too-many-requests':
           throw Exception('Terlalu banyak percobaan login. Silakan coba lagi nanti');
+        case 'invalid-credential':
+          throw Exception('Email atau password salah');
+        case 'network-request-failed':
+          throw Exception('Koneksi internet bermasalah. Silakan coba lagi');
         default:
-          throw Exception('Login gagal: ${e.message}');
+          throw Exception('Login gagal. Silakan coba lagi');
       }
     } catch (e) {
       rethrow;
@@ -244,16 +256,47 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'wrong-password':
+        case 'invalid-credential':
           throw Exception('Password lama salah');
         case 'weak-password':
-          throw Exception('Password terlalu lemah');
+          throw Exception('Password terlalu lemah. Minimal 6 karakter');
         case 'requires-recent-login':
           throw Exception('Silakan login ulang untuk mengganti password');
         default:
-          throw Exception('Gagal mengubah password: ${e.message}');
+          throw Exception('Gagal mengubah password');
       }
     } catch (e) {
       rethrow;
+    }
+  }
+
+  // ========== NOTIFICATION SUBSCRIPTION HELPER ==========
+
+  /// Initialize notification fields if they don't exist (null)
+  /// This runs on every login as a verification step
+  /// Only creates fields if notificationSubscription is null (not exists)
+  /// Does NOT override existing true/false values
+  Future<void> _initializeNotificationFieldsIfNeeded(String firebaseUid, String role) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(firebaseUid).get();
+      
+      if (!userDoc.exists) return;
+      
+      final data = userDoc.data();
+      final notificationSubscription = data?['notificationSubscription'];
+      
+      // Only initialize if field is null (doesn't exist)
+      // Don't override if it's already set to true or false
+      if (notificationSubscription == null) {
+        await _firestore.collection('users').doc(firebaseUid).update({
+          'notificationSubscription': true,
+          'subscribedTopics': [role, 'general'],
+          'fcmTokens': data?['fcmTokens'] ?? [],
+          'notificationCreatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    } catch (e) {
+      // Silent fail - don't disrupt login process
     }
   }
 
@@ -471,5 +514,39 @@ class AuthService {
   /// Stream of authentication state changes
   Stream<User?> authStateChanges() {
     return _auth.authStateChanges();
+  }
+
+  /// Reset password for a user (Admin only)
+  /// Sends password reset email to the user
+  Future<void> resetPasswordByAdmin({
+    required String userId,
+    required String email,
+  }) async {
+    try {
+      // Validate email
+      final emailError = validateEmailFormat(email);
+      if (emailError != null) {
+        throw Exception(emailError);
+      }
+
+      // Send password reset email
+      await _auth.sendPasswordResetEmail(email: email);
+      
+      // Note: Firebase Client SDK doesn't allow setting password directly
+      // User will receive email to reset their password
+      // For setting specific password, you would need Firebase Admin SDK on backend
+    } catch (e) {
+      if (e is FirebaseAuthException) {
+        switch (e.code) {
+          case 'user-not-found':
+            throw Exception('User tidak ditemukan');
+          case 'invalid-email':
+            throw Exception('Email tidak valid');
+          default:
+            throw Exception('Gagal mengirim email reset: ${e.message}');
+        }
+      }
+      rethrow;
+    }
   }
 }

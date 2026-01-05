@@ -31,11 +31,13 @@ class StorageService {
   // Session
   Future<void> saveUserSession({
     required String userId,
+    required String firebaseUid,
     required String namaLengkap,
     required String email,
     required String role,
   }) => session.saveUserSession(
     userId: userId,
+    firebaseUid: firebaseUid,
     namaLengkap: namaLengkap,
     email: email,
     role: role,
