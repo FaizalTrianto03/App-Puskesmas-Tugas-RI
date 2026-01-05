@@ -257,9 +257,35 @@ assets/
 
 ## 📥 Download APK
 
-Aplikasi Puskesmas Dau versi 1.0.0 sudah dapat diunduh dan digunakan!
+Aplikasi Puskesmas Dau versi 2.0.0 sudah dapat diunduh dan digunakan!
 
 **Download Link:**  
-[📱 Download PuskesmasDau.apk v1.0.0](https://github.com/FaizalTrianto03/App-Puskesmas-Tugas-RI/releases/download/v1.0.0/PuskesmasDau.apk)
+[📱 Download PuskesmasDau.apk v2.0.0](https://github.com/FaizalTrianto03/App-Puskesmas-Tugas-RI/releases/download/v2.0.0/PuskesmasDau-v2.0.0.apk)
 
-> **Catatan:** File APK berukuran sekitar 60-70 MB. Pastikan perangkat Android Anda sudah mengizinkan instalasi dari sumber tidak dikenal.
+> **Catatan:** File APK berukuran sekitar 60-70 MB. Pastikan perangkat Android Anda sudah mengizinkan instalasi dari sumber tidak dikenal (Settings > Security > Unknown Sources).
+
+---
+
+## 📝 Form Evaluasi Aplikasi
+
+Kami sangat menghargai waktu dan feedback Anda untuk membantu kami mengembangkan aplikasi ini menjadi lebih baik!
+
+### 🎯 Tujuan Form Evaluasi:
+Form ini dirancang untuk mengumpulkan pendapat dan pengalaman Anda dalam menggunakan Aplikasi Puskesmas Dau. Feedback yang Anda berikan akan sangat membantu kami dalam:
+- Mengevaluasi kemudahan penggunaan aplikasi
+- Mengidentifikasi fitur yang perlu diperbaiki atau ditambahkan
+- Meningkatkan pengalaman pengguna secara keseluruhan
+- Menilai efektivitas antarmuka dan interaksi aplikasi
+
+### 📋 Yang Akan Ditanyakan:
+- Pengalaman penggunaan aplikasi (UI/UX)
+- Kemudahan navigasi dan fitur-fitur yang tersedia
+- Kecepatan dan performa aplikasi
+- Saran dan kritik untuk pengembangan aplikasi
+- Rating kepuasan pengguna
+
+**Waktu pengisian:** ±5-10 menit
+
+**[📝 Isi Form Evaluasi Sekarang](https://forms.gle/HLAL48cJyCjEw5Ze9)**
+
+> Terima kasih atas kesediaan Anda untuk memberikan feedback! Setiap masukan sangat berharga bagi kami. 🙏✨
