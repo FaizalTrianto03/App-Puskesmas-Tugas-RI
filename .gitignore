@@ -102,6 +102,10 @@ firebase-debug.log
 **/google-services.json
 **/firebase_app_id_file.json
 
+# Firebase Cloud Functions
+functions/
+**/functions/
+
 # ───────────────────────────────
 # Build Symbols / Obfuscation
 # ───────────────────────────────
