@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/quarter_circle_background.dart';
+import '../../../../widgets/custom_date_picker_modal.dart';
 import '../controllers/pasien_register_controller.dart';
 
 class PasienRegisterView extends GetView<PasienRegisterController> {
@@ -156,23 +158,11 @@ class _PasienRegisterViewContentState
   }
 
   Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
+    final DateTime? picked = await CustomDatePickerModal.show(
+      context,
+      initialDate: DateTime.now().subtract(const Duration(days: 365 * 25)), // Default 25 tahun yang lalu
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF02B1BA),
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
     if (picked != null) {
       setState(() {
@@ -246,12 +236,17 @@ class _PasienRegisterViewContentState
                 const SizedBox(height: 8),
                 _buildTextField(
                   _nikController,
-                  'Isi NIK Anda...',
+                  'Isi 16 digit NIK Anda...',
                   keyboardType: TextInputType.number,
                   errorText: nikError,
                   focusNode: _nikFocus,
                   isFocused: _isNikFocused,
                   fieldKey: _nikKey,
+                  maxLength: 16,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(16),
+                  ],
                   onChanged: (value) {
                     if (nikError != null && value.isNotEmpty) {
                       setState(() => nikError = null);
@@ -298,10 +293,9 @@ class _PasienRegisterViewContentState
 
                 _buildLabel('Nomor HP'),
                 const SizedBox(height: 8),
-                _buildTextField(
+                _buildPhoneField(
                   _noHpController,
-                  'Isi nomor HP Anda...',
-                  keyboardType: TextInputType.phone,
+                  '8123456789',
                   errorText: noHpError,
                   focusNode: _noHpFocus,
                   isFocused: _isNoHpFocused,
@@ -430,19 +424,11 @@ class _PasienRegisterViewContentState
                   width: double.infinity,
                   height: 50,
                   child: Obx(() {
-                    print(
-                      '[PasienRegisterView] Button rebuild - isLoading: ${controller.isLoading.value}',
-                    );
                     return ElevatedButton(
                       onPressed:
                           controller.isLoading.value
                               ? null
                               : () async {
-                                print('[PasienRegisterView] Button clicked!');
-                                print(
-                                  '[PasienRegisterView] isLoading before register: ${controller.isLoading.value}',
-                                );
-
                                 // Set values to controller
                                 controller.namaLengkapController.text =
                                     _namaLengkapController.text.trim();
@@ -452,8 +438,9 @@ class _PasienRegisterViewContentState
                                     _emailController.text.trim();
                                 controller.alamatController.text =
                                     _alamatController.text.trim();
+                                // Tambahkan prefix +62 untuk nomor HP
                                 controller.noHpController.text =
-                                    _noHpController.text.trim();
+                                    '+62${_noHpController.text.trim()}';
                                 controller.tanggalLahirController.text =
                                     _tanggalLahirController.text.trim();
                                 controller.passwordController.text =
@@ -471,10 +458,6 @@ class _PasienRegisterViewContentState
 
                                 // Call controller register - it handles loading state internally
                                 await controller.register();
-
-                                print(
-                                  '[PasienRegisterView] isLoading after register: ${controller.isLoading.value}',
-                                );
                               },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF02B1BA),
@@ -537,7 +520,76 @@ class _PasienRegisterViewContentState
     TextEditingController controller,
     String hint, {
     int maxLines = 1,
+    int? maxLength,
     TextInputType? keyboardType,
+    String? errorText,
+    Function(String)? onChanged,
+    FocusNode? focusNode,
+    bool isFocused = false,
+    GlobalKey? fieldKey,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return Container(
+      key: fieldKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: errorText != null ? Colors.red : const Color(0xFF02B1BA),
+                width: isFocused ? 2.5 : 2,
+              ),
+              boxShadow:
+                  isFocused
+                      ? [
+                        BoxShadow(
+                          color: const Color(0xFF02B1BA).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                      : null,
+            ),
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              maxLines: maxLines,
+              maxLength: maxLength,
+              keyboardType: keyboardType,
+              onChanged: onChanged,
+              inputFormatters: inputFormatters,
+              decoration: InputDecoration(
+                hintText: hint,
+                border: InputBorder.none,
+                counterText: '',
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ),
+          if (errorText != null) ...[
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Text(
+                errorText,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhoneField(
+    TextEditingController controller,
+    String hint, {
     String? errorText,
     Function(String)? onChanged,
     FocusNode? focusNode,
@@ -568,20 +620,87 @@ class _PasienRegisterViewContentState
                       ]
                       : null,
             ),
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              maxLines: maxLines,
-              keyboardType: keyboardType,
-              onChanged: onChanged,
-              decoration: InputDecoration(
-                hintText: hint,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+            child: Row(
+              children: [
+                // Prefix +62 dengan separator
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: const Row(
+                    children: [
+                      Text(
+                        '+62',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF02B1BA),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      SizedBox(
+                        height: 24,
+                        child: VerticalDivider(
+                          color: Color(0xFF02B1BA),
+                          thickness: 1.5,
+                          width: 1,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                // Input field
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(13),
+                    ],
+                    onChanged: (value) {
+                      // Auto hapus 0, +, 62 di awal
+                      String cleaned = value;
+                      
+                      // Hapus jika dimulai dengan 0
+                      if (cleaned.startsWith('0')) {
+                        cleaned = cleaned.substring(1);
+                        controller.value = TextEditingValue(
+                          text: cleaned,
+                          selection: TextSelection.collapsed(
+                            offset: cleaned.length,
+                          ),
+                        );
+                      }
+                      // Hapus jika dimulai dengan 62 (user ketik 62)
+                      else if (cleaned.startsWith('62')) {
+                        cleaned = cleaned.substring(2);
+                        controller.value = TextEditingValue(
+                          text: cleaned,
+                          selection: TextSelection.collapsed(
+                            offset: cleaned.length,
+                          ),
+                        );
+                      }
+                      
+                      if (onChanged != null) {
+                        onChanged(cleaned);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: hint,
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           if (errorText != null) ...[

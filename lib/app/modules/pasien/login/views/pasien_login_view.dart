@@ -16,6 +16,8 @@ class PasienLoginView extends GetView<PasienLoginController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -27,6 +29,7 @@ class PasienLoginView extends GetView<PasienLoginController> {
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: FadeTransition(
             opacity: controller.fadeAnimation,
             child: SingleChildScrollView(
@@ -157,24 +160,8 @@ class PasienLoginView extends GetView<PasienLoginController> {
                   : const SizedBox.shrink()),
                 const SizedBox(height: 12),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Obx(() => Checkbox(
-                      value: controller.rememberMe.value,
-                      onChanged: controller.toggleRememberMe,
-                      checkColor: AppColors.white,
-                      fillColor: MaterialStateProperty.all(AppColors.primary),
-                      side: const BorderSide(
-                        color: AppColors.primary,
-                        width: 2,
-                      ),
-                    )),
-                    Text(
-                      'Ingat Saya',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.white,
-                      ),
-                    ),
-                    const Spacer(),
                     TextButton(
                       onPressed: () {
                         Get.toNamed(Routes.lupaKataSandi);

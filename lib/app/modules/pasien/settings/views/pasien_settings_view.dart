@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../utils/confirmation_dialog.dart';
 import '../../../../widgets/quarter_circle_background.dart';
+import '../../../../widgets/notification_toggle_tile.dart';
 import '../controllers/pasien_settings_controller.dart';
 
 class PasienSettingsView extends GetView<PasienSettingsController> {
@@ -15,9 +16,9 @@ class PasienSettingsView extends GetView<PasienSettingsController> {
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        elevation: 0,
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
@@ -117,13 +118,20 @@ class PasienSettingsView extends GetView<PasienSettingsController> {
                     _buildMenuItem(
                       icon: Icons.person_outline,
                       title: 'Kelola Data Diri',
-                      onTap: () => Get.toNamed('/pasien-kelola-data-diri'),
+                      onTap: () async {
+                        final result = await Get.toNamed('/pasien-kelola-data-diri');
+                        // Jika data berhasil diupdate, refresh controller untuk update nama user di header
+                        if (result == true) {
+                          controller.loadUserData();
+                        }
+                      },
                     ),
                     _buildMenuItem(
                       icon: Icons.vpn_key_outlined,
                       title: 'Kelola Kata Sandi',
                       onTap: () => Get.toNamed('/pasien-kelola-kata-sandi'),
                     ),
+                    const NotificationToggleTile(role: 'pasien'),
                     const SizedBox(height: 24),
                     _buildMenuItem(
                       icon: Icons.logout,

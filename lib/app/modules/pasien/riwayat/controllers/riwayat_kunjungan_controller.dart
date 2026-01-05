@@ -1,14 +1,15 @@
 import 'package:get/get.dart';
 
-import '../../../../data/models/riwayat_kunjungan_model.dart';
-import '../../../../data/services/firestore/riwayat_firestore_service.dart';
+import '../../../../data/models/antrian_model.dart';
+import '../../../../data/services/firestore/antrian_firestore_service.dart';
 
 class RiwayatKunjunganController extends GetxController {
-  final RiwayatFirestoreService _riwayatService = RiwayatFirestoreService();
+  final AntrianFirestoreService _antrianService = AntrianFirestoreService();
   
   final selectedBulan = 'Semua'.obs;
   final selectedPoli = 'Semua'.obs;
-  final riwayatList = <RiwayatKunjunganModel>[].obs;
+  final antrianList = <AntrianModel>[].obs;
+  final availablePoliList = <String>[].obs;
   final isLoading = false.obs;
   final totalKunjungan = 0.obs;
   final availableBulan = <String>['Semua'].obs;
@@ -16,59 +17,146 @@ class RiwayatKunjunganController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadAvailableBulan();
     loadRiwayat();
   }
 
   void setSelectedBulan(String bulan) {
     selectedBulan.value = bulan;
-    loadRiwayat();
+    applyFilters();
   }
   
   void setSelectedPoli(String poli) {
     selectedPoli.value = poli;
-    loadRiwayat();
+    applyFilters();
   }
 
   Future<void> loadRiwayat() async {
     try {
       isLoading.value = true;
       
-      List<RiwayatKunjunganModel> data;
+      // Load semua antrian pasien (termasuk yang sedang berjalan)
+      final allAntrian = await _antrianService.getAllAntrianByUser();
       
-      if (selectedBulan.value == 'Semua' && selectedPoli.value == 'Semua') {
-        // Load all riwayat
-        data = await _riwayatService.getRiwayatKunjungan();
-      } else {
-        // Parse month/year from selectedBulan
-        int? month;
-        int? year;
-        
-        if (selectedBulan.value != 'Semua') {
-          final parts = selectedBulan.value.split(' ');
-          if (parts.length == 2) {
-            month = _getMonthNumber(parts[0]);
-            year = int.tryParse(parts[1]);
-          }
-        }
-        
-        // Load filtered riwayat
-        data = await _riwayatService.getRiwayatFiltered(
-          month: month,
-          year: year,
-          poli: selectedPoli.value,
-        );
-      }
+      // Sort by createdAt descending (terbaru dulu)
+      allAntrian.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       
-      riwayatList.value = data;
-      totalKunjungan.value = data.length;
+      antrianList.value = allAntrian;
+      
+      // Extract available bulan
+      _extractAvailableBulan(allAntrian);
+      
+      // Extract available poli dari data pasien
+      _extractAvailablePoli(allAntrian);
+      
+      // Apply initial filter
+      applyFilters();
       
     } catch (e) {
-      print('Error loading riwayat: $e');
-      riwayatList.value = [];
+      antrianList.value = [];
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _extractAvailablePoli(List<AntrianModel> allAntrian) {
+    final poliSet = <String>{'Semua'};
+    
+    for (var antrian in allAntrian) {
+      if (antrian.jenisLayanan.isNotEmpty) {
+        poliSet.add(antrian.jenisLayanan);
+      }
+    }
+    
+    availablePoliList.value = poliSet.toList()..sort();
+  }
+
+  void _extractAvailableBulan(List<AntrianModel> allAntrian) {
+    final bulanSet = <String>{'Semua'};
+    
+    for (var antrian in allAntrian) {
+      final monthName = _getMonthName(antrian.createdAt.month);
+      final year = antrian.createdAt.year;
+      final bulanString = '$monthName $year';
+      bulanSet.add(bulanString);
+    }
+    
+    // Sort bulan (terbaru dulu)
+    final sortedBulan = bulanSet.toList()..sort((a, b) {
+      if (a == 'Semua') return -1;
+      if (b == 'Semua') return 1;
+      
+      final aParts = a.split(' ');
+      final bParts = b.split(' ');
+      
+      final aMonth = _getMonthNumber(aParts[0]);
+      final bMonth = _getMonthNumber(bParts[0]);
+      final aYear = int.parse(aParts[1]);
+      final bYear = int.parse(bParts[1]);
+      
+      // Sort by year desc, then month desc
+      if (aYear != bYear) return bYear.compareTo(aYear);
+      return bMonth.compareTo(aMonth);
+    });
+    
+    availableBulan.value = sortedBulan;
+  }
+
+  void applyFilters() {
+    var filtered = antrianList.toList();
+    
+    // Filter by bulan
+    if (selectedBulan.value != 'Semua') {
+      final parts = selectedBulan.value.split(' ');
+      if (parts.length == 2) {
+        final month = _getMonthNumber(parts[0]);
+        final year = int.tryParse(parts[1]);
+        
+        if (month != null) {
+          filtered = filtered.where((antrian) {
+            return antrian.createdAt.month == month &&
+                   antrian.createdAt.year == year;
+          }).toList();
+        }
+      }
+    }
+    
+    // Filter by poli
+    if (selectedPoli.value != 'Semua') {
+      filtered = filtered.where((antrian) {
+        return antrian.jenisLayanan == selectedPoli.value;
+      }).toList();
+    }
+    
+    totalKunjungan.value = filtered.length;
+  }
+
+  List<AntrianModel> get filteredAntrian {
+    var filtered = antrianList.toList();
+    
+    // Filter by bulan
+    if (selectedBulan.value != 'Semua') {
+      final parts = selectedBulan.value.split(' ');
+      if (parts.length == 2) {
+        final month = _getMonthNumber(parts[0]);
+        final year = int.tryParse(parts[1]);
+        
+        if (month != null) {
+          filtered = filtered.where((antrian) {
+            return antrian.createdAt.month == month &&
+                   antrian.createdAt.year == year;
+          }).toList();
+        }
+      }
+    }
+    
+    // Filter by poli
+    if (selectedPoli.value != 'Semua') {
+      filtered = filtered.where((antrian) {
+        return antrian.jenisLayanan == selectedPoli.value;
+      }).toList();
+    }
+    
+    return filtered;
   }
 
   int _getMonthNumber(String monthName) {
@@ -81,53 +169,7 @@ class RiwayatKunjunganController extends GetxController {
   }
 
   Future<void> refreshRiwayat() async {
-    await loadAvailableBulan();
     await loadRiwayat();
-  }
-
-  Future<void> loadAvailableBulan() async {
-    try {
-      final riwayatData = await _riwayatService.getRiwayatKunjungan();
-      
-      // Extract unique months from riwayat data
-      final bulanSet = <String>{'Semua'};
-      
-      for (var riwayat in riwayatData) {
-        final monthName = _getMonthName(riwayat.tanggalKunjungan.month);
-        final year = riwayat.tanggalKunjungan.year;
-        final bulanString = '$monthName $year';
-        bulanSet.add(bulanString);
-      }
-      
-      // Sort bulan (terbaru dulu)
-      final sortedBulan = bulanSet.toList()..sort((a, b) {
-        if (a == 'Semua') return -1;
-        if (b == 'Semua') return 1;
-        
-        final aParts = a.split(' ');
-        final bParts = b.split(' ');
-        
-        final aMonth = _getMonthNumber(aParts[0]);
-        final bMonth = _getMonthNumber(bParts[0]);
-        final aYear = int.parse(aParts[1]);
-        final bYear = int.parse(bParts[1]);
-        
-        // Sort by year desc, then month desc
-        if (aYear != bYear) return bYear.compareTo(aYear);
-        return bMonth.compareTo(aMonth);
-      });
-      
-      availableBulan.value = sortedBulan;
-      
-      // Reset selectedBulan jika tidak tersedia
-      if (!availableBulan.contains(selectedBulan.value)) {
-        selectedBulan.value = 'Semua';
-      }
-      
-    } catch (e) {
-      print('Error loading available bulan: $e');
-      availableBulan.value = ['Semua'];
-    }
   }
 
   String _getMonthName(int month) {

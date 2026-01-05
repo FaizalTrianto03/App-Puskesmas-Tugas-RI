@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../data/services/storage_service.dart';
+import '../../../../data/services/notification/fcm_service.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../../../routes/app_pages.dart';
 
@@ -67,7 +68,6 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
       // 1. Credentials exist
       // 2. Role matches 'pasien'
       if (savedCredentials != null && savedCredentials['role'] == 'pasien') {
-        print('Auto-login: Credentials found for pasien');
         usernameController.text = savedCredentials['email']!;
         passwordController.text = savedCredentials['password']!;
         rememberMe.value = true;
@@ -75,10 +75,8 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
         // Auto login
         await login();
       } else {
-        print('Auto-login: No saved credentials or wrong role');
       }
     } catch (e) {
-      print('Auto-login error: $e');
       // Clear invalid credentials
       await _storage.auth.clearSavedCredentials();
     }
@@ -137,7 +135,7 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
     isLoading.value = true;
     
     try {
-      final email = usernameController.text.trim();
+      final email = usernameController.text.trim().toLowerCase();
       final password = passwordController.text;
       
       // Login using AuthService
@@ -149,6 +147,9 @@ class PasienLoginController extends GetxController with GetSingleTickerProviderS
       );
       
       if (userData != null) {
+        // Setup FCM topics for notifications (preserves existing subscription status)
+        await FCMService.to.setupUserTopicsOnLogin('pasien');
+        
         SnackbarHelper.showSuccess('Selamat datang, ${userData['namaLengkap']}!');
         usernameController.clear();
         passwordController.clear();

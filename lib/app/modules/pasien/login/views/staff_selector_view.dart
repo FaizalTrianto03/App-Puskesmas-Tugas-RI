@@ -12,6 +12,8 @@ class StaffSelectorView extends GetView<StaffSelectorController> {
     Get.put(StaffSelectorController());
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -22,13 +24,17 @@ class StaffSelectorView extends GetView<StaffSelectorController> {
             ],
           ),
         ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 40),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 24.0,
+            left: 24.0,
+            right: 24.0,
+            bottom: MediaQuery.of(context).padding.bottom + 24.0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 40),
                 // Logo
                 Image.asset(
                   'assets/images/logo.png',
@@ -150,8 +156,7 @@ class StaffSelectorView extends GetView<StaffSelectorController> {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildStaffCard({
