@@ -46,7 +46,6 @@ class AuthHelper {
       );
       return true;
     } catch (e) {
-      print('Change password error: $e');
       return false;
     }
   }

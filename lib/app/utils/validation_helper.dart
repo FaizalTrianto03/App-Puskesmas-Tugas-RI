@@ -1,9 +1,10 @@
 /// Validation Helper Utilities
 /// Provides reusable validation functions for forms
 class ValidationHelper {
-  // Email validation regex
+  // Email validation regex (lebih longgar tapi tetap aman)
+  // Minimal ada username, @, domain, dan .tld
   static final RegExp _emailRegex = RegExp(
-    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
   );
 
   // Password validation regex (min 8 chars, at least 1 letter and 1 number)
@@ -115,8 +116,24 @@ class ValidationHelper {
       return 'Nomor HP harus diisi';
     }
     
-    if (!_phoneRegex.hasMatch(value)) {
-      return 'Format nomor HP tidak valid (contoh: 081234567890)';
+    // Remove all spaces and dashes for validation
+    final cleanValue = value.replaceAll(RegExp(r'[\s-]'), '');
+    
+    // Check minimum length (at least 10 digits after +62)
+    if (cleanValue.startsWith('+62')) {
+      final numberPart = cleanValue.substring(3);
+      if (numberPart.length < 9 || numberPart.length > 13) {
+        return 'Nomor HP harus 9-13 digit setelah +62';
+      }
+      if (!RegExp(r'^[0-9]+$').hasMatch(numberPart)) {
+        return 'Nomor HP hanya boleh berisi angka';
+      }
+      return null;
+    }
+    
+    // Fallback to old validation for backward compatibility
+    if (!_phoneRegex.hasMatch(cleanValue)) {
+      return 'Format nomor HP tidak valid';
     }
     
     return null;

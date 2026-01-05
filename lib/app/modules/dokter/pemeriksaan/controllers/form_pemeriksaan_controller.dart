@@ -1,100 +1,173 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../data/services/pemeriksaan/pemeriksaan_service.dart';
-import '../../../../utils/auth_helper.dart';
+import '../../../../data/models/obat_model.dart';
+import '../../../../data/services/firestore/antrian_firestore_service.dart';
+import '../../../../data/services/firestore/obat_firestore_service.dart';
+import '../../../../data/services/firestore/ruangan_firestore_service.dart';
+import '../../../../data/services/auth/session_service.dart';
 import '../../../../utils/snackbar_helper.dart';
+import '../views/detail_pemeriksaan_view.dart';
+
+/// Model untuk item resep obat
+class ResepObatItem {
+  String? idObat;
+  String namaObat;
+  String dosis;
+  int jumlah;
+  String satuan;
+  String aturanPakai;
+  int hargaSatuan;
+  int get totalHarga => jumlah * hargaSatuan;
+
+  // Controllers for text fields
+  final TextEditingController dosisController;
+  final TextEditingController jumlahController;
+  final TextEditingController aturanPakaiController;
+
+  ResepObatItem({
+    this.idObat,
+    this.namaObat = '',
+    this.dosis = '',
+    this.jumlah = 1,
+    this.satuan = 'tablet',
+    this.aturanPakai = '',
+    this.hargaSatuan = 0,
+  })  : dosisController = TextEditingController(text: dosis),
+        jumlahController = TextEditingController(text: jumlah > 0 ? jumlah.toString() : '1'),
+        aturanPakaiController = TextEditingController(text: aturanPakai);
+
+  Map<String, dynamic> toMap() {
+    return {
+      'idObat': idObat ?? '',
+      'namaObat': namaObat,
+      'dosis': dosisController.text.trim(),
+      'jumlah': int.tryParse(jumlahController.text) ?? 1,
+      'satuan': satuan,
+      'aturanPakai': aturanPakaiController.text.trim(),
+      'hargaSatuan': hargaSatuan,
+      'totalHarga': (int.tryParse(jumlahController.text) ?? 1) * hargaSatuan,
+    };
+  }
+
+  void dispose() {
+    dosisController.dispose();
+    jumlahController.dispose();
+    aturanPakaiController.dispose();
+  }
+}
 
 class FormPemeriksaanController extends GetxController {
-  final PemeriksaanService _pemeriksaanService = PemeriksaanService();
+  final AntrianFirestoreService _antrianFirestoreService = AntrianFirestoreService();
+  final ObatFirestoreService _obatFirestoreService = ObatFirestoreService();
+  final RuanganFirestoreService _ruanganFirestoreService = RuanganFirestoreService();
+  final SessionService _sessionService = Get.find<SessionService>();
 
   final formKey = GlobalKey<FormState>();
 
   // Controllers untuk form
   final diagnosaController = TextEditingController();
-  final keluhanController = TextEditingController();
   final tindakanController = TextEditingController();
   final catatanController = TextEditingController();
 
-  // Tanda Vital Controllers
-  final tekananDarahController = TextEditingController();
-  final suhuController = TextEditingController();
-  final nadiController = TextEditingController();
-  final pernapasanController = TextEditingController();
-
-  // Obat List - observable
-  final obatList = <Map<String, TextEditingController>>[].obs;
+  // Master Obat List dari Firestore
+  final masterObatList = <ObatModel>[].obs;
+  
+  // Resep Obat List - struktur lengkap
+  final resepObatList = <ResepObatItem>[].obs;
+  
+  // Ruangan untuk rawat inap
+  final ruanganList = <Map<String, dynamic>>[].obs;
+  final perluRawatInap = false.obs;
+  final selectedRuangan = Rxn<Map<String, dynamic>>();
+  
   final isLoading = false.obs;
+  final isLoadingMasterData = false.obs;
 
-  String? pasienId;
+  // ID dokumen antrian di Firestore (bukan pasienId user)
+  String? antrianId;
   String? pasienNama;
-  String? pasienKeluhan;
+  String? jenisPembayaran;
 
   @override
   void onInit() {
     super.onInit();
-    // Tambah 1 obat default
-    tambahObat();
+    _loadMasterData();
+    // Tambah 1 resep obat default
+    tambahResepObat();
+  }
+
+  Future<void> _loadMasterData() async {
+    try {
+      isLoadingMasterData.value = true;
+      
+      // Load master obat yang stoknya masih ada
+      final allObat = await _obatFirestoreService.getAllObat();
+      masterObatList.value = allObat.where((obat) => obat.stok > 0).toList();
+      
+      // Load ruangan yang tersedia
+      final allRuangan = await _ruanganFirestoreService.getRuanganByStatus('tersedia');
+      ruanganList.value = allRuangan;
+    } catch (e) {
+      SnackbarHelper.showError('Gagal memuat data master: $e');
+    } finally {
+      isLoadingMasterData.value = false;
+    }
   }
 
   void initializePasienData(Map<String, dynamic> pasienData) {
-    pasienId = pasienData['id'] ?? pasienData['antrian'] ?? '';
-    pasienNama = pasienData['nama'] ?? '';
-    pasienKeluhan = pasienData['keluhan'] ?? '';
+    // Ambil document ID antrian (bukan pasienId user)
+    antrianId = pasienData['id'] ?? '';
+    pasienNama = pasienData['namaLengkap'] ?? pasienData['nama'] ?? '';
     
-    // Isi keluhan dari data pasien
-    keluhanController.text = pasienKeluhan ?? '';
-
-    // Cek apakah sudah ada pemeriksaan sebelumnya
-    final existingPemeriksaan = _pemeriksaanService.getPemeriksaanByPasienId(pasienId!);
-    if (existingPemeriksaan != null) {
-      loadExistingData(existingPemeriksaan);
-    }
+    // Cek jenis pembayaran berdasarkan BPJS
+    final nomorBPJS = pasienData['nomorBPJS'];
+    jenisPembayaran = (nomorBPJS != null && nomorBPJS.toString().isNotEmpty) ? 'BPJS' : 'Umum';
   }
 
-  void loadExistingData(Map<String, dynamic> data) {
-    diagnosaController.text = data['diagnosa'] ?? '';
-    keluhanController.text = data['keluhan'] ?? '';
-    tindakanController.text = data['tindakan'] ?? '';
-    catatanController.text = data['catatan'] ?? '';
-
-    final tandaVital = data['tandaVital'] as Map<String, dynamic>? ?? {};
-    tekananDarahController.text = tandaVital['tekananDarah'] ?? '';
-    suhuController.text = tandaVital['suhu'] ?? '';
-    nadiController.text = tandaVital['nadi'] ?? '';
-    pernapasanController.text = tandaVital['pernapasan'] ?? '';
-
-    // Load obat list
-    obatList.clear();
-    final obatData = data['obatList'] as List? ?? [];
-    if (obatData.isNotEmpty) {
-      for (var obat in obatData) {
-        final namaController = TextEditingController(text: obat['nama']);
-        final dosisController = TextEditingController(text: obat['dosis']);
-        obatList.add({
-          'nama': namaController,
-          'dosis': dosisController,
-        });
-      }
-    } else {
-      tambahObat();
-    }
+  void tambahResepObat() {
+    resepObatList.add(ResepObatItem());
   }
 
-  void tambahObat() {
-    obatList.add({
-      'nama': TextEditingController(),
-      'dosis': TextEditingController(),
-    });
-  }
-
-  void hapusObat(int index) {
-    if (obatList.length > 1) {
-      obatList[index]['nama']!.dispose();
-      obatList[index]['dosis']!.dispose();
-      obatList.removeAt(index);
+  void hapusResepObat(int index) {
+    if (resepObatList.length > 1) {
+      resepObatList[index].dispose();
+      resepObatList.removeAt(index);
     } else {
       SnackbarHelper.showWarning('Minimal 1 obat harus ada');
     }
+  }
+
+  /// Dipanggil saat memilih obat dari dropdown/autocomplete
+  void pilihObat(int index, ObatModel obat) {
+    final item = resepObatList[index];
+    item.idObat = obat.id;
+    item.namaObat = obat.namaObat;
+    item.satuan = obat.satuan;
+    item.hargaSatuan = obat.hargaSatuan;
+    resepObatList.refresh();
+  }
+
+  /// Hitung total biaya obat
+  int get totalBiayaObat {
+    int total = 0;
+    for (var item in resepObatList) {
+      if (item.idObat != null && item.idObat!.isNotEmpty) {
+        final jumlah = int.tryParse(item.jumlahController.text) ?? 1;
+        total += jumlah * item.hargaSatuan;
+      }
+    }
+    return total;
+  }
+
+  void toggleRawatInap(bool value) {
+    perluRawatInap.value = value;
+    if (!value) {
+      selectedRuangan.value = null;
+    }
+  }
+
+  void pilihRuangan(Map<String, dynamic>? ruangan) {
+    selectedRuangan.value = ruangan;
   }
 
   String? validateRequired(String? value) {
@@ -116,60 +189,77 @@ class FormPemeriksaanController extends GetxController {
 
   void simpanHasilPemeriksaan() async {
     if (formKey.currentState?.validate() ?? false) {
-      // Validasi minimal 1 obat terisi
-      bool adaObat = false;
-      for (var obat in obatList) {
-        if (obat['nama']!.text.isNotEmpty && obat['dosis']!.text.isNotEmpty) {
-          adaObat = true;
-          break;
-        }
+      // Validasi minimal 1 obat terisi dengan benar
+      final validResepObat = resepObatList
+          .where((item) =>
+              item.idObat != null &&
+              item.idObat!.isNotEmpty &&
+              item.dosisController.text.trim().isNotEmpty)
+          .toList();
+
+      if (validResepObat.isEmpty) {
+        SnackbarHelper.showError('Minimal 1 obat harus dipilih dan diisi dosisnya');
+        return;
       }
 
-      if (!adaObat) {
-        SnackbarHelper.showError('Minimal 1 obat harus diisi');
+      // Validasi ruangan jika rawat inap
+      if (perluRawatInap.value && selectedRuangan.value == null) {
+        SnackbarHelper.showError('Pilih ruangan untuk rawat inap');
+        return;
+      }
+
+      // Validasi antrianId
+      if (antrianId == null || antrianId!.isEmpty) {
+        SnackbarHelper.showError('Data antrian tidak valid');
         return;
       }
 
       try {
         isLoading.value = true;
 
-        // Get nama dokter dari session
-        final userData = await AuthHelper.currentUserData;
-        final namaDokter = userData?['namaLengkap'] ?? 'Dokter';
+        // Get data dokter dari session - gunakan firebaseUid, fallback ke userId
+        final dokterId = _sessionService.getFirebaseUid() ?? _sessionService.getUserId() ?? '';
+        final namaDokter = _sessionService.getNamaLengkap() ?? 'Dokter';
+        
+        if (dokterId.isEmpty) {
+          SnackbarHelper.showError('Session tidak valid, silakan login ulang');
+          return;
+        }
 
-        // Prepare data
-        final pemeriksaanData = {
-          'pasienId': pasienId,
-          'pasienNama': pasienNama,
-          'dokter': namaDokter,
-          'diagnosa': diagnosaController.text.trim(),
-          'keluhan': keluhanController.text.trim(),
-          'tindakan': tindakanController.text.trim(),
-          'catatan': catatanController.text.trim(),
-          'tandaVital': {
-            'tekananDarah': tekananDarahController.text.trim(),
-            'suhu': suhuController.text.trim(),
-            'nadi': nadiController.text.trim(),
-            'pernapasan': pernapasanController.text.trim(),
-          },
-          'obatList': obatList
-              .where((obat) =>
-                  obat['nama']!.text.isNotEmpty &&
-                  obat['dosis']!.text.isNotEmpty)
-              .map((obat) => {
-                    'nama': obat['nama']!.text.trim(),
-                    'dosis': obat['dosis']!.text.trim(),
-                  })
-              .toList(),
-          'timestamp': DateTime.now().toIso8601String(),
-        };
+        // Siapkan data resep obat dengan struktur lengkap
+        final resepObatData = validResepObat.map((item) => item.toMap()).toList();
 
-        await _pemeriksaanService.savePemeriksaan(pemeriksaanData);
+        // Simpan langsung ke Firestore menggunakan document ID
+        final success = await _antrianFirestoreService.simpanHasilPemeriksaanDokter(
+          antrianId: antrianId!,
+          dokterId: dokterId,
+          dokterNama: namaDokter,
+          diagnosa: diagnosaController.text.trim(),
+          tindakan: tindakanController.text.trim(),
+          catatan: catatanController.text.trim(),
+          resepObat: resepObatData,
+          perluRawatInap: perluRawatInap.value,
+          ruanganId: selectedRuangan.value?['id'],
+          ruanganNama: selectedRuangan.value?['namaRuangan'],
+        );
 
-        SnackbarHelper.showSuccess('Hasil pemeriksaan berhasil disimpan');
+        if (success) {
+          // Ambil data terbaru untuk ditampilkan di detail view
+          final updatedData = await _antrianFirestoreService.getAntrianMapById(antrianId!);
+          
+          SnackbarHelper.showSuccess('Hasil pemeriksaan berhasil disimpan');
 
-        await Future.delayed(const Duration(milliseconds: 600));
-        Get.back(result: true); // Return true untuk refresh dashboard
+          await Future.delayed(const Duration(milliseconds: 400));
+          
+          // Navigate ke detail view dengan data terbaru
+          if (updatedData != null) {
+            Get.off(() => DetailPemeriksaanView(pasienData: updatedData));
+          } else {
+            Get.back(result: true);
+          }
+        } else {
+          SnackbarHelper.showError('Gagal menyimpan hasil pemeriksaan');
+        }
       } catch (e) {
         SnackbarHelper.showError('Gagal menyimpan: $e');
       } finally {
@@ -181,16 +271,10 @@ class FormPemeriksaanController extends GetxController {
   @override
   void onClose() {
     diagnosaController.dispose();
-    keluhanController.dispose();
     tindakanController.dispose();
     catatanController.dispose();
-    tekananDarahController.dispose();
-    suhuController.dispose();
-    nadiController.dispose();
-    pernapasanController.dispose();
-    for (var obat in obatList) {
-      obat['nama']!.dispose();
-      obat['dosis']!.dispose();
+    for (var item in resepObatList) {
+      item.dispose();
     }
     super.onClose();
   }

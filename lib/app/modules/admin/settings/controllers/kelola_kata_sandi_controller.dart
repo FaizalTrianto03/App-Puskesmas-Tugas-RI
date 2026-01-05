@@ -62,22 +62,29 @@ class KelolaKataSandiController extends GetxController {
     isLoading.value = true;
 
     try {
-      final success = await AuthHelper.changePassword(
+      await AuthHelper.changePassword(
         passwordLamaController.text,
         passwordBaruController.text,
       );
-
-      if (success) {
-        SnackbarHelper.showSuccess('Kata sandi berhasil diubah');
-        await Future.delayed(const Duration(milliseconds: 600));
-        Get.back();
-      } else {
-        SnackbarHelper.showError('Kata sandi lama tidak sesuai');
-      }
-    } catch (e) {
-      SnackbarHelper.showError('Terjadi kesalahan: ${e.toString()}');
-    } finally {
+      
       isLoading.value = false;
+      
+      SnackbarHelper.showSuccess('Kata sandi berhasil diubah. Silakan login kembali.');
+      
+      // Delay sebentar baru logout
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      // Logout dan redirect ke root login
+      await AuthHelper.logout();
+      Get.offAllNamed('/');
+      
+    } on Exception catch (e) {
+      isLoading.value = false;
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      SnackbarHelper.showError(errorMessage);
+    } catch (e) {
+      isLoading.value = false;
+      SnackbarHelper.showError('Terjadi kesalahan saat mengubah kata sandi');
     }
   }
 

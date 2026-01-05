@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../routes/app_pages.dart';
+import '../../../../widgets/notification/notification_button.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../../kelola_pengguna/bindings/kelola_pengguna_binding.dart';
 import '../../kelola_pengguna/views/kelola_pengguna_list_view.dart';
 import '../../laporan_statistik/views/laporan_statistik_view.dart';
-import '../../notifikasi/views/admin_notifikasi_list_view.dart';
 import '../../settings/views/admin_settings_view.dart';
 import '../controllers/admin_dashboard_controller.dart';
 
@@ -20,8 +22,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         backgroundColor: const Color(0xFFF5F5F5),
         appBar: AppBar(
           backgroundColor: Colors.white,
-          elevation: 2,
-          shadowColor: Colors.black.withOpacity(0.08),
+          elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
           automaticallyImplyLeading: false,
@@ -35,45 +36,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             ),
           ),
           actions: [
-            Stack(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.notifications_outlined,
-                    color: Color(0xFF02B1BA),
-                    size: 28,
-                  ),
-                  onPressed: () {
-                    Get.to(() => const AdminNotifikasiListView());
-                  },
-                ),
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFF4242),
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    child: const Center(
-                      child: Text(
-                        '3',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            const NotificationButton(),
             const SizedBox(width: 8),
           ],
         ),
@@ -93,17 +56,26 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             ),
             Expanded(
               child: QuarterCircleBackground(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildProfileCard(context),
-                      const SizedBox(height: 16),
-                      _buildEmptyStateCard(context),
-                      const SizedBox(height: 24),
-                      _buildMenuCards(context),
-                    ],
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    await controller.loadUserData();
+                    await controller.loadStatistics();
+                    await controller.loadQuickStats();
+                  },
+                  color: const Color(0xFF02B1BA),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileCard(context),
+                        const SizedBox(height: 20),
+                        _buildHeroStatsSection(context),
+                        const SizedBox(height: 24),
+                        _buildMenuCards(context),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -184,79 +156,178 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       ),
     );
   }
-  
-  Widget _buildEmptyStateCard(BuildContext context) {
+
+  Widget _buildHeroStatsSection(BuildContext context) {
+    final now = DateTime.now();
+    final dateFormat = DateFormat('EEEE, d MMMM yyyy', 'id_ID');
+    final timeFormat = DateFormat('HH:mm', 'id_ID');
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Review Statistik',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF02B1BA),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: () {
-                Get.to(() => const LaporanStatistikView());
-              },
-              icon: const Icon(Icons.arrow_forward, size: 18),
-              label: const Text('Lihat Semua'),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF02B1BA),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        
+        // Header dengan tanggal
         Container(
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
+            ),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+                color: const Color(0xFF02B1BA).withOpacity(0.25),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.calendar_today_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      dateFormat.format(now),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Pukul ${timeFormat.format(now)} WIB',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.85),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF4CAF50),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Online',
+                      style: TextStyle(
+                        color: Color(0xFF4CAF50),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Quick Stats Grid - Tappable to Laporan & Statistik
+        GestureDetector(
+          onTap: () => Get.to(() => const LaporanStatistikView()),
           child: Column(
             children: [
-              // Statistik Dokter
-              _buildStatListItem(
-                icon: Icons.medical_services,
-                title: 'Dokter',
-                items: [
-                  {'label': 'Pasien', 'value': '45', 'color': const Color(0xFF02B1BA)},
-                  {'label': 'Rekam Medis', 'value': '38', 'color': const Color(0xFF4CAF50)},
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickStatCard(
+                      icon: Icons.people_alt_rounded,
+                      value: controller.pasienHariIni,
+                      label: 'Pasien Hari Ini',
+                      color: const Color(0xFF4CAF50),
+                      bgColor: const Color(0xFFE8F5E9),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildQuickStatCard(
+                      icon: Icons.hourglass_top_rounded,
+                      value: controller.antrianAktif,
+                      label: 'Antrian Aktif',
+                      color: const Color(0xFFFFA726),
+                      bgColor: const Color(0xFFFFF3E0),
+                    ),
+                  ),
                 ],
               ),
-              Divider(height: 1, color: Colors.grey.shade200),
-              
-              // Statistik Perawat
-              _buildStatListItem(
-                icon: Icons.local_hospital,
-                title: 'Perawat',
-                items: [
-                  {'label': 'Tindakan', 'value': '28', 'color': const Color(0xFF9C27B0)},
-                  {'label': 'Ruang Rawat', 'value': '12/20', 'color': const Color(0xFF3F51B5)},
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildQuickStatCard(
+                      icon: Icons.medical_services_rounded,
+                      value: controller.totalDokter,
+                      label: 'Total Dokter',
+                      color: const Color(0xFF9C27B0),
+                      bgColor: const Color(0xFFF3E5F5),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildQuickStatCard(
+                      icon: Icons.warning_amber_rounded,
+                      value: controller.stokMenipis,
+                      label: 'Stok Menipis',
+                      color: const Color(0xFFFF4242),
+                      bgColor: const Color(0xFFFFEBEE),
+                      showAlert: true,
+                    ),
+                  ),
                 ],
               ),
-              Divider(height: 1, color: Colors.grey.shade200),
-              
-              // Statistik Apoteker
-              _buildStatListItem(
-                icon: Icons.medication,
-                title: 'Apoteker',
-                items: [
-                  {'label': 'Obat Habis', 'value': '12', 'color': const Color(0xFFFF4242)},
-                  {'label': 'Stok Aman', 'value': '156', 'color': const Color(0xFF4CAF50)},
+              const SizedBox(height: 10),
+              // Hint to tap
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.touch_app_rounded,
+                    size: 14,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Tap untuk lihat laporan lengkap',
+                    style: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -266,78 +337,82 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
     );
   }
 
-  Widget _buildStatListItem({
+  Widget _buildQuickStatCard({
     required IconData icon,
-    required String title,
-    required List<Map<String, dynamic>> items,
+    required RxInt value,
+    required String label,
+    required Color color,
+    required Color bgColor,
+    bool showAlert = false,
   }) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: showAlert && value.value > 0 
+              ? const Color(0xFFFF4242).withOpacity(0.3) 
+              : Colors.grey.shade200,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF02B1BA).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: const Color(0xFF02B1BA), size: 20),
+                child: Icon(icon, color: color, size: 22),
               ),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+              if (showAlert && value.value > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF4242).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'Perlu Restock',
+                    style: TextStyle(
+                      color: Color(0xFFFF4242),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: items.map((item) {
-              return Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: item['color'] as Color,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['label'] as String,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          Text(
-                            item['value'] as String,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: item['color'] as Color,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+          Obx(() => Text(
+            value.value.toString(),
+            style: TextStyle(
+              color: color,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          )),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -349,16 +424,34 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       {
         'icon': Icons.people_outline,
         'title': 'Kelola Pengguna',
+        'count': controller.totalPengguna,
         'onTap': () {
           Get.to(() => const KelolaPenggunaListView(),
               binding: KelolaPenggunaBinding());
         },
       },
       {
-        'icon': Icons.bar_chart_outlined,
-        'title': 'Laporan & Statistik',
+        'icon': Icons.local_hospital_outlined,
+        'title': 'Kelola Poli',
+        'count': controller.totalPoli,
         'onTap': () {
-          Get.to(() => const LaporanStatistikView());
+          Get.toNamed(Routes.adminKelolaPoli);
+        },
+      },
+      {
+        'icon': Icons.meeting_room_outlined,
+        'title': 'Kelola Ruangan',
+        'count': controller.totalRuangan,
+        'onTap': () {
+          Get.toNamed(Routes.adminKelolaRuangan);
+        },
+      },
+      {
+        'icon': Icons.info_outline,
+        'title': 'Kelola Informasi',
+        'count': null,
+        'onTap': () {
+          Get.toNamed(Routes.adminKelolaInformasi);
         },
       },
     ];
@@ -393,13 +486,62 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                     size: 28,
                   ),
                   const SizedBox(width: 16),
-                  Text(
-                    menu['title'],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      menu['title'],
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                  ),
+                  if (menu['count'] != null)
+                    Obx(() {
+                      if (controller.isLoadingStats.value) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const SizedBox(
+                            width: 20,
+                            height: 14,
+                            child: Center(
+                              child: SizedBox(
+                                width: 10,
+                                height: 10,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          (menu['count'] as RxInt).value.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white,
+                    size: 18,
                   ),
                 ],
               ),

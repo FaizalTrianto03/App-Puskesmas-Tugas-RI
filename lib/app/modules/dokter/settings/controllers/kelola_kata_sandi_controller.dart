@@ -4,6 +4,8 @@ import '../../../../utils/auth_helper.dart';
 import '../../../../utils/snackbar_helper.dart';
 
 class KelolaKataSandiController extends GetxController {
+  final formKey = GlobalKey<FormState>();
+
   final passwordLamaController = TextEditingController();
   final passwordBaruController = TextEditingController();
   final konfirmasiController = TextEditingController();
@@ -12,8 +14,6 @@ class KelolaKataSandiController extends GetxController {
   final obscurePasswordBaru = true.obs;
   final obscureKonfirmasi = true.obs;
   final isLoading = false.obs;
-
-  final formKey = GlobalKey<FormState>();
 
   void togglePasswordLama() {
     obscurePasswordLama.value = !obscurePasswordLama.value;
@@ -49,33 +49,50 @@ class KelolaKataSandiController extends GetxController {
       return 'Konfirmasi kata sandi harus diisi';
     }
     if (value != passwordBaruController.text) {
-      return 'Konfirmasi kata sandi tidak cocok';
+      return 'Kata sandi tidak cocok';
     }
     return null;
   }
 
-  void changePassword() async {
-    if (formKey.currentState?.validate() ?? false) {
-      try {
-        isLoading.value = true;
-
-        final oldPassword = passwordLamaController.text;
-        final newPassword = passwordBaruController.text;
-
-        final result = await AuthHelper.changePassword(oldPassword, newPassword);
-
-        if (result) {
-          SnackbarHelper.showSuccess('Kata sandi berhasil diubah');
-          await Future.delayed(const Duration(milliseconds: 600));
-          Get.back();
-        } else {
-          SnackbarHelper.showError('Kata sandi lama tidak sesuai');
-        }
-      } catch (e) {
-        SnackbarHelper.showError('Gagal mengubah kata sandi: $e');
-      } finally {
-        isLoading.value = false;
-      }
+  Future<void> changePassword() async {
+    if (!formKey.currentState!.validate()) {
+      return;
     }
+
+    isLoading.value = true;
+
+    try {
+      await AuthHelper.changePassword(
+        passwordLamaController.text,
+        passwordBaruController.text,
+      );
+      
+      isLoading.value = false;
+      
+      SnackbarHelper.showSuccess('Kata sandi berhasil diubah. Silakan login kembali.');
+      
+      // Delay sebentar baru logout
+      await Future.delayed(const Duration(milliseconds: 800));
+      
+      // Logout dan redirect ke root login
+      await AuthHelper.logout();
+      Get.offAllNamed('/');
+      
+    } on Exception catch (e) {
+      isLoading.value = false;
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      SnackbarHelper.showError(errorMessage);
+    } catch (e) {
+      isLoading.value = false;
+      SnackbarHelper.showError('Terjadi kesalahan saat mengubah kata sandi');
+    }
+  }
+
+  @override
+  void onClose() {
+    passwordLamaController.dispose();
+    passwordBaruController.dispose();
+    konfirmasiController.dispose();
+    super.onClose();
   }
 }

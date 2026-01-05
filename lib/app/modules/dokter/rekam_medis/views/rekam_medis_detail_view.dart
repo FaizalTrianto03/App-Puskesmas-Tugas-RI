@@ -15,14 +15,15 @@ class RekamMedisDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pemeriksaanService = PemeriksaanService();
-    final pemeriksaanTerbaru = pemeriksaanService.getPemeriksaanByPasienId(pasienData['id']);
+
     
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),

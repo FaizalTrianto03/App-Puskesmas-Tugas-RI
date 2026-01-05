@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../routes/app_pages.dart';
 import '../../../../utils/confirmation_dialog.dart';
 import '../../../../widgets/quarter_circle_background.dart';
+import '../../../../widgets/notification_toggle_tile.dart';
 import '../controllers/admin_settings_controller.dart';
-import 'kelola_data_diri_view.dart';
-import 'kelola_kata_sandi_view.dart';
 
 class AdminSettingsView extends GetView<AdminSettingsController> {
   const AdminSettingsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Inject controller
+    // Ensure controller is available
     Get.lazyPut(() => AdminSettingsController());
     
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
@@ -120,16 +119,17 @@ class AdminSettingsView extends GetView<AdminSettingsController> {
                       icon: Icons.person_outline,
                       title: 'Kelola Data Diri',
                       onTap: () {
-                        Get.to(() => const KelolaDataDiriView());
+                        Get.toNamed(Routes.adminKelolaDataDiri);
                       },
                     ),
                     _buildMenuItem(
                       icon: Icons.vpn_key_outlined,
                       title: 'Kelola Kata Sandi',
                       onTap: () {
-                        Get.to(() => const KelolaKataSandiView());
+                        Get.toNamed(Routes.adminKelolaKataSandi);
                       },
                     ),
+                    const NotificationToggleTile(role: 'admin'),
                     const SizedBox(height: 24),
                     _buildMenuItem(
                       icon: Icons.logout,
@@ -164,36 +164,46 @@ class AdminSettingsView extends GetView<AdminSettingsController> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    Color textColor = Colors.black87,
+    Color? textColor,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: (textColor ?? const Color(0xFF02B1BA)).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: textColor ?? const Color(0xFF02B1BA),
+            size: 24,
+          ),
         ),
-        margin: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          children: [
-            Icon(icon, color: textColor),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: textColor,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: textColor,
-            ),
-          ],
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: textColor ?? Colors.black87,
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: textColor ?? const Color(0xFF02B1BA),
         ),
       ),
     );
