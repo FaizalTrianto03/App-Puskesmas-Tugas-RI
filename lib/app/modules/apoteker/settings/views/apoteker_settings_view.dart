@@ -1,33 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../routes/app_pages.dart';
 import '../../../../utils/confirmation_dialog.dart';
-import '../../../../utils/snackbar_helper.dart';
 import '../../../../widgets/quarter_circle_background.dart';
-import '../../../pasien/login/views/staff_selector_view.dart';
+import '../../../../widgets/notification_toggle_tile.dart';
 import '../controllers/apoteker_settings_controller.dart';
-import 'kelola_data_diri_view.dart';
-import 'kelola_kata_sandi_view.dart';
 
 class ApotekerSettingsView extends GetView<ApotekerSettingsController> {
   const ApotekerSettingsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Inject controller
+    // Ensure controller is available
     Get.lazyPut(() => ApotekerSettingsController());
     
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        elevation: 0,
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         title: const Text(
           'Pengaturan',
@@ -80,28 +78,28 @@ class ApotekerSettingsView extends GetView<ApotekerSettingsController> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
+                          Expanded(
+                            child: Obx(() => Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'apt. Aditama, S. Farm',
-                                  style: TextStyle(
+                                  controller.userName.value,
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                   ),
                                 ),
-                                SizedBox(height: 4),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Apoteker',
-                                  style: TextStyle(
+                                  controller.userRole.value,
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.white,
                                   ),
                                 ),
                               ],
-                            ),
+                            )),
                           ),
                         ],
                       ),
@@ -121,26 +119,17 @@ class ApotekerSettingsView extends GetView<ApotekerSettingsController> {
                       icon: Icons.person_outline,
                       title: 'Kelola Data Diri',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const KelolaDataDiriView(),
-                          ),
-                        );
+                        Get.toNamed(Routes.apotekerKelolaDataDiri);
                       },
                     ),
                     _buildMenuItem(
                       icon: Icons.vpn_key_outlined,
                       title: 'Kelola Kata Sandi',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const KelolaKataSandiView(),
-                          ),
-                        );
+                        Get.toNamed(Routes.apotekerKelolaKataSandi);
                       },
                     ),
+                    const NotificationToggleTile(role: 'apoteker'),
                     const SizedBox(height: 24),
                     _buildMenuItem(
                       icon: Icons.logout,
@@ -166,12 +155,7 @@ class ApotekerSettingsView extends GetView<ApotekerSettingsController> {
       confirmText: 'Keluar',
       cancelText: 'Batal',
       onConfirm: () {
-        SnackbarHelper.showSuccess('Berhasil keluar dari akun');
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const StaffSelectorView()),
-          (route) => false,
-        );
+        controller.logout();
       },
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../data/models/antrian_model.dart';
 import '../../../../widgets/quarter_circle_background.dart';
 import '../controllers/resep_obat_controller.dart';
 import 'detail_resep_view.dart';
@@ -51,8 +53,10 @@ class ResepObatView extends GetView<ResepObatController> {
                 children: [
                   _buildStatistikHeader(),
                   const SizedBox(height: 16),
-                  _buildFilterSection(),
-                  const SizedBox(height: 16),
+                  _buildSearchAndFilterBar(),
+                  const SizedBox(height: 12),
+                  _buildFilterTabs(),
+                  const SizedBox(height: 12),
                   Expanded(
                     child: _buildResepList(),
                   ),
@@ -82,8 +86,8 @@ class ResepObatView extends GetView<ResepObatController> {
           const SizedBox(width: 12),
           Expanded(
             child: _buildStatCard(
-              title: 'Selesai Hari Ini',
-              value: controller.countSelesaiHariIni.toString(),
+              title: 'Selesai',
+              value: controller.countSelesai.toString(),
               icon: Icons.check_circle,
               color: const Color(0xFF4CAF50),
               backgroundColor: const Color(0xFFE8F5E9),
@@ -134,8 +138,251 @@ class ResepObatView extends GetView<ResepObatController> {
       ),
     );
   }
+  Widget _buildSearchAndFilterBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          // Search Bar
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Obx(() => TextField(
+                controller: controller.searchController,
+                decoration: InputDecoration(
+                  hintText: 'Cari pasien, no. RM...',
+                  hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                  prefixIcon: const Icon(Icons.search, color: Color(0xFF02B1BA)),
+                  suffixIcon: controller.searchQuery.value.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.grey),
+                          onPressed: controller.clearSearch,
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                ),
+              )),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Filter Button
+          _buildFilterButton(),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildFilterSection() {
+  Widget _buildFilterButton() {
+    return Obx(() {
+      final hasActiveFilter = controller.selectedPeriode.value != 'Semua' ||
+          controller.selectedFilter.value != 'Semua';
+
+      return Container(
+        decoration: BoxDecoration(
+          color: hasActiveFilter ? const Color(0xFF02B1BA) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: hasActiveFilter ? const Color(0xFF02B1BA) : Colors.grey.shade300,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => _showFilterModal(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.filter_list,
+                    color: hasActiveFilter ? Colors.white : const Color(0xFF02B1BA),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Filter',
+                    style: TextStyle(
+                      color: hasActiveFilter ? Colors.white : const Color(0xFF02B1BA),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (hasActiveFilter) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.circle,
+                        color: Color(0xFF02B1BA),
+                        size: 6,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  void _showFilterModal() {
+    String tempPeriode = controller.selectedPeriode.value;
+
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              width: Get.width * 0.9,
+              constraints: BoxConstraints(maxHeight: Get.height * 0.6),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF02B1BA),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.filter_list, color: Colors.white, size: 20),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Filter Resep',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => Get.back(),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Content
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Periode Waktu',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: controller.periodeOptions.map((periode) {
+                            final isSelected = periode == tempPeriode;
+                            return GestureDetector(
+                              onTap: () => setState(() => tempPeriode = periode),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? const Color(0xFF02B1BA) : Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: isSelected ? const Color(0xFF02B1BA) : Colors.grey.shade300,
+                                  ),
+                                ),
+                                child: Text(
+                                  periode,
+                                  style: TextStyle(
+                                    color: isSelected ? Colors.white : Colors.grey.shade700,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Footer
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: Colors.grey.shade200),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              setState(() => tempPeriode = 'Semua');
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.grey[600],
+                              side: BorderSide(color: Colors.grey[300]!),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Reset'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              controller.changePeriode(tempPeriode);
+                              Get.back();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF02B1BA),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Terapkan'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterTabs() {
     return Obx(() => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -160,39 +407,47 @@ class ResepObatView extends GetView<ResepObatController> {
       ),
     ));
   }
-
   Widget _buildResepList() {
     return Obx(() {
-      final resepList = controller.filteredResep;
+      final antrianList = controller.filteredAntrian;
       
-      if (resepList.isEmpty) {
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      
+      if (antrianList.isEmpty) {
         return _buildEmptyState();
       }
       
-      return ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: resepList.length,
-        itemBuilder: (context, index) {
-          final resep = resepList[index];
-          return _ResepCard(resep: resep, index: index);
-        },
+      return RefreshIndicator(
+        onRefresh: controller.refreshResep,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: antrianList.length,
+          itemBuilder: (context, index) {
+            final antrian = antrianList[index];
+            return _ResepCard(antrian: antrian, index: index);
+          },
+        ),
       );
     });
   }
 
   Widget _buildEmptyState() {
+    final isSearching = controller.searchQuery.value.isNotEmpty;
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.inbox_outlined,
+            isSearching ? Icons.search_off : Icons.inbox_outlined,
             size: 80,
             color: Colors.grey.shade400,
           ),
           const SizedBox(height: 16),
           Text(
-            'Tidak ada resep',
+            isSearching ? 'Tidak ditemukan' : 'Tidak ada resep',
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey.shade600,
@@ -201,12 +456,22 @@ class ResepObatView extends GetView<ResepObatController> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Belum ada resep untuk kategori ini',
+            isSearching 
+                ? 'Coba kata kunci lain'
+                : 'Belum ada resep untuk kategori ini',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade500,
             ),
           ),
+          if (isSearching) ...[
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: controller.clearSearch,
+              icon: const Icon(Icons.clear),
+              label: const Text('Hapus pencarian'),
+            ),
+          ],
         ],
       ),
     );
@@ -269,11 +534,11 @@ class _FilterChipState extends State<_FilterChip> {
 }
 
 class _ResepCard extends StatefulWidget {
-  final Map<String, dynamic> resep;
+  final AntrianModel antrian;
   final int index;
 
   const _ResepCard({
-    required this.resep,
+    required this.antrian,
     required this.index,
   });
 
@@ -287,6 +552,23 @@ class _ResepCardState extends State<_ResepCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Determine status color
+    Color statusColor;
+    if (widget.antrian.status == 'selesai_diperiksa') {
+      statusColor = const Color(0xFFFF9800); // Orange for waiting
+    } else if (widget.antrian.status == 'siap_ambil_obat') {
+      statusColor = const Color(0xFF4CAF50); // Green for ready
+    } else {
+      statusColor = const Color(0xFF02B1BA); // Teal for completed
+    }
+
+    // Format tanggal
+    final tanggalStr = DateFormat('dd MMM yyyy, HH:mm', 'id_ID')
+        .format(widget.antrian.createdAt);
+
+    // Get jumlah jenis obat
+    final jumlahObat = widget.antrian.resepObat?.length ?? 0;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -295,10 +577,7 @@ class _ResepCardState extends State<_ResepCard> {
         onTapUp: (_) => setState(() => _isPressed = false),
         onTapCancel: () => setState(() => _isPressed = false),
         onTap: () {
-          Get.to(
-            () => DetailResepView(resep: widget.resep),
-            transition: Transition.rightToLeft,
-          );
+          Get.to(() => DetailResepView(antrian: widget.antrian));
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -334,15 +613,15 @@ class _ResepCardState extends State<_ResepCard> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: widget.resep['statusColor'].withOpacity(0.1),
+                        color: statusColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        widget.resep['id'],
+                        widget.antrian.queueNumber,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: widget.resep['statusColor'],
+                          color: statusColor,
                         ),
                       ),
                     ),
@@ -353,11 +632,11 @@ class _ResepCardState extends State<_ResepCard> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: widget.resep['statusColor'],
+                        color: statusColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        widget.resep['status'],
+                        _getStatusLabel(widget.antrian.status),
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
@@ -378,7 +657,7 @@ class _ResepCardState extends State<_ResepCard> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        widget.resep['namaPasien'],
+                        widget.antrian.namaLengkap,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -398,7 +677,7 @@ class _ResepCardState extends State<_ResepCard> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'No. Antrean: ${widget.resep['noAntrean']}',
+                      'No. RM: ${widget.antrian.noRekamMedis}',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade700,
@@ -416,7 +695,7 @@ class _ResepCardState extends State<_ResepCard> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${widget.resep['poli']} • ${widget.resep['dokter']}',
+                      '${widget.antrian.jenisLayanan} • ${widget.antrian.dokterNama ?? "Dokter"}',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade700,
@@ -434,7 +713,7 @@ class _ResepCardState extends State<_ResepCard> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      widget.resep['tanggal'],
+                      tanggalStr,
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey.shade700,
@@ -461,7 +740,7 @@ class _ResepCardState extends State<_ResepCard> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${widget.resep['jumlahObat']} jenis obat',
+                        '$jumlahObat jenis obat',
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -483,5 +762,18 @@ class _ResepCardState extends State<_ResepCard> {
         ),
       ),
     );
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status) {
+      case 'selesai_diperiksa':
+        return 'Menunggu';
+      case 'siap_ambil_obat':
+        return 'Siap Diambil';
+      case 'selesai':
+        return 'Selesai';
+      default:
+        return status;
+    }
   }
 }

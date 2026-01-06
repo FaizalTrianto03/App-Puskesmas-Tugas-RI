@@ -25,6 +25,7 @@ class ApotekerLoginView extends GetView<ApotekerLoginController> {
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
               horizontal: 24.0,
@@ -135,24 +136,8 @@ class ApotekerLoginView extends GetView<ApotekerLoginController> {
                   ),
                   const SizedBox(height: 12),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Obx(() => Checkbox(
-                        value: controller.rememberMe.value,
-                        onChanged: (value) => controller.toggleRememberMe(),
-                        checkColor: AppColors.white,
-                        fillColor: MaterialStateProperty.all(AppColors.primary),
-                        side: const BorderSide(
-                          color: AppColors.white,
-                          width: 2,
-                        ),
-                      )),
-                      Text(
-                        'Ingat Saya',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.white,
-                        ),
-                      ),
-                      const Spacer(),
                       TextButton(
                         onPressed: () {
                           Get.toNamed(Routes.lupaKataSandi);
