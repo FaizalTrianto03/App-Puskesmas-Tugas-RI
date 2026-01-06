@@ -3,7 +3,8 @@
 Project ini merupakan tugas mata kuliah **Rekayasa Interaksi** dengan tema **Aplikasi Puskesmas**.  
 Aplikasi dikembangkan menggunakan **Flutter** dan **Firebase** dengan sistem multi-role authentication untuk berbagai pengguna (Pasien, Dokter, Perawat, Apoteker, Admin).
 
-Repository: https://github.com/FaizalTrianto03/App-Puskesmas-Tugas-RI
+🌐 **Website:** [https://app-puskesmas-tugas-ri.web.app/](https://app-puskesmas-tugas-ri.web.app/)  
+📂 **Repository:** https://github.com/FaizalTrianto03/App-Puskesmas-Tugas-RI
 
 ---
 
@@ -41,6 +42,7 @@ Project ini berfokus pada penerapan antarmuka yang intuitif, kemudahan interaksi
 
 ## 🔗 Link Penting
 
+- **Website Landing Page:** [Aplikasi Puskesmas Dau](https://app-puskesmas-tugas-ri.web.app/)
 - **Figma Design:** [Kelompok RI 2025](https://www.figma.com/design/kdsNWqjifLP8TWPkgRJcAG/Kelompok-RI-2025---2022-009--A---2022-015--A---2022-021--B---2022-023--B---?node-id=562-1822&t=JO9fICjs9lTce2wK-1)
 - **Worksheet:** [Google Drive Folder](https://drive.google.com/drive/folders/1PZvS_4ZE1ak_icvMJBJx_kjj01GUnqye?usp=sharing)
 - **Low Fidelity Prototype:** [Low Fidelity](https://drive.google.com/file/d/1O8NTeDy47PVV7leIOyzP6TmgozzTHsXq/view?usp=drive_link)
@@ -136,18 +138,20 @@ assets/
 
 ## 📱 Development Branch
 
-- `main` - Production ready code
+- `main` - Production ready code ✅
 - `Minggu-1-SetupProject` - Week 1 setup ✅
 - `Minggu-2-ImplementasiLayoutUI` - Week 2 UI implementation ✅
 - `Minggu-3-InteraktivitasNavigasi` - Week 3 Interactivity & Navigation ✅
-- `Minggu-4-IntegrasiLogika` - Week 4 Logic Integration ✅ (in progress)
+- `Minggu-4-IntegrasiLogika` - Week 4 Logic Integration ✅
+- `Minggu-5-IntegrasiBackendAPI` - Week 5 Backend API Integration ✅
+- `Staging-AplikasiPuskesmasDau` - Staging & Production Deployment ✅
 
 ---
 
 📌 *Project ini dikembangkan untuk memenuhi tugas mata kuliah Rekayasa Interaksi dan sebagai studi penerapan Flutter dalam digitalisasi layanan puskesmas melalui aplikasi mobile.*
 
-**Last Updated:** December 8, 2025  
-**Status:** Week 4 - Integrasi Logika In Progress 🚧
+**Last Updated:** January 6, 2026  
+**Status:** ✅ **PROJECT COMPLETED** - Deployed to Production
 
 ---
 
@@ -239,9 +243,9 @@ assets/
 - ✅ Password Recovery Flow - 3-step forgot password dengan email validation, OTP timer (60s), dan password reset confirmation
 - ✅ UI Consistency & Polish - AppBar standardization (scrolledUnderElevation: 0), typography emphasis, form label alignment, responsive spacing
 
-### 🚧 Week 4 - Integrasi Logika (8-14 Des 2025) - In Progress
+### ✅ Week 4 - Integrasi Logika (8-14 Des 2025) - Completed
 
-**Progress:**
+**Completed:**
 - ✅ GetX Architecture & State Management - GetView pattern implementation dengan controller lifecycle management, hybrid pattern (GetView + StatefulWidget) untuk animasi
 - ✅ Local Storage Integration - StorageService dengan GetStorage untuk dummy data (no Firebase/Backend API), user authentication, session management dengan auto-login
 - ✅ Business Logic Implementation:
@@ -252,6 +256,28 @@ assets/
 - ✅ Form Validation & Error Handling - Field-level error messages, general validation notification, email/NIK uniqueness check, password confirmation, staff NIK validation
 - ✅ Data Management - Centralized PemeriksaanService untuk patient & examination data, dynamic doctor names dari logged-in user, auto-populate doctor field on form submit
 - ✅ UI/UX Refinements - Loading states, success/error notifications dengan icon, smooth navigation flow (auto-login after registration), clean architecture pattern (MVC), compact form sections dengan QuarterCircleBackground consistency, status-based UI rendering
+
+### ✅ Week 5 - Integrasi Backend API (15-21 Des 2025) - Completed
+
+**Completed:**
+- ✅ Firebase Integration - Full Firebase Authentication, Cloud Firestore real-time database, Firebase Storage untuk assets
+- ✅ API Services - Firestore CRUD operations untuk semua modules, real-time data synchronization, error handling & retry logic
+- ✅ Authentication Flow - Email/password authentication, role-based access control (RBAC), session management dengan auto-login, logout functionality
+- ✅ Data Models & Repositories - User model dengan multi-role support, Patient registration data model, Medical records data model, Prescription & medicine data model
+- ✅ Real-time Updates - Live antrian status, real-time stok obat monitoring, instant notification updates, dashboard statistics sync
+- ✅ Cloud Functions - Automated queue number generation, notification triggers, data validation & sanitization
+- ✅ Security Rules - Firestore security rules untuk role-based access, read/write permissions per collection, data validation rules
+
+### ✅ Staging & Production Deployment - Completed
+
+**Completed:**
+- ✅ Firebase Hosting Setup - Custom domain configuration, SSL certificate setup, hosting deployment pipeline
+- ✅ Landing Page Development - Responsive landing page design, feature showcase, download links & documentation, SEO optimization
+- ✅ APK Release - Android APK build v2.0.0 (60-70 MB), GitHub releases integration, download page implementation
+- ✅ Production Build - Code optimization & minification, asset compression, performance testing, production Firebase configuration
+- ✅ Quality Assurance - Cross-device testing, role-based testing untuk semua user types, bug fixes & stability improvements
+- ✅ Documentation - User guide & tutorial, API documentation, README updates, form evaluasi pengguna
+- ✅ **Website Deployed:** [https://app-puskesmas-tugas-ri.web.app/](https://app-puskesmas-tugas-ri.web.app/)
 
 ---
 
