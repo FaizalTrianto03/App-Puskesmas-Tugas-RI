@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../widgets/quarter_circle_background.dart';
 import '../controllers/laporan_kinerja_controller.dart';
 
 class LaporanKinerjaView extends GetView<LaporanKinerjaController> {
@@ -11,108 +10,116 @@ class LaporanKinerjaView extends GetView<LaporanKinerjaController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        backgroundColor: const Color(0xFF02B1BA),
+        elevation: 0,
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
         ),
         title: const Text(
           'Laporan Kinerja',
           style: TextStyle(
-            color: Color(0xFF02B1BA),
+            color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Container(
-            height: 4,
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
+
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFF02B1BA)),
+          );
+        }
+
+        return RefreshIndicator(
+          color: const Color(0xFF02B1BA),
+          onRefresh: () => controller.refreshData(),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPeriodFilter(),
+                const SizedBox(height: 16),
+                _buildStatisticsGrid(),
+                const SizedBox(height: 16),
+                _buildPerformanceSummary(),
+                const SizedBox(height: 16),
+                _buildPoliBreakdown(),
               ],
             ),
           ),
-          Expanded(
-            child: QuarterCircleBackground(
-              child: Obx(
-                () => controller.isLoading.value
-                    ? const Center(child: CircularProgressIndicator())
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildProfileCard(),
-                            const SizedBox(height: 16),
-                            _buildPeriodSelector(),
-                            const SizedBox(height: 16),
-                            _buildStatisticsGrid(),
-                            const SizedBox(height: 24),
-                            _buildPerformanceSummary(),
-                          ],
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      }),
     );
   }
 
-  Widget _buildProfileCard() {
+  /// Widget Filter Periode
+  Widget _buildPeriodFilter() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF02B1BA), Color(0xFF84F3EE)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.person,
-              size: 35,
-              color: Color(0xFF02B1BA),
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Obx(
-              () => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.filter_list, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Filter Periode',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              Obx(
+                () => Text(
+                  controller.periodLabel,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Obx(
+            () => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
                 children: [
-                  Text(
-                    controller.userName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Periode: ${controller.selectedPeriod.value}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.white,
-                    ),
-                  ),
+                  _buildPeriodChip('Semua', 'semua'),
+                  const SizedBox(width: 8),
+                  _buildPeriodChip('Hari Ini', 'hari_ini'),
+                  const SizedBox(width: 8),
+                  _buildPeriodChip('Minggu Ini', 'minggu_ini'),
+                  const SizedBox(width: 8),
+                  _buildPeriodChip('Bulan Ini', 'bulan_ini'),
+                  const SizedBox(width: 8),
+                  _buildPeriodChip('Tahun Ini', 'tahun_ini'),
                 ],
               ),
             ),
@@ -122,71 +129,26 @@ class LaporanKinerjaView extends GetView<LaporanKinerjaController> {
     );
   }
 
-  Widget _buildPeriodSelector() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+  Widget _buildPeriodChip(String label, String value) {
+    final isSelected = controller.selectedPeriod.value == value;
+    return InkWell(
+      onTap: () => controller.changePeriod(value),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white, width: isSelected ? 2 : 1),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? const Color(0xFF02B1BA) : Colors.white,
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Pilih Periode',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF333333),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Obx(
-            () => Row(
-              children: ['Hari Ini', 'Minggu Ini', 'Bulan Ini'].map((period) {
-                final isSelected = controller.selectedPeriod.value == period;
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ChoiceChip(
-                      label: SizedBox(
-                        width: double.infinity,
-                        child: Text(
-                          period,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isSelected ? Colors.white : Colors.black87,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        if (selected) {
-                          controller.changePeriod(period);
-                        }
-                      },
-                      selectedColor: const Color(0xFF02B1BA),
-                      backgroundColor: Colors.grey[200],
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                      labelPadding: EdgeInsets.zero,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -199,7 +161,7 @@ class LaporanKinerjaView extends GetView<LaporanKinerjaController> {
         physics: const NeverScrollableScrollPhysics(),
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 1.3, // Adjusted ratio to fit content
+        childAspectRatio: 1.4,
         children: [
           _buildStatCard(
             icon: Icons.people,
@@ -209,7 +171,7 @@ class LaporanKinerjaView extends GetView<LaporanKinerjaController> {
           ),
           _buildStatCard(
             icon: Icons.check_circle,
-            label: 'Verifikasi',
+            label: 'Terverifikasi',
             value: controller.totalVerifikasi.value.toString(),
             color: const Color(0xFF4CAF50),
           ),
@@ -220,9 +182,9 @@ class LaporanKinerjaView extends GetView<LaporanKinerjaController> {
             color: const Color(0xFFF44336),
           ),
           _buildStatCard(
-            icon: Icons.medical_services,
-            label: 'Rekam Medis',
-            value: controller.totalRekamMedis.value.toString(),
+            icon: Icons.skip_next,
+            label: 'Dilewati',
+            value: controller.totalDilewati.value.toString(),
             color: const Color(0xFFFF9800),
           ),
         ],
@@ -237,7 +199,7 @@ class LaporanKinerjaView extends GetView<LaporanKinerjaController> {
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -252,30 +214,23 @@ class LaporanKinerjaView extends GetView<LaporanKinerjaController> {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 28, color: color),
           const SizedBox(height: 6),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.black54,
-            ),
+            style: const TextStyle(fontSize: 11, color: Colors.black54),
             textAlign: TextAlign.center,
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ],
@@ -284,69 +239,316 @@ class LaporanKinerjaView extends GetView<LaporanKinerjaController> {
   }
 
   Widget _buildPerformanceSummary() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Ringkasan Kinerja',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF333333),
+    return Obx(
+      () => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-          ),
-          const SizedBox(height: 16),
-          Obx(
-            () => _buildSummaryRow(
-              'Tingkat Verifikasi',
-              '${controller.totalPasien.value > 0 ? ((controller.totalVerifikasi.value / controller.totalPasien.value) * 100).toStringAsFixed(1) : 0}%',
-              const Color(0xFF4CAF50),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ringkasan Kinerja',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF02B1BA),
+              ),
             ),
-          ),
-          const Divider(height: 24),
-          const Text(
-            '💡 Tips: Pastikan semua pasien terverifikasi sebelum diperiksa dokter.',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.black54,
-              fontStyle: FontStyle.italic,
+            const SizedBox(height: 20),
+            _buildPerformanceItem(
+              label: 'Tingkat Verifikasi',
+              count: controller.totalVerifikasi.value,
+              total: controller.totalPasien.value,
+              percentage: controller.persentaseVerifikasi,
+              color: const Color(0xFF4CAF50),
+              icon: Icons.verified,
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            _buildPerformanceItem(
+              label: 'Tingkat Penyelesaian',
+              count: controller.totalRekamMedis.value,
+              total: controller.totalPasien.value,
+              percentage: controller.persentaseSelesai,
+              color: const Color(0xFF2196F3),
+              icon: Icons.assignment_turned_in,
+            ),
+            const SizedBox(height: 16),
+            _buildPerformanceItem(
+              label: 'Tingkat Pembatalan',
+              count: controller.totalDibatalkan.value,
+              total: controller.totalPasien.value,
+              percentage: controller.persentaseDibatalkan,
+              color: const Color(0xFFF44336),
+              icon: Icons.cancel_outlined,
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF02B1BA).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.lightbulb_outline,
+                    size: 20,
+                    color: Color(0xFF02B1BA),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Pastikan semua pasien terverifikasi sebelum diperiksa dokter.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.black.withOpacity(0.7),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildPerformanceItem({
+    required String label,
+    required int count,
+    required int total,
+    required double percentage,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.black87,
+        Row(
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '$count/$total',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${percentage.toStringAsFixed(1)}%',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: percentage / 100,
+            backgroundColor: color.withOpacity(0.15),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+            minHeight: 10,
           ),
         ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
+      ],
+    );
+  }
+
+  Widget _buildPoliBreakdown() {
+    return Obx(() {
+      final poliData = controller.poliBreakdown;
+
+      if (poliData.isEmpty) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Column(
+              children: [
+                Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+                const SizedBox(height: 12),
+                Text(
+                  'Belum ada data breakdown poli',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.local_hospital,
+                  size: 22,
+                  color: Color(0xFF02B1BA),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Breakdown Per Poli',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF02B1BA),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ...poliData.entries.map((entry) {
+              final percentage =
+                  controller.totalPasien.value > 0
+                      ? (entry.value / controller.totalPasien.value * 100)
+                      : 0.0;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildPoliItem(
+                  poliName: entry.key,
+                  count: entry.value,
+                  percentage: percentage,
+                ),
+              );
+            }).toList(),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildPoliItem({
+    required String poliName,
+    required int count,
+    required double percentage,
+  }) {
+    // Color rotation for different polis
+    final colors = [
+      const Color(0xFF02B1BA),
+      const Color(0xFF4CAF50),
+      const Color(0xFF2196F3),
+      const Color(0xFFFF9800),
+      const Color(0xFF9C27B0),
+      const Color(0xFFE91E63),
+    ];
+    final color = colors[poliName.hashCode.abs() % colors.length];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                poliName,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            Text(
+              '$count pasien',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${percentage.toStringAsFixed(1)}%',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: percentage / 100,
+            backgroundColor: color.withOpacity(0.1),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+            minHeight: 8,
           ),
         ),
       ],

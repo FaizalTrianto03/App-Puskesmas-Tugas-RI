@@ -14,7 +14,7 @@ class TimelineItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tanggal = riwayat['tanggal_pemeriksaan'] as DateTime;
+    final tanggal = riwayat['tanggal'] as DateTime? ?? DateTime.now();
     
     return InkWell(
       onTap: onTap,
@@ -104,7 +104,7 @@ class TimelineItemWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      riwayat['nama_pasien'],
+                      riwayat['namaLengkap'] ?? 'Tidak Diketahui',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -113,7 +113,7 @@ class TimelineItemWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'No. RM: ${riwayat['no_rm']}',
+                      'No. RM: ${riwayat['noRekamMedis'] ?? '-'}',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],

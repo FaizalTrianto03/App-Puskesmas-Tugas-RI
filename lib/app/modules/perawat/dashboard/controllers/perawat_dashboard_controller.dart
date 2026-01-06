@@ -8,14 +8,15 @@ import '../../../../data/services/auth/session_service.dart';
 import '../../../../utils/auth_helper.dart';
 import '../../../../utils/snackbar_helper.dart';
 import '../../rekam_medis/views/form_rekam_medis_view.dart';
+import '../../detail_pemeriksaan/views/detail_pemeriksaan_view.dart';
 
 class PerawatDashboardController extends GetxController {
   final AntrianFirestoreService _antrianService = AntrianFirestoreService();
-  final SessionService _sessionService = Get.find<SessionService>();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
   StreamSubscription? _antrianSubscription;
 
+  final userId = ''.obs;
   final userName = ''.obs;
   final userRole = ''.obs;
   final antrianList = <Map<String, dynamic>>[].obs;
@@ -38,7 +39,7 @@ class PerawatDashboardController extends GetxController {
   void onReady() {
     super.onReady();
     // Refresh data setiap kali view siap ditampilkan
-    loadAntrian();
+    forceReloadAntrian();
   }
 
   @override
@@ -47,10 +48,24 @@ class PerawatDashboardController extends GetxController {
     super.onClose();
   }
 
+  /// Force reload - cancel stream lama dan mulai baru
+  Future<void> forceReloadAntrian() async {
+    // Cancel stream lama
+    await _antrianSubscription?.cancel();
+    _antrianSubscription = null;
+    
+    // Load data fresh
+    await loadAntrian();
+    
+    // Restart stream
+    _startAntrianListener();
+  }
+
   Future<void> loadUserData() async {
     final userData = await AuthHelper.currentUserData;
     
     if (userData != null) {
+      userId.value = userData['uid'] ?? '';
       userName.value = userData['namaLengkap'] ?? '';
       userRole.value = _formatRole(userData['role'] ?? '');
     }
@@ -69,15 +84,12 @@ class PerawatDashboardController extends GetxController {
     // Subscribe to real-time updates menggunakan stream
     _antrianSubscription?.cancel();
     
-    // ✅ GUNAKAN STREAM untuk auto refresh real-time dari Firestore
     _antrianSubscription = _antrianService.watchAllAntrianToday().listen(
       (data) {
-        print('[PerawatDashboardController] Real-time update: ${data.length} antrian');
         antrianList.value = data;
         isLoading.value = false;
       },
       onError: (error) {
-        print('[PerawatDashboardController] Stream error: $error');
         SnackbarHelper.showError('Gagal memuat data antrian');
         isLoading.value = false;
       },
@@ -88,8 +100,7 @@ class PerawatDashboardController extends GetxController {
     isLoading.value = true;
     
     try {
-      // Load antrian dari Firestore (manual refresh)
-      List<Map<String, dynamic>> data = await _antrianService.getAllAntrian();
+      List<Map<String, dynamic>> data = await _antrianService.getAllAntrianToday();
       antrianList.value = data;
     } catch (e) {
       SnackbarHelper.showError('Gagal memuat data antrian');
@@ -98,20 +109,9 @@ class PerawatDashboardController extends GetxController {
     }
   }
 
-  List<Map<String, dynamic>> get antrianMenungguVerifikasi {
-    return _filteredAntrianList
-        .where((a) => a['status'] == 'menunggu' || a['status'] == 'menunggu_verifikasi')
-        .toList();
-  }
-
-  List<Map<String, dynamic>> get antrianTerverifikasi {
-    return _filteredAntrianList
-        .where((a) => a['status'] == 'menunggu_dokter' || a['status'] == 'sedang_dilayani' || a['status'] == 'dipanggil')
-        .toList();
-  }
-  
   /// Filtered list berdasarkan search & filter
-  List<Map<String, dynamic>> get _filteredAntrianList {
+  /// SORTING: Aktif (terlama dulu) → Dibatalkan (terbaru dulu di bawah)
+  List<Map<String, dynamic>> get filteredAntrianList {
     var filtered = antrianList.toList();
     
     // Apply search query
@@ -133,14 +133,83 @@ class PerawatDashboardController extends GetxController {
         a['status'] == 'menunggu' || a['status'] == 'menunggu_verifikasi'
       ).toList();
     } else if (selectedFilter.value == 'terverifikasi') {
+      // ✅ FIX: Tambahkan semua status yang sudah terverifikasi termasuk selesai
       filtered = filtered.where((a) => 
         a['status'] == 'menunggu_dokter' || 
         a['status'] == 'sedang_dilayani' || 
+        a['status'] == 'dilayani_dokter' ||
+        a['status'] == 'selesai_diperiksa' ||
+        a['status'] == 'siap_ambil_obat' ||
+        a['status'] == 'menunggu_apoteker' ||
+        a['status'] == 'dilayani_apoteker' ||
+        a['status'] == 'selesai' ||
         a['status'] == 'dipanggil'
       ).toList();
     }
     
-    return filtered;
+    // SORT: Aktif (terlama dulu) → Dilewati → Selesai → Dibatalkan
+    final aktif = filtered.where((a) => 
+      a['status'] != 'dibatalkan' && 
+      a['status'] != 'dilewati' && 
+      a['status'] != 'selesai'
+    ).toList();
+    final dilewati = filtered.where((a) => a['status'] == 'dilewati').toList();
+    final selesai = filtered.where((a) => a['status'] == 'selesai').toList();
+    final dibatalkan = filtered.where((a) => a['status'] == 'dibatalkan').toList();
+    
+    // Sort aktif: terlama dulu (createdAt ASC)
+    aktif.sort((a, b) {
+      final aTime = (a['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+      final bTime = (b['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+      return aTime.compareTo(bTime); // ASC - terlama dulu
+    });
+    
+    // Sort dilewati: terlama dulu (createdAt ASC)
+    dilewati.sort((a, b) {
+      final aTime = (a['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+      final bTime = (b['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+      return aTime.compareTo(bTime); // ASC - terlama dulu
+    });
+    
+    // Sort dibatalkan: terbaru dulu (createdAt DESC)
+    dibatalkan.sort((a, b) {
+      final aTime = (a['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+      final bTime = (b['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+      return bTime.compareTo(aTime); // DESC - terbaru dulu
+    });
+    
+    // Sort selesai: terbaru dulu (createdAt DESC)
+    selesai.sort((a, b) {
+      final aTime = (a['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+      final bTime = (b['createdAt'] as Timestamp?)?.toDate() ?? DateTime(2000);
+      return bTime.compareTo(aTime); // DESC - terbaru dulu
+    });
+    
+    // Gabung: aktif → dilewati → selesai → dibatalkan
+    return [...aktif, ...dilewati, ...selesai, ...dibatalkan];
+  }
+
+  List<Map<String, dynamic>> get antrianMenungguVerifikasi {
+    return antrianList
+        .where((a) => a['status'] == 'menunggu' || a['status'] == 'menunggu_verifikasi')
+        .toList();
+  }
+
+  List<Map<String, dynamic>> get antrianTerverifikasi {
+    // ✅ FIX: Tambahkan status selesai ke daftar terverifikasi
+    return antrianList
+        .where((a) => 
+          a['status'] == 'menunggu_dokter' || 
+          a['status'] == 'sedang_dilayani' || 
+          a['status'] == 'dilayani_dokter' ||
+          a['status'] == 'selesai_diperiksa' ||
+          a['status'] == 'siap_ambil_obat' ||
+          a['status'] == 'menunggu_apoteker' ||
+          a['status'] == 'dilayani_apoteker' ||
+          a['status'] == 'selesai' ||
+          a['status'] == 'dipanggil'
+        )
+        .toList();
   }
   
   void setSearchQuery(String query) {
@@ -176,44 +245,16 @@ class PerawatDashboardController extends GetxController {
     }
   }
 
-  Future<void> verifikasiAntrian(Map<String, dynamic> antrian) async {
-    final perawatId = _sessionService.getUserId();
-    final perawatName = _sessionService.getNamaLengkap();
-
-    if (perawatId == null || perawatName == null) {
-      SnackbarHelper.showError('Sesi tidak valid');
-      return;
-    }
-
-    isLoading.value = true;
-
-    final success = await _antrianService.verifikasiAntrian(
-      antrianId: antrian['id'],
-      perawatId: perawatId,
-      perawatName: perawatName,
-      catatan: 'Diverifikasi dari dashboard',
-    );
-
-    isLoading.value = false;
-
-    if (success) {
-      SnackbarHelper.showSuccess(
-        'Antrian ${antrian['queueNumber']} berhasil diverifikasi',
-      );
-      // ✅ Tidak perlu refresh manual, stream akan auto-update
-    } else {
-      SnackbarHelper.showError('Gagal memverifikasi antrian');
-    }
-  }
-
-  void navigateToVerifikasi() {
-    SnackbarHelper.showInfo(
-      'Klik tombol "Verifikasi" pada kartu antrian untuk memverifikasi',
-    );
-  }
-
   void navigateToFormRekamMedis(Map<String, dynamic> antrian) {
-    Get.to(() => FormRekamMedisView(pasienData: antrian));
+    final status = antrian['status'] as String?;
+    
+    // Jika sudah diverifikasi, arahkan ke halaman readonly detail
+    if (status == 'menunggu_dokter' || status == 'sedang_dilayani' || status == 'selesai') {
+      Get.to(() => const DetailPemeriksaanView(), arguments: antrian);
+    } else {
+      // Jika belum diverifikasi, arahkan ke form input
+      Get.to(() => FormRekamMedisView(pasienData: antrian));
+    }
   }
 
   Future<void> ubahStatusAntrian({
@@ -229,14 +270,12 @@ class PerawatDashboardController extends GetxController {
 
     // Prevent double-click
     if (isLoading.value) {
-      print('[PerawatDashboardController] Already processing, ignoring duplicate request');
       return;
     }
 
     isLoading.value = true;
 
     try {
-      print('[PerawatDashboardController] Updating status: $antrianId -> $newStatus');
       
       // Update status di Firestore
       await _firestore.collection('antrian').doc(antrianId).update({
@@ -244,7 +283,6 @@ class PerawatDashboardController extends GetxController {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      print('[PerawatDashboardController] ✅ Status updated successfully');
 
       // Close dialog jika ada
       if (Get.isDialogOpen ?? false) {
@@ -257,7 +295,6 @@ class PerawatDashboardController extends GetxController {
       // Stream akan otomatis update data, tidak perlu manual refresh
       
     } catch (e) {
-      print('[PerawatDashboardController] ❌ Error updating status: $e');
       
       // Close dialog jika ada
       if (Get.isDialogOpen ?? false) {
@@ -292,6 +329,17 @@ class PerawatDashboardController extends GetxController {
   }
   
   // ✅ Batalkan antrian dengan kirim notifikasi ke pasien
+  // MEKANISME PEMBATALAN:
+  // 1. Pasien bisa batalkan sendiri dari app pasien
+  // 2. Perawat bisa batalkan jika:
+  //    - Pasien tidak datang setelah dipanggil berkali-kali
+  //    - Pasien tidak membawa persyaratan
+  //    - Kondisi darurat/force majeure
+  // 3. Alasan pembatalan WAJIB diisi (akan ditampilkan ke pasien & perawat)
+  // 4. Antrian dibatalkan akan muncul di bawah list (diasingkan)
+  //
+  // FUTURE: Tambah fitur "Lewati Sementara" (skip) untuk pasien yang terlambat
+  //         tapi masih bisa dilayani setelah antrian aktif selesai
   Future<void> batalkanAntrian({
     required String antrianId,
     required String alasan,
@@ -307,10 +355,14 @@ class PerawatDashboardController extends GetxController {
         barrierDismissible: false,
       );
       
-      print('[PerawatDashboardController] Membatalkan antrian: $antrianId');
-      print('[PerawatDashboardController] Alasan: $alasan');
       
-      final success = await _antrianService.batalkanAntrian(antrianId, alasan);
+      final success = await _antrianService.batalkanAntrian(
+        antrianId: antrianId,
+        alasan: alasan,
+        dibatalkanOleh: 'perawat',
+        dibatalkanOlehNama: userName.value,
+        dibatalkanOlehId: userId.value,
+      );
       
       // Close loading dialog
       if (Get.isDialogOpen ?? false) {
@@ -324,7 +376,6 @@ class PerawatDashboardController extends GetxController {
         SnackbarHelper.showError('Gagal membatalkan antrian');
       }
     } catch (e) {
-      print('[PerawatDashboardController] ❌ Error cancelling antrian: $e');
       
       // Close dialog jika ada
       if (Get.isDialogOpen ?? false) {
@@ -332,6 +383,51 @@ class PerawatDashboardController extends GetxController {
       }
       
       SnackbarHelper.showError('Gagal membatalkan antrian: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ✅ Lewati antrian sementara (pasien terlambat tapi masih bisa dilayani)
+  // Status 'dilewati' akan muncul setelah antrian aktif, sebelum yang dibatalkan
+  Future<void> lewatiAntrian({required String antrianId}) async {
+    try {
+      isLoading.value = true;
+      
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+
+      // Get perawat info
+      final userData = await AuthHelper.currentUserData;
+      final perawatId = userData?['uid'] ?? '';
+      final perawatNama = userData?['namaLengkap'] ?? userName.value;
+
+      await _antrianService.updateAntrianStatus(
+        antrianId: antrianId,
+        newStatus: 'dilewati',
+        additionalData: {
+          'dilewatiAt': FieldValue.serverTimestamp(),
+          'dilewatiOleh': 'perawat',
+          'dilewatiOlehNama': perawatNama,
+          'dilewatiOlehId': perawatId,
+        },
+      );
+
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+
+      SnackbarHelper.showSuccess('Antrian dilewati sementara');
+    } catch (e) {
+      
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      
+      SnackbarHelper.showError('Gagal melewati antrian: ${e.toString()}');
     } finally {
       isLoading.value = false;
     }

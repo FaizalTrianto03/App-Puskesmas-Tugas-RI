@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../data/services/auth/session_service.dart';
 import '../../../../data/services/pemeriksaan/pemeriksaan_service.dart';
+import '../../../../data/services/firestore/user_firestore_service.dart';
 import '../../../../utils/snackbar_helper.dart';
+import '../../../../utils/confirmation_dialog.dart';
+import '../../detail_pemeriksaan/views/detail_pemeriksaan_view.dart';
 
 class FormRekamMedisController extends GetxController {
   final SessionService _sessionService = Get.find<SessionService>();
   final PemeriksaanService _pemeriksaanService = PemeriksaanService();
+  final UserFirestoreService _userService = UserFirestoreService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final formKey = GlobalKey<FormState>();
   final isLoading = false.obs;
@@ -35,6 +41,12 @@ class FormRekamMedisController extends GetxController {
   final riwayatPenyakitController = TextEditingController();
   final alergiController = TextEditingController();
 
+  // Dokter assignment
+  final dokterList = <Map<String, dynamic>>[].obs;
+  final selectedDokterId = Rxn<String>();
+  final selectedDokterNama = Rxn<String>();
+  final isLoadingDokter = false.obs;
+
   // Data pasien saat ini
   Map<String, dynamic>? pasienData;
 
@@ -45,6 +57,9 @@ class FormRekamMedisController extends GetxController {
     // Add listener untuk auto-calculate IMT
     beratBadanController.addListener(_calculateIMT);
     tinggiBadanController.addListener(_calculateIMT);
+    
+    // Load list dokter
+    loadDokterList();
   }
 
   @override
@@ -85,6 +100,31 @@ class FormRekamMedisController extends GetxController {
     
     // Load existing rekam medis jika ada
     _loadExistingRekamMedis(data['id']);
+  }
+
+  /// Load list dokter dari Firestore
+  Future<void> loadDokterList() async {
+    try {
+      isLoadingDokter.value = true;
+      final result = await _userService.getAllDokter();
+      dokterList.value = result;
+    } catch (e) {
+      SnackbarHelper.showError('Gagal memuat daftar dokter');
+    } finally {
+      isLoadingDokter.value = false;
+    }
+  }
+
+  /// Set selected dokter
+  void setSelectedDokter(String? dokterId) {
+    selectedDokterId.value = dokterId;
+    
+    if (dokterId != null) {
+      final dokter = dokterList.firstWhereOrNull((d) => d['id'] == dokterId);
+      selectedDokterNama.value = dokter?['namaLengkap'];
+    } else {
+      selectedDokterNama.value = null;
+    }
   }
 
   /// Load rekam medis yang sudah pernah diinput (jika ada)
@@ -408,4 +448,109 @@ class FormRekamMedisController extends GetxController {
     riwayatPenyakitController.clear();
     alergiController.clear();
   }
+
+  /// Simpan data dan verifikasi pasien ke Firestore
+  Future<void> simpanDanVerifikasi() async {
+    // Validasi manual field required (pernapasan opsional)
+    if (tekananDarahSistolikController.text.trim().isEmpty ||
+        tekananDarahDiastolikController.text.trim().isEmpty ||
+        nadiController.text.trim().isEmpty ||
+        suhuController.text.trim().isEmpty ||
+        beratBadanController.text.trim().isEmpty ||
+        tinggiBadanController.text.trim().isEmpty ||
+        keluhanUtamaController.text.trim().isEmpty ||
+        alergiController.text.trim().isEmpty) {
+      SnackbarHelper.showError('Mohon lengkapi semua field yang bertanda *');
+      return;
+    }
+
+    // Validasi dokter assignment
+    if (selectedDokterId.value == null || selectedDokterNama.value == null) {
+      SnackbarHelper.showError('Mohon pilih dokter pemeriksa');
+      return;
+    }
+    
+    // Konfirmasi sebelum simpan dan verifikasi
+    final confirm = await ConfirmationDialog.show(
+      title: 'Simpan dan Verifikasi?',
+      message: 'Data pemeriksaan akan disimpan dan pasien akan diverifikasi untuk menunggu dokter. Apakah Anda yakin?',
+      type: ConfirmationType.confirmation,
+      confirmText: 'Ya, Simpan',
+      cancelText: 'Batal',
+    );
+    
+    if (confirm != true) return;
+    
+    isLoading.value = true;
+    
+    try {
+      final perawatId = _sessionService.getUserId();
+      final perawatName = _sessionService.getNamaLengkap();
+      final antrianId = pasienData!['id'];
+      
+      if (perawatId == null || perawatName == null) {
+        SnackbarHelper.showError('Sesi tidak valid');
+        isLoading.value = false;
+        return;
+      }
+      
+      // Update antrian dengan perawatData lengkap
+      await _firestore.collection('antrian').doc(antrianId).update({
+        'status': 'menunggu_dokter',
+        'dokterId': selectedDokterId.value,
+        'dokterNama': selectedDokterNama.value,
+        'perawatData': {
+          'perawatId': perawatId,
+          'perawatName': perawatName,
+          'verifiedAt': FieldValue.serverTimestamp(),
+          // Tanda Vital
+          'tekananDarahSistolik': int.parse(tekananDarahSistolikController.text.trim()),
+          'tekananDarahDiastolik': int.parse(tekananDarahDiastolikController.text.trim()),
+          'nadi': int.parse(nadiController.text.trim()),
+          'suhu': double.parse(suhuController.text.trim()),
+          'pernapasan': pernapasanController.text.trim().isEmpty 
+              ? null 
+              : int.parse(pernapasanController.text.trim()),
+          // Antropometri
+          'beratBadan': double.parse(beratBadanController.text.trim()),
+          'tinggiBadan': int.parse(tinggiBadanController.text.trim()),
+          'imt': double.parse(imtController.text.trim()),
+          // Keluhan & Anamnesis
+          'keluhanUtama': keluhanUtamaController.text.trim(),
+          'riwayatPenyakit': riwayatPenyakitController.text.trim().isEmpty
+              ? 'Tidak ada'
+              : riwayatPenyakitController.text.trim(),
+          'alergi': alergiController.text.trim(),
+        },
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      
+      isLoading.value = false;
+      SnackbarHelper.showSuccess('Pasien berhasil diverifikasi!');
+      
+      // Ambil data terbaru dari Firestore untuk detail view
+      final updatedDoc = await _firestore.collection('antrian').doc(antrianId).get();
+      final updatedData = updatedDoc.data();
+      
+      if (updatedData != null) {
+        updatedData['id'] = updatedDoc.id;
+        
+        // Navigate ke Detail Pemeriksaan (readonly view)
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.off(
+          () => const DetailPemeriksaanView(),
+          arguments: updatedData,
+        );
+      } else {
+        // Fallback jika data tidak ditemukan
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.back(result: true);
+      }
+      
+    } catch (e) {
+      isLoading.value = false;
+      SnackbarHelper.showError('Gagal menyimpan: ${e.toString()}');
+    }
+  }
 }
+
