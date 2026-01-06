@@ -1,45 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
-import '../../../../utils/colors.dart';
-import '../../../../utils/snackbar_helper.dart';
-import '../../../../utils/text_styles.dart';
+import '../../../../widgets/custom_date_picker_modal.dart';
 import '../../../../widgets/custom_text_field.dart';
 import '../../../../widgets/quarter_circle_background.dart';
+import '../controllers/kelola_data_diri_controller.dart';
 
-class KelolaDataDiriView extends StatefulWidget {
+class KelolaDataDiriView extends GetView<KelolaDataDiriController> {
   const KelolaDataDiriView({Key? key}) : super(key: key);
 
   @override
-  State<KelolaDataDiriView> createState() => _KelolaDataDiriViewState();
-}
-
-class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
-  final _formKey = GlobalKey<FormState>();
-  final _namaController = TextEditingController(text: 'apt. Aditama, S. Farm');
-  final _nikController = TextEditingController(text: '3201234567890124');
-  final _alamatController = TextEditingController(
-    text: 'Jl. Kesehatan No. 45, Jakarta Selatan',
-  );
-  final _noHpController = TextEditingController(text: '081234567891');
-  final _emailController = TextEditingController(text: 'aditama@puskesmas.id');
-  String _jenisKelamin = 'L';
-  String _tanggalLahir = '15/03/1995';
-
-  @override
-  void dispose() {
-    _namaController.dispose();
-    _nikController.dispose();
-    _alamatController.dispose();
-    _noHpController.dispose();
-    _emailController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+    final ScrollController _scrollController = ScrollController();
+    
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF02B1BA),
         elevation: 0,
@@ -77,49 +55,48 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
             ),
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 padding: const EdgeInsets.all(24),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
+                      const Text(
                         'Informasi Pribadi',
-                        style: AppTextStyles.h4.copyWith(
-                          color: AppColors.primary,
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Color(0xFF02B1BA),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Nama Lengkap
+                      
                       RichText(
-                        text: TextSpan(
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.primary,
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF02B1BA),
                             fontWeight: FontWeight.w600,
                           ),
-                          children: const [
+                          children: [
                             TextSpan(text: 'Nama Lengkap'),
                             TextSpan(
                               text: ' *',
-                              style: TextStyle(color: AppColors.accent),
+                              style: TextStyle(color: Colors.red),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _namaController,
+                        controller: controller.namaController,
                         hintText: 'Masukkan nama lengkap',
-                        prefixIcon: const Icon(
-                          Icons.person_outline,
-                          color: Colors.grey,
-                        ),
-                        backgroundColor: AppColors.white,
+                        prefixIcon: const Icon(Icons.person_outline, color: Colors.grey),
+                        backgroundColor: Colors.white,
                         textColor: Colors.black87,
                         hintColor: Colors.grey,
-                        borderColor: AppColors.primary,
+                        borderColor: const Color(0xFF02B1BA),
                         borderWidth: 1,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -129,75 +106,96 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                         },
                       ),
                       const SizedBox(height: 16),
-
-                      // NIK
+                      
                       RichText(
-                        text: TextSpan(
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.primary,
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF02B1BA),
                             fontWeight: FontWeight.w600,
                           ),
-                          children: const [
+                          children: [
                             TextSpan(text: 'NIK'),
                             TextSpan(
                               text: ' *',
-                              style: TextStyle(color: AppColors.accent),
+                              style: TextStyle(color: Colors.red),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 8),
-                      CustomTextField(
-                        controller: _nikController,
-                        hintText: 'Masukkan 16 digit NIK',
-                        keyboardType: TextInputType.number,
-                        prefixIcon: const Icon(
-                          Icons.badge_outlined,
-                          color: Colors.grey,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF02B1BA), width: 1),
                         ),
-                        backgroundColor: AppColors.white,
-                        textColor: Colors.black87,
-                        hintColor: Colors.grey,
-                        borderColor: AppColors.primary,
-                        borderWidth: 1,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'NIK harus diisi';
-                          }
-                          return null;
-                        },
+                        child: Row(
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.only(left: 12, right: 8),
+                              child: Icon(Icons.badge_outlined, color: Colors.grey, size: 20),
+                            ),
+                            Expanded(
+                              child: TextFormField(
+                                controller: controller.nikController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(16),
+                                ],
+                                decoration: const InputDecoration(
+                                  hintText: 'Masukkan 16 digit NIK',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'NIK harus diisi';
+                                  }
+                                  if (value.length != 16) {
+                                    return 'NIK harus 16 digit';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Alamat
+                      
                       RichText(
-                        text: TextSpan(
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.primary,
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF02B1BA),
                             fontWeight: FontWeight.w600,
                           ),
-                          children: const [
+                          children: [
                             TextSpan(text: 'Alamat'),
                             TextSpan(
                               text: ' *',
-                              style: TextStyle(color: AppColors.accent),
+                              style: TextStyle(color: Colors.red),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _alamatController,
+                        controller: controller.alamatController,
                         hintText: 'Masukkan alamat lengkap',
                         maxLines: 3,
-                        prefixIcon: const Icon(
-                          Icons.home_outlined,
-                          color: Colors.grey,
-                        ),
-                        backgroundColor: AppColors.white,
+                        prefixIcon: const Icon(Icons.home_outlined, color: Colors.grey),
+                        backgroundColor: Colors.white,
                         textColor: Colors.black87,
                         hintColor: Colors.grey,
-                        borderColor: AppColors.primary,
+                        borderColor: const Color(0xFF02B1BA),
                         borderWidth: 1,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -207,90 +205,126 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                         },
                       ),
                       const SizedBox(height: 16),
-
-                      // Nomor HP
+                      
                       RichText(
-                        text: TextSpan(
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.primary,
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF02B1BA),
                             fontWeight: FontWeight.w600,
                           ),
-                          children: const [
+                          children: [
                             TextSpan(text: 'Nomor HP'),
                             TextSpan(
                               text: ' *',
-                              style: TextStyle(color: AppColors.accent),
+                              style: TextStyle(color: Colors.red),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 8),
-                      CustomTextField(
-                        controller: _noHpController,
-                        hintText: 'Masukkan nomor telepon',
-                        keyboardType: TextInputType.phone,
-                        prefixIcon: const Icon(
-                          Icons.phone_outlined,
-                          color: Colors.grey,
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF02B1BA), width: 1),
                         ),
-                        backgroundColor: AppColors.white,
-                        textColor: Colors.black87,
-                        hintColor: Colors.grey,
-                        borderColor: AppColors.primary,
-                        borderWidth: 1,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Nomor HP harus diisi';
-                          }
-                          return null;
-                        },
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 12),
+                            const Icon(Icons.phone_outlined, color: Colors.grey, size: 20),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                              child: const Text(
+                                '+62',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              width: 1,
+                              height: 24,
+                              color: Colors.grey.shade300,
+                            ),
+                            Expanded(
+                              child: TextField(
+                                controller: controller.noHpController,
+                                keyboardType: TextInputType.phone,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                onChanged: (value) {
+                                  // Auto-remove 0, +, atau 62 di awal
+                                  if (value.startsWith('0')) {
+                                    controller.noHpController.text = value.substring(1);
+                                    controller.noHpController.selection = TextSelection.fromPosition(
+                                      TextPosition(offset: controller.noHpController.text.length),
+                                    );
+                                  } else if (value.startsWith('62')) {
+                                    controller.noHpController.text = value.substring(2);
+                                    controller.noHpController.selection = TextSelection.fromPosition(
+                                      TextPosition(offset: controller.noHpController.text.length),
+                                    );
+                                  }
+                                },
+                                decoration: const InputDecoration(
+                                  hintText: '8123456789',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Email
+                      
                       RichText(
-                        text: TextSpan(
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.primary,
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF02B1BA),
                             fontWeight: FontWeight.w600,
                           ),
-                          children: const [
+                          children: [
                             TextSpan(text: 'Email'),
                             TextSpan(
                               text: ' *',
-                              style: TextStyle(color: AppColors.accent),
+                              style: TextStyle(color: Colors.red),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 8),
                       CustomTextField(
-                        controller: _emailController,
-                        hintText: 'Masukkan email',
+                        controller: controller.emailController,
+                        hintText: 'Email tidak dapat diubah',
                         keyboardType: TextInputType.emailAddress,
-                        prefixIcon: const Icon(
-                          Icons.email_outlined,
-                          color: Colors.grey,
-                        ),
-                        backgroundColor: AppColors.white,
-                        textColor: Colors.black87,
+                        enabled: false,
+                        prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey),
+                        backgroundColor: Colors.grey.shade100,
+                        textColor: Colors.black54,
                         hintColor: Colors.grey,
-                        borderColor: AppColors.primary,
+                        borderColor: Colors.grey.shade300,
                         borderWidth: 1,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Email harus diisi';
                           }
-                          final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                          if (!emailRegex.hasMatch(value)) {
-                            return 'Format email tidak valid';
-                          }
                           return null;
                         },
                       ),
                       const SizedBox(height: 16),
-
-                      // Jenis Kelamin & Tanggal Lahir
+                      
                       Row(
                         children: [
                           Expanded(
@@ -298,28 +332,27 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 RichText(
-                                  text: TextSpan(
-                                    style: AppTextStyles.bodyMedium.copyWith(
-                                      color: AppColors.primary,
+                                  text: const TextSpan(
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF02B1BA),
                                       fontWeight: FontWeight.w600,
                                     ),
-                                    children: const [
+                                    children: [
                                       TextSpan(text: 'Jenis Kelamin'),
                                       TextSpan(
                                         text: ' *',
-                                        style: TextStyle(
-                                          color: AppColors.accent,
-                                        ),
+                                        style: TextStyle(color: Colors.red),
                                       ),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Container(
+                                Obx(() => Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: AppColors.primary,
+                                      color: const Color(0xFF02B1BA),
                                       width: 1,
                                     ),
                                   ),
@@ -328,39 +361,28 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            setState(() {
-                                              _jenisKelamin = 'L';
-                                            });
+                                            controller.jenisKelamin.value = 'L';
                                           },
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 16,
-                                            ),
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
                                             decoration: BoxDecoration(
-                                              color:
-                                                  _jenisKelamin == 'L'
-                                                      ? AppColors.primary
-                                                      : AppColors.white,
-                                              borderRadius:
-                                                  const BorderRadius.only(
-                                                    topLeft: Radius.circular(
-                                                      11,
-                                                    ),
-                                                    bottomLeft: Radius.circular(
-                                                      11,
-                                                    ),
-                                                  ),
+                                              color: controller.jenisKelamin.value == 'L'
+                                                  ? const Color(0xFF02B1BA)
+                                                  : Colors.white,
+                                              borderRadius: const BorderRadius.only(
+                                                topLeft: Radius.circular(11),
+                                                bottomLeft: Radius.circular(11),
+                                              ),
                                             ),
                                             child: Text(
                                               'L',
-                                              style: AppTextStyles.bodyMedium
-                                                  .copyWith(
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        _jenisKelamin == 'L'
-                                                            ? AppColors.white
-                                                            : AppColors.primary,
-                                                  ),
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: controller.jenisKelamin.value == 'L'
+                                                    ? Colors.white
+                                                    : const Color(0xFF02B1BA),
+                                              ),
                                               textAlign: TextAlign.center,
                                             ),
                                           ),
@@ -369,43 +391,33 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                       Container(
                                         width: 1,
                                         height: 48,
-                                        color: AppColors.primary,
+                                        color: const Color(0xFF02B1BA),
                                       ),
                                       Expanded(
                                         child: InkWell(
                                           onTap: () {
-                                            setState(() {
-                                              _jenisKelamin = 'P';
-                                            });
+                                            controller.jenisKelamin.value = 'P';
                                           },
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 16,
-                                            ),
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
                                             decoration: BoxDecoration(
-                                              color:
-                                                  _jenisKelamin == 'P'
-                                                      ? AppColors.primary
-                                                      : AppColors.white,
-                                              borderRadius:
-                                                  const BorderRadius.only(
-                                                    topRight: Radius.circular(
-                                                      11,
-                                                    ),
-                                                    bottomRight:
-                                                        Radius.circular(11),
-                                                  ),
+                                              color: controller.jenisKelamin.value == 'P'
+                                                  ? const Color(0xFF02B1BA)
+                                                  : Colors.white,
+                                              borderRadius: const BorderRadius.only(
+                                                topRight: Radius.circular(11),
+                                                bottomRight: Radius.circular(11),
+                                              ),
                                             ),
                                             child: Text(
                                               'P',
-                                              style: AppTextStyles.bodyMedium
-                                                  .copyWith(
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        _jenisKelamin == 'P'
-                                                            ? AppColors.white
-                                                            : AppColors.primary,
-                                                  ),
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: controller.jenisKelamin.value == 'P'
+                                                    ? Colors.white
+                                                    : const Color(0xFF02B1BA),
+                                              ),
                                               textAlign: TextAlign.center,
                                             ),
                                           ),
@@ -413,7 +425,7 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                       ),
                                     ],
                                   ),
-                                ),
+                                )),
                               ],
                             ),
                           ),
@@ -423,18 +435,17 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 RichText(
-                                  text: TextSpan(
-                                    style: AppTextStyles.bodyMedium.copyWith(
-                                      color: AppColors.primary,
+                                  text: const TextSpan(
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF02B1BA),
                                       fontWeight: FontWeight.w600,
                                     ),
-                                    children: const [
+                                    children: [
                                       TextSpan(text: 'Tanggal Lahir'),
                                       TextSpan(
                                         text: ' *',
-                                        style: TextStyle(
-                                          color: AppColors.accent,
-                                        ),
+                                        style: TextStyle(color: Colors.red),
                                       ),
                                     ],
                                   ),
@@ -442,110 +453,90 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
                                 const SizedBox(height: 8),
                                 InkWell(
                                   onTap: () async {
-                                    final DateTime? picked =
-                                        await showDatePicker(
-                                          context: context,
-                                          initialDate: DateTime(1995, 3, 15),
-                                          firstDate: DateTime(1950),
-                                          lastDate: DateTime.now(),
-                                          builder: (context, child) {
-                                            return Theme(
-                                              data: Theme.of(context).copyWith(
-                                                colorScheme:
-                                                    const ColorScheme.light(
-                                                      primary:
-                                                          AppColors.primary,
-                                                    ),
-                                              ),
-                                              child: child!,
-                                            );
-                                          },
-                                        );
+                                    final picked = await CustomDatePickerModal.show(
+                                      context,
+                                      initialDate: controller.tanggalLahir.value.isNotEmpty
+                                        ? _parseDate(controller.tanggalLahir.value)
+                                        : DateTime(2003, 1, 1),
+                                    );
                                     if (picked != null) {
-                                      setState(() {
-                                        _tanggalLahir =
-                                            '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
-                                      });
+                                      controller.tanggalLahir.value = '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
                                     }
                                   },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 16,
-                                    ),
+                                  child: Obx(() => Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                                     decoration: BoxDecoration(
-                                      color: AppColors.white,
+                                      color: Colors.white,
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: AppColors.primary,
+                                        color: const Color(0xFF02B1BA),
                                         width: 1,
                                       ),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        const Icon(
-                                          Icons.calendar_today_outlined,
-                                          color: Colors.grey,
-                                          size: 18,
-                                        ),
+                                        const Icon(Icons.calendar_today_outlined, color: Colors.grey, size: 18),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            _tanggalLahir.isEmpty
-                                                ? 'dd/mm/yyyy'
-                                                : _tanggalLahir,
-                                            style: AppTextStyles.bodySmall
-                                                .copyWith(
-                                                  color:
-                                                      _tanggalLahir.isEmpty
-                                                          ? Colors.grey
-                                                          : Colors.black87,
-                                                ),
+                                            controller.tanggalLahir.value.isEmpty ? 'dd/mm/yyyy' : controller.tanggalLahir.value,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: controller.tanggalLahir.value.isEmpty ? Colors.grey : Colors.black87,
+                                            ),
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
+                                  )),
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-
+                      
                       const SizedBox(height: 32),
-
-                      // Button Simpan
-                      SizedBox(
+                      
+                      Obx(() => SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: controller.isLoading.value 
+                            ? null 
+                            : () {
                             if (_formKey.currentState!.validate()) {
-                              SnackbarHelper.showSuccess(
-                                'Data berhasil diperbarui',
-                              );
-                              Navigator.pop(context);
+                              controller.updateDataDiri();
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: const Color(0xFF02B1BA),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                             elevation: 0,
                           ),
-                          child: Text(
-                            'SIMPAN PERUBAHAN',
-                            style: AppTextStyles.button.copyWith(
-                              color: AppColors.white,
-                            ),
-                          ),
+                          child: controller.isLoading.value 
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'SIMPAN PERUBAHAN',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                         ),
-                      ),
+                      )),
                       const SizedBox(height: 16),
                     ],
                   ),
@@ -556,5 +547,22 @@ class _KelolaDataDiriViewState extends State<KelolaDataDiriView> {
         ),
       ),
     );
+  }
+
+  // Helper untuk parse tanggal format dd/mm/yyyy
+  DateTime _parseDate(String dateStr) {
+    try {
+      final parts = dateStr.split('/');
+      if (parts.length == 3) {
+        return DateTime(
+          int.parse(parts[2]), // year
+          int.parse(parts[1]), // month
+          int.parse(parts[0]), // day
+        );
+      }
+    } catch (e) {
+      // Fallback jika parsing gagal
+    }
+    return DateTime(2003, 1, 1);
   }
 }
