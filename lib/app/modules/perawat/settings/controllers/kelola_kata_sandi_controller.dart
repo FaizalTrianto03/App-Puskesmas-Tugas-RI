@@ -68,9 +68,10 @@ class KelolaKataSandiController extends GetxController {
       );
 
       if (success) {
-        SnackbarHelper.showSuccess('Kata sandi berhasil diubah');
-        await Future.delayed(const Duration(milliseconds: 600));
-        Get.back();
+        SnackbarHelper.showSuccess('Kata sandi berhasil diubah. Silakan login kembali.');
+        await Future.delayed(const Duration(milliseconds: 800));
+        await AuthHelper.logout();
+        Get.offAllNamed('/');
       } else {
         SnackbarHelper.showError('Kata sandi lama tidak sesuai');
       }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../widgets/quarter_circle_background.dart';
+import '../../../../widgets/notification_toggle_tile.dart';
 import '../../../../utils/confirmation_dialog.dart';
 import '../controllers/perawat_settings_controller.dart';
+import '../controllers/kelola_data_diri_controller.dart';
+import '../controllers/kelola_kata_sandi_controller.dart';
 import 'kelola_data_diri_view.dart';
 import 'kelola_kata_sandi_view.dart';
 
@@ -13,14 +16,15 @@ class PerawatSettingsView extends GetView<PerawatSettingsController> {
   Widget build(BuildContext context) {
     // Inject controller
     Get.lazyPut(() => PerawatSettingsController());
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        elevation: 0,
         scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent, 
+        automaticallyImplyLeading: false, 
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF02B1BA)),
@@ -35,6 +39,7 @@ class PerawatSettingsView extends GetView<PerawatSettingsController> {
           ),
         ),
       ),
+
       body: Column(
         children: [
           Container(
@@ -83,9 +88,9 @@ class PerawatSettingsView extends GetView<PerawatSettingsController> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    controller.userName.value.isEmpty 
-                                      ? 'Loading...' 
-                                      : controller.userName.value,
+                                    controller.userName.value.isEmpty
+                                        ? 'Loading...'
+                                        : controller.userName.value,
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -94,9 +99,9 @@ class PerawatSettingsView extends GetView<PerawatSettingsController> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    controller.userRole.value.isEmpty 
-                                      ? 'Loading...' 
-                                      : controller.userRole.value,
+                                    controller.userRole.value.isEmpty
+                                        ? 'Loading...'
+                                        : controller.userRole.value,
                                     style: const TextStyle(
                                       fontSize: 14,
                                       color: Colors.white,
@@ -124,10 +129,12 @@ class PerawatSettingsView extends GetView<PerawatSettingsController> {
                       icon: Icons.person_outline,
                       title: 'Kelola Data Diri',
                       onTap: () {
+                        Get.lazyPut(() => KelolaDataDiriController());
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const KelolaDataDiriView(),
+                            builder:
+                                (context) => const PerawatKelolaDataDiriView(),
                           ),
                         );
                       },
@@ -136,14 +143,17 @@ class PerawatSettingsView extends GetView<PerawatSettingsController> {
                       icon: Icons.vpn_key_outlined,
                       title: 'Kelola Kata Sandi',
                       onTap: () {
+                        Get.lazyPut(() => KelolaKataSandiController());
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const KelolaKataSandiView(),
+                            builder:
+                                (context) => const PerawatKelolaKataSandiView(),
                           ),
                         );
                       },
                     ),
+                    const NotificationToggleTile(role: 'perawat'),
                     const SizedBox(height: 24),
                     _buildMenuItem(
                       icon: Icons.logout,
